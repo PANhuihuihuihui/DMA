@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LocalPilot AI - AI Marketing Operator For Local Businesses</title>
+    <meta
+      name="description"
+      content="LocalPilot AI turns one local business video, service, or promotion into platform-native campaigns for TikTok, Instagram, Facebook, and Xiaohongshu."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2313a56b'/%3E%3Ctext x='32' y='38' text-anchor='middle' font-family='Arial' font-size='18' font-weight='700' fill='white'%3ELP%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="top" class="top-anchor" aria-hidden="true"></div>
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="LocalPilot AI home">
+        <span class="brand-mark">LP</span>
+        <span>LocalPilot <strong>AI</strong></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#product">Product</a>
+        <a href="#solutions">Solutions</a>
+        <a href="#roi">Local ROI</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="text-button" type="button" data-open-modal>Log in</button>
+        <button class="primary-button small" type="button" data-open-modal>Join the pilot</button>
+      </div>
+
+      <button class="menu-button" type="button" aria-label="Open navigation" data-menu-button>
+        <span></span>
+        <span></span>
+      </button>
+    </header>
+
+    <main>
+      <section class="hero section-shell">
+        <div class="hero-copy">
+          <p class="eyebrow">AI marketing operator for local businesses</p>
+          <h1>Your local business marketing team, <span class="accent">powered by AI.</span></h1>
+          <p class="hero-subtitle">
+            Upload a video or promotion and get a week of platform-native content
+            for TikTok, Instagram, Facebook, and Xiaohongshu.
+          </p>
+          <div class="cta-row">
+            <button class="primary-button" type="button" data-open-modal>Join the pilot</button>
+            <a class="secondary-button" href="#workflow">Watch workflow</a>
+          </div>
+          <div class="rating-row" aria-label="Customer rating">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <span>4.9/5 from 120+ local business owners</span>
+          </div>
+          <div class="trust-row">
+            <span>No credit card required</span>
+            <span>Cancel anytime</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" id="product">
+          <img class="hero-photo" src="assets/cafe-owner.png" alt="Local cafe owner reviewing marketing on a tablet" />
+
+          <div class="workspace-card">
+            <aside class="workspace-sidebar" aria-label="Product sidebar preview">
+              <div class="mini-brand">
+                <span class="brand-mark small-mark">LP</span>
+                <span>LocalPilot AI</span>
+              </div>
+              <button class="side-item active" type="button">Overview</button>
+              <button class="side-item" type="button">Campaigns</button>
+              <button class="side-item" type="button">Calendar</button>
+              <button class="side-item" type="button">Content</button>
+              <button class="side-item" type="button">Analytics</button>
+              <button class="side-item" type="button">Trend-to-Action</button>
+              <button class="side-item" type="button">Competitors</button>
+            </aside>
+
+            <div class="workspace-main">
+              <div class="workspace-top">
+                <div>
+                  <p class="crumb">Businesses / Sunny Side Bistro</p>
+                  <h2>Sunny Side Bistro</h2>
+                </div>
+                <div class="approval-pill">AI set</div>
+              </div>
+
+              <div class="summary-grid">
+                <article class="summary-card input-card">
+                  <img src="assets/restaurant.png" alt="Restaurant lunch special" />
+                  <div>
+                    <span>Input</span>
+                    <strong>Weekend lunch special video</strong>
+                    <small>Uploaded May 16, 2026 - 10:42 AM</small>
+                  </div>
+                </article>
+                <article class="summary-card">
+                  <span>Campaign</span>
+                  <strong>May 19 - May 25, 2026</strong>
+                  <small>4 platforms - 16 pieces of content</small>
+                  <button class="ghost-button" type="button">View calendar</button>
+                </article>
+              </div>
+
+              <div class="platform-grid">
+                <article class="platform-card" data-platform="tiktok">
+                  <div class="platform-head"><span>TikTok</span><strong>Hook</strong></div>
+                  <img src="assets/restaurant.png" alt="TikTok campaign preview for lunch special" />
+                  <p>This lunch special hits different.</p>
+                  <span class="approved">Approved</span>
+                </article>
+                <article class="platform-card" data-platform="instagram">
+                  <div class="platform-head"><span>Instagram</span><strong>Reel</strong></div>
+                  <img src="assets/restaurant.png" alt="Instagram Reel preview for lunch special" />
+                  <p>Weekend lunch just got booked.</p>
+                  <span class="approved">Approved</span>
+                </article>
+                <article class="platform-card" data-platform="facebook">
+                  <div class="platform-head"><span>Facebook</span><strong>Local Post</strong></div>
+                  <img src="assets/restaurant.png" alt="Facebook local post preview for lunch special" />
+                  <p>Fresh ingredients. Big flavor. See you this weekend.</p>
+                  <span class="approved">Approved</span>
+                </article>
+                <article class="platform-card" data-platform="red">
+                  <div class="platform-head"><span>Xiaohongshu</span><strong>种草 Note</strong></div>
+                  <img src="assets/restaurant.png" alt="Xiaohongshu note preview for lunch special" />
+                  <p>周末午餐推荐, 好吃不贵, 值得打卡.</p>
+                  <span class="approved">Approved</span>
+                </article>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard section-shell" id="workflow">
+        <div class="calendar-panel">
+          <div class="panel-heading">
+            <h2>Campaign calendar</h2>
+            <span>May 19 - May 25, 2026</span>
+          </div>
+          <div class="calendar-grid" aria-label="Weekly campaign calendar">
+            <div class="calendar-day"><span>Mon</span><strong>TikTok Hook</strong><small>12:00 PM</small></div>
+            <div class="calendar-day soft"><span>Tue</span><strong>Reel</strong><small>12:00 PM</small></div>
+            <div class="calendar-day"><span>Wed</span><strong>Behind Scenes</strong><small>6:00 PM</small></div>
+            <div class="calendar-day blue"><span>Thu</span><strong>Local Post</strong><small>9:00 AM</small></div>
+            <div class="calendar-day"><span>Fri</span><strong>Menu Highlight</strong><small>12:00 PM</small></div>
+            <div class="calendar-day soft"><span>Sat</span><strong>Story</strong><small>2:00 PM</small></div>
+            <div class="calendar-day blue"><span>Sun</span><strong>Event Post</strong><small>6:00 PM</small></div>
+          </div>
+          <div class="insight-row">
+            <div>
+              <span class="insight-label">Trend-to-Action</span>
+              <strong>Hot now: "crispy chicken sandwich"</strong>
+              <p>Mentions are up 126% in your area.</p>
+            </div>
+            <button class="secondary-button compact" type="button" data-open-modal>Create content idea</button>
+          </div>
+        </div>
+
+        <div class="roi-panel">
+          <div class="panel-heading">
+            <h2>Local ROI</h2>
+            <a href="#roi">View full report</a>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-card"><span>Calls</span><strong>28</strong><small>+40%</small></div>
+            <div class="metric-card"><span>Bookings</span><strong>17</strong><small>+55%</small></div>
+            <div class="metric-card"><span>DMs</span><strong>34</strong><small>+31%</small></div>
+            <div class="metric-card"><span>Coupon Scans</span><strong>52</strong><small>+63%</small></div>
+            <div class="metric-card"><span>Saves</span><strong>91</strong><small>+25%</small></div>
+            <div class="metric-card"><span>Map Clicks</span><strong>76</strong><small>+38%</small></div>
+          </div>
+          <div class="competitor-box">
+            <span>Competitor Watcher</span>
+            <p>Your competitor posted 3 new videos this week. Engagement is up on lunch specials.</p>
+            <button class="ghost-button" type="button">See what's working</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="workflow-strip section-shell">
+        <div>
+          <h2>Upload once.<br />Grow all week.</h2>
+          <p>
+            LocalPilot AI turns one video, menu item, service, or promotion into
+            platform-native content that gets noticed and drives action.
+          </p>
+        </div>
+        <ol class="steps">
+          <li><span>1</span><strong>Upload</strong><p>Upload a video or share your promotion.</p></li>
+          <li><span>2</span><strong>AI creates</strong><p>AI creates native content for every channel.</p></li>
+          <li><span>3</span><strong>Schedule</strong><p>We schedule a week that fits your business.</p></li>
+          <li><span>4</span><strong>You grow</strong><p>Track local results that matter.</p></li>
+        </ol>
+      </section>
+
+      <section class="section-shell" id="solutions">
+        <div class="section-heading">
+          <h2>Built for restaurants, salons, clinics, and shops.</h2>
+          <p>Start with proven playbooks for local businesses where every booking, visit, and call matters.</p>
+        </div>
+        <div class="industry-grid">
+          <article class="industry-card">
+            <img src="assets/restaurant.png" alt="Restaurant food" />
+            <div><strong>Restaurants</strong><p>Fill tables and turn specials into loyal regulars.</p></div>
+          </article>
+          <article class="industry-card">
+            <img src="assets/salon.png" alt="Salon stylist with client" />
+            <div><strong>Salons</strong><p>Show off your work and keep chairs booked.</p></div>
+          </article>
+          <article class="industry-card">
+            <img src="assets/clinic.png" alt="Clinic reception area" />
+            <div><strong>Clinics</strong><p>Build trust and grow appointment demand.</p></div>
+          </article>
+          <article class="industry-card">
+            <img src="assets/shop.png" alt="Boutique retail shop" />
+            <div><strong>Shops</strong><p>Highlight products and drive foot traffic.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="roi-section section-shell" id="roi">
+        <div class="roi-copy">
+          <p class="eyebrow">Local ROI, not vanity metrics</p>
+          <h2>Know what marketing actually brings customers.</h2>
+          <p>
+            We track calls, bookings, DMs, coupon scans, saves, and map clicks so owners
+            can see what is working and keep growing.
+          </p>
+        </div>
+        <div class="roi-features">
+          <article><strong>Calls</strong><p>Know who called from your content.</p></article>
+          <article><strong>Bookings</strong><p>See appointments attributed to campaigns.</p></article>
+          <article><strong>DMs</strong><p>Respond faster and convert more conversations.</p></article>
+          <article><strong>Coupon scans</strong><p>Track redemptions that drive revenue.</p></article>
+          <article><strong>Saves</strong><p>See what content your audience loves.</p></article>
+          <article><strong>Map clicks</strong><p>Drive more visits to your location.</p></article>
+        </div>
+      </section>
+
+      <section class="red-section section-shell">
+        <div>
+          <p class="eyebrow red">Xiaohongshu-native growth</p>
+          <h2>Native strategy, not translation.</h2>
+          <p>
+            Create RED notes with Chinese copy, 种草 framing, search keywords, cover text,
+            save-oriented structure, and KOC-ready briefs.
+          </p>
+        </div>
+        <div class="red-card">
+          <span class="red-badge">小红书</span>
+          <h3>本地午餐推荐</h3>
+          <p>关键词: 周末午餐, 本地探店, 适合朋友聚餐, 性价比</p>
+          <div class="red-stats">
+            <span>1,248 saves</span>
+            <span>983 likes</span>
+            <span>156 comments</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="pricing section-shell" id="pricing">
+        <div class="section-heading">
+          <h2>Pilot plans</h2>
+          <p>Simple plans for early customers. Built to prove local ROI fast.</p>
+        </div>
+        <div class="pricing-grid">
+          <article class="price-card">
+            <h3>Starter Pilot</h3>
+            <p>Perfect for trying it out.</p>
+            <strong>$0 <span>14-day pilot</span></strong>
+            <ul>
+              <li>1 business location</li>
+              <li>1 video or promotion per week</li>
+              <li>4 platforms</li>
+              <li>Local ROI dashboard</li>
+            </ul>
+            <button class="primary-button" type="button" data-open-modal>Join the pilot</button>
+          </article>
+          <article class="price-card popular">
+            <div class="popular-ribbon">Most popular</div>
+            <h3>Growth Pilot</h3>
+            <p>For businesses ready to grow.</p>
+            <strong>$49 <span>/ week</span></strong>
+            <ul>
+              <li>1 business location</li>
+              <li>Up to 3 uploads per week</li>
+              <li>4 platforms including Xiaohongshu</li>
+              <li>Trend-to-Action and competitor watcher</li>
+            </ul>
+            <button class="coral-button" type="button" data-open-modal>Join the pilot</button>
+          </article>
+          <article class="price-card">
+            <h3>Scale Pilot</h3>
+            <p>For multi-location businesses.</p>
+            <strong>$99 <span>/ week</span></strong>
+            <ul>
+              <li>Up to 3 locations</li>
+              <li>Up to 6 uploads per week</li>
+              <li>Advanced analytics</li>
+              <li>Priority support</li>
+            </ul>
+            <button class="blue-button" type="button" data-open-modal>Join the pilot</button>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer section-shell">
+      <a class="brand" href="#top">
+        <span class="brand-mark">LP</span>
+        <span>LocalPilot <strong>AI</strong></span>
+      </a>
+      <p>AI marketing operator for local businesses.</p>
+      <button class="primary-button small" type="button" data-open-modal>Request demo</button>
+    </footer>
+
+    <div class="modal-backdrop" data-modal hidden>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" type="button" aria-label="Close pilot form" data-close-modal>Close</button>
+        <p class="eyebrow">Pilot access</p>
+        <h2 id="modal-title">Join the LocalPilot AI pilot</h2>
+        <form class="pilot-form" data-pilot-form>
+          <label>
+            Name
+            <input name="name" type="text" placeholder="Your name" required />
+          </label>
+          <label>
+            Business name
+            <input name="business" type="text" placeholder="Sunny Side Bistro" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" placeholder="you@business.com" required />
+          </label>
+          <label>
+            Business type
+            <select name="type">
+              <option>Restaurant or cafe</option>
+              <option>Salon or beauty</option>
+              <option>Clinic or wellness</option>
+              <option>Retail shop</option>
+              <option>Other local service</option>
+            </select>
+          </label>
+          <label class="full">
+            Biggest marketing challenge
+            <textarea name="challenge" rows="3" placeholder="What do you want LocalPilot AI to help with first?"></textarea>
+          </label>
+          <button class="primary-button full" type="submit">Request pilot invite</button>
+        </form>
+      </section>
+    </div>
+
+    <div class="toast" data-toast hidden>Thanks. Your pilot request is saved for this prototype.</div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
