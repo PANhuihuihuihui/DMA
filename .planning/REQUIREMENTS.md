@@ -162,24 +162,83 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01..FOUND-06 | TBD | Pending |
-| ACCT-01..ACCT-07 | TBD | Pending |
-| SEC-01..SEC-06 | TBD | Pending |
-| CAMP-01..CAMP-06 | TBD | Pending |
-| APPR-01..APPR-06 | TBD | Pending |
-| MEDIA-01..MEDIA-05 | TBD | Pending |
-| ENGINE-01..ENGINE-05 | TBD | Pending |
-| FB-01..FB-06 | TBD | Pending |
-| TT-01..TT-07 | TBD | Pending |
-| STATUS-01..STATUS-05 | TBD | Pending |
-| LOCAL-01..LOCAL-06 | TBD | Pending |
-| ADMIN-01..ADMIN-04 | TBD | Pending |
+| FOUND-01 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-02 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-03 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-04 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-05 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-06 | Phase 1 - Backend Publishing Foundation | Pending |
+| ACCT-01 | Phase 4 - Facebook Page Publishing | Pending |
+| ACCT-02 | Phase 4 - Facebook Page Publishing | Pending |
+| ACCT-03 | Phase 4 - Facebook Page Publishing | Pending |
+| ACCT-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| ACCT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| ACCT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| ACCT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| SEC-01 | Phase 1 - Backend Publishing Foundation | Pending |
+| SEC-02 | Phase 1 - Backend Publishing Foundation | Pending |
+| SEC-03 | Phase 1 - Backend Publishing Foundation | Pending |
+| SEC-04 | Phase 1 - Backend Publishing Foundation | Pending |
+| SEC-05 | Phase 2 - Publishing Engine Reuse Decision | Pending |
+| SEC-06 | Phase 1 - Backend Publishing Foundation | Pending |
+| CAMP-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| CAMP-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| CAMP-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| CAMP-04 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| CAMP-05 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| CAMP-06 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| APPR-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| APPR-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| APPR-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| APPR-04 | Phase 1 - Backend Publishing Foundation | Pending |
+| APPR-05 | Phase 1 - Backend Publishing Foundation | Pending |
+| APPR-06 | Phase 1 - Backend Publishing Foundation | Pending |
+| MEDIA-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| MEDIA-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| MEDIA-03 | Phase 4 - Facebook Page Publishing | Pending |
+| MEDIA-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| MEDIA-05 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| ENGINE-01 | Phase 2 - Publishing Engine Reuse Decision | Pending |
+| ENGINE-02 | Phase 2 - Publishing Engine Reuse Decision | Pending |
+| ENGINE-03 | Phase 2 - Publishing Engine Reuse Decision | Pending |
+| ENGINE-04 | Phase 2 - Publishing Engine Reuse Decision | Pending |
+| ENGINE-05 | Phase 2 - Publishing Engine Reuse Decision | Pending |
+| FB-01 | Phase 4 - Facebook Page Publishing | Pending |
+| FB-02 | Phase 4 - Facebook Page Publishing | Pending |
+| FB-03 | Phase 4 - Facebook Page Publishing | Pending |
+| FB-04 | Phase 4 - Facebook Page Publishing | Pending |
+| FB-05 | Phase 4 - Facebook Page Publishing | Pending |
+| FB-06 | Phase 4 - Facebook Page Publishing | Pending |
+| TT-01 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-02 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-03 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| STATUS-01 | Phase 1 - Backend Publishing Foundation | Pending |
+| STATUS-02 | Phase 1 - Backend Publishing Foundation | Pending |
+| STATUS-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| STATUS-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| STATUS-05 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| LOCAL-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| LOCAL-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| LOCAL-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| LOCAL-04 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| LOCAL-05 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| LOCAL-06 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| ADMIN-01 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| ADMIN-02 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| ADMIN-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| ADMIN-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 
 **Coverage:**
 - v1 requirements: 69 total
-- Mapped to phases: 0
-- Unmapped: 69
+- Mapped to phases: 69
+- Unmapped: 0
+- Duplicate mappings: 0
+- Coverage status: Complete
 
 ---
 *Requirements defined: 2026-06-09*
-*Last updated: 2026-06-09 after initialization*
+*Last updated: 2026-06-09 after roadmap creation*
