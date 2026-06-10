@@ -147,7 +147,7 @@ class RetryRedactionIdempotencyTest(ApiCase):
             ["approved", "queued", "publishing", "failed", "retry_needed", "queued", "publishing", "published"],
             [event["status"] for event in retried_job["events"]],
         )
-        self.assertEqual([1], [row["attempt_number"] for row in self.raw_outcome_rows()])
+        self.assertEqual([2], [row["attempt_number"] for row in self.raw_outcome_rows()])
         self.assert_redacted_everywhere("retry payload", retry_payload)
 
         fetched = self.get_json(f"/api/v1/publish-jobs/{first_job['id']}")

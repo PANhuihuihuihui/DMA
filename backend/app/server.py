@@ -1,5 +1,6 @@
 import argparse
 import json
+from contextlib import closing
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -34,30 +35,42 @@ class JsonHandler(BaseHTTPRequestHandler):
                 self.send_json({"status": "ok", "service": "localpilot-backend"})
                 return
             if method == "GET" and path == "/api/v1/workflow":
-                with store.connect(self.db_path) as conn:
+                with closing(store.connect(self.db_path)) as conn:
                     self.send_json(store.get_workflow(conn))
                 return
             if method == "POST" and path == "/api/v1/campaigns":
-                with store.connect(self.db_path) as conn:
+                with closing(store.connect(self.db_path)) as conn:
                     self.send_json({"campaign": store.create_campaign(conn, self.read_json())}, status=201)
                 return
             approval_action = self.match_approval_action(path)
             if approval_action and method == "POST" and approval_action["action"] == "publish":
-                with store.connect(self.db_path) as conn:
+                with closing(store.connect(self.db_path)) as conn:
                     self.send_json(fake_publisher.queue_fake_publish(conn, approval_action["approval_id"]), status=201)
                 return
             publish_job = self.match_publish_job(path)
-            if publish_job and method == "GET":
-                with store.connect(self.db_path) as conn:
+            if publish_job and method == "GET" and publish_job["action"] is None:
+                with closing(store.connect(self.db_path)) as conn:
                     self.send_json({"job": store.get_serialized_publish_job(conn, publish_job["job_id"])})
+                return
+            if publish_job and method == "POST" and publish_job["action"] == "retry":
+                body = self.read_json()
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(
+                        fake_publisher.retry_fake_publish(
+                            conn,
+                            publish_job["job_id"],
+                            diagnostics_fixture=body.get("diagnosticsFixture"),
+                        ),
+                        status=201,
+                    )
                 return
             draft_action = self.match_draft_action(path)
             if draft_action and method == "PATCH" and draft_action["action"] is None:
-                with store.connect(self.db_path) as conn:
+                with closing(store.connect(self.db_path)) as conn:
                     self.send_json(store.update_draft(conn, draft_action["draft_id"], self.read_json()))
                 return
             if draft_action and method == "POST" and draft_action["action"] == "approve":
-                with store.connect(self.db_path) as conn:
+                with closing(store.connect(self.db_path)) as conn:
                     self.send_json(store.approve_draft(conn, draft_action["draft_id"], self.read_json()), status=201)
                 return
 
@@ -86,7 +99,9 @@ class JsonHandler(BaseHTTPRequestHandler):
     def match_publish_job(self, path):
         parts = path.split("/")
         if len(parts) == 5 and parts[:4] == ["", "api", "v1", "publish-jobs"]:
-            return {"job_id": parts[4]}
+            return {"job_id": parts[4], "action": None}
+        if len(parts) == 6 and parts[:4] == ["", "api", "v1", "publish-jobs"]:
+            return {"job_id": parts[4], "action": parts[5]}
         return None
 
     def read_json(self):

@@ -42,10 +42,12 @@ def new_id(prefix):
 def redact(value):
     if isinstance(value, dict):
         redacted = {}
+        redacted_count = 0
         for key, item in value.items():
             normalized = str(key).lower()
             if any(term in normalized for term in FORBIDDEN_TERMS):
-                redacted[key] = "[redacted]"
+                redacted_count += 1
+                redacted[f"redactedField{redacted_count}"] = "[redacted]"
             else:
                 redacted[key] = redact(item)
         return redacted

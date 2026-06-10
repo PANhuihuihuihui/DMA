@@ -195,6 +195,22 @@ def initialize_database(conn):
           approval_id text references approvals(id),
           created_at text not null
         );
+
+        create table if not exists publish_outcomes (
+          id text primary key,
+          publish_job_id text not null references publish_jobs(id),
+          approval_id text not null references approvals(id),
+          attempt_id text not null references publish_attempts(id),
+          attempt_number integer not null,
+          idempotency_key text not null,
+          connected_channel_id text not null,
+          draft_version_id text not null,
+          platform text not null,
+          provider text not null,
+          provider_result_ref text not null,
+          created_at text not null,
+          unique(idempotency_key, connected_channel_id)
+        );
         """
     )
     migrate_database(conn)
@@ -225,6 +241,29 @@ def migrate_database(conn):
         conn.execute("alter table publish_events add column source_actor text")
     if "attempt_number" not in event_columns:
         conn.execute("alter table publish_events add column attempt_number integer")
+
+    conn.execute(
+        """
+        create table if not exists publish_outcomes (
+          id text primary key,
+          publish_job_id text not null references publish_jobs(id),
+          approval_id text not null references approvals(id),
+          attempt_id text not null references publish_attempts(id),
+          attempt_number integer not null,
+          idempotency_key text not null,
+          connected_channel_id text not null,
+          draft_version_id text not null,
+          platform text not null,
+          provider text not null,
+          provider_result_ref text not null,
+          created_at text not null,
+          unique(idempotency_key, connected_channel_id)
+        )
+        """
+    )
+    outcome_columns = column_names(conn, "publish_outcomes")
+    if "attempt_number" not in outcome_columns:
+        conn.execute("alter table publish_outcomes add column attempt_number integer not null default 1")
 
 
 def row_to_boundary(row):
@@ -763,6 +802,7 @@ def update_publish_job_status(conn, job_id, status):
 
 def append_publish_event(conn, job_id, status, summary, source_actor, attempt_number):
     now = utc_now()
+    safe_summary = safe_diagnostics({"summary": summary}).get("summary") or "Publish event recorded."
     conn.execute(
         """
         insert into publish_events (
@@ -775,7 +815,7 @@ def append_publish_event(conn, job_id, status, summary, source_actor, attempt_nu
             job_id,
             status,
             status,
-            summary,
+            safe_summary,
             source_actor,
             source_actor,
             attempt_number,
@@ -812,6 +852,62 @@ def create_publish_attempt(conn, job_id, snapshot, outcome):
         ),
     )
     return conn.execute("select * from publish_attempts where id = ?", (attempt_id,)).fetchone()
+
+
+def record_publish_outcome(conn, job_id, attempt_id, snapshot):
+    idempotency = snapshot.get("idempotencyKey")
+    connected_channel = snapshot.get("connectedChannelRef") or {}
+    connected_channel_id = connected_channel.get("id")
+    draft_version_id = snapshot.get("draftVersionId")
+    platform = snapshot.get("platform")
+    if not idempotency or not connected_channel_id or not draft_version_id or not platform:
+        raise StoreError(409, "Approved snapshot is missing idempotency fields.")
+
+    existing = conn.execute(
+        """
+        select * from publish_outcomes
+        where idempotency_key = ? and connected_channel_id = ?
+        """,
+        (idempotency, connected_channel_id),
+    ).fetchone()
+    if existing is not None:
+        if existing["publish_job_id"] == job_id and existing["attempt_id"] == attempt_id:
+            return existing
+        raise StoreError(409, "A published outcome already exists for this approved draft version and channel.")
+
+    job = get_publish_job(conn, job_id)
+    now = utc_now()
+    attempt = conn.execute("select * from publish_attempts where id = ?", (attempt_id,)).fetchone()
+    if attempt is None:
+        raise StoreError(409, "Published outcome has no attempt record.")
+    provider_result_ref = f"fake:{platform}:{idempotency[-8:]}"
+    conn.execute(
+        """
+        insert into publish_outcomes (
+          id, publish_job_id, approval_id, attempt_id, attempt_number, idempotency_key,
+          connected_channel_id, draft_version_id, platform, provider,
+          provider_result_ref, created_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            new_id("publish_outcome"),
+            job_id,
+            job["approval_id"],
+            attempt_id,
+            attempt["attempt_number"],
+            idempotency,
+            connected_channel_id,
+            draft_version_id,
+            platform,
+            "fake",
+            provider_result_ref,
+            now,
+        ),
+    )
+    return conn.execute(
+        "select * from publish_outcomes where idempotency_key = ? and connected_channel_id = ?",
+        (idempotency, connected_channel_id),
+    ).fetchone()
 
 
 def next_attempt_number(conn, job_id):
