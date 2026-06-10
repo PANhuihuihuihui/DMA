@@ -10,7 +10,7 @@ Requirements for the first real publishing milestone. Each requirement should ma
 ### Publishing Foundation
 
 - [ ] **FOUND-01**: System stores merchants, users, business profiles, connected channels, campaigns, drafts, approvals, media assets, publish jobs, publish attempts, and publish events outside browser localStorage.
-- [ ] **FOUND-02**: System exposes versioned backend API endpoints for publishing workflow records consumed by the React app.
+- [x] **FOUND-02**: System exposes versioned backend API endpoints for publishing workflow records consumed by the React app.
 - [ ] **FOUND-03**: System supports a fake publishing adapter that exercises the full publish lifecycle without live platform credentials.
 - [ ] **FOUND-04**: System records immutable publish job attempts with request metadata, normalized status, redacted provider diagnostics, and timestamps.
 - [ ] **FOUND-05**: System uses idempotency keys so retrying an approved publish job cannot create duplicate external posts for the same approved draft version.
@@ -30,10 +30,10 @@ Requirements for the first real publishing milestone. Each requirement should ma
 
 - [ ] **SEC-01**: OAuth access tokens, refresh tokens, app secrets, and provider credentials are never stored in browser localStorage or committed files.
 - [ ] **SEC-02**: Backend stores provider tokens in a server-side encrypted or secret-managed token boundary.
-- [ ] **SEC-03**: System redacts secrets and provider tokens from logs, publish events, error messages, and admin diagnostics.
+- [x] **SEC-03**: System redacts secrets and provider tokens from logs, publish events, error messages, and admin diagnostics.
 - [ ] **SEC-04**: System requires explicit merchant approval before any live platform publish request is submitted.
 - [ ] **SEC-05**: System rejects scraping, cookie-based posting, and browser-session automation for production merchant publishing.
-- [ ] **SEC-06**: System preserves a reviewable audit trail showing who approved a draft, which draft version was approved, and when publishing was attempted.
+- [x] **SEC-06**: System preserves a reviewable audit trail showing who approved a draft, which draft version was approved, and when publishing was attempted.
 
 ### Campaign Generation
 
@@ -51,7 +51,7 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [ ] **APPR-03**: Merchant can request regeneration or revision instead of approving a draft.
 - [ ] **APPR-04**: Merchant can approve a specific draft version for a specific platform.
 - [ ] **APPR-05**: System freezes the approved payload snapshot so later edits cannot silently change an already-approved publish job.
-- [ ] **APPR-06**: Merchant can see whether each platform draft is draft, needs review, approved, queued, publishing, published, failed, retry needed, or manually completed.
+- [x] **APPR-06**: Merchant can see whether each platform draft is draft, needs review, approved, queued, publishing, published, failed, retry needed, or manually completed.
 
 ### Media Handling
 
@@ -90,8 +90,8 @@ Requirements for the first real publishing milestone. Each requirement should ma
 
 ### Publishing Status And Fallback
 
-- [ ] **STATUS-01**: Merchant can see a timeline for each platform publish job from approval through terminal status.
-- [ ] **STATUS-02**: System can retry transient publish failures without duplicating successful posts.
+- [x] **STATUS-01**: Merchant can see a timeline for each platform publish job from approval through terminal status.
+- [x] **STATUS-02**: System can retry transient publish failures without duplicating successful posts.
 - [ ] **STATUS-03**: System can mark a platform draft as manual fallback required when official API access, review status, account eligibility, or media constraints block direct publishing.
 - [ ] **STATUS-04**: Merchant can download or copy a manual publishing package containing caption, hashtags, CTA, media checklist, disclosure notes, and platform instructions.
 - [ ] **STATUS-05**: Merchant can mark a manual fallback package as manually completed.
@@ -163,7 +163,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FOUND-01 | Phase 1 - Backend Publishing Foundation | Pending |
-| FOUND-02 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-02 | Phase 1 - Backend Publishing Foundation | Complete |
 | FOUND-03 | Phase 1 - Backend Publishing Foundation | Pending |
 | FOUND-04 | Phase 1 - Backend Publishing Foundation | Pending |
 | FOUND-05 | Phase 1 - Backend Publishing Foundation | Pending |
@@ -177,10 +177,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACCT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
 | SEC-01 | Phase 1 - Backend Publishing Foundation | Pending |
 | SEC-02 | Phase 1 - Backend Publishing Foundation | Pending |
-| SEC-03 | Phase 1 - Backend Publishing Foundation | Pending |
+| SEC-03 | Phase 1 - Backend Publishing Foundation | Complete |
 | SEC-04 | Phase 1 - Backend Publishing Foundation | Pending |
 | SEC-05 | Phase 2 - Publishing Engine Reuse Decision | Pending |
-| SEC-06 | Phase 1 - Backend Publishing Foundation | Pending |
+| SEC-06 | Phase 1 - Backend Publishing Foundation | Complete |
 | CAMP-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
 | CAMP-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
 | CAMP-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
@@ -192,7 +192,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | APPR-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
 | APPR-04 | Phase 1 - Backend Publishing Foundation | Pending |
 | APPR-05 | Phase 1 - Backend Publishing Foundation | Pending |
-| APPR-06 | Phase 1 - Backend Publishing Foundation | Pending |
+| APPR-06 | Phase 1 - Backend Publishing Foundation | Complete |
 | MEDIA-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
 | MEDIA-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
 | MEDIA-03 | Phase 4 - Facebook Page Publishing | Pending |
@@ -216,8 +216,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
 | TT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
 | TT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| STATUS-01 | Phase 1 - Backend Publishing Foundation | Pending |
-| STATUS-02 | Phase 1 - Backend Publishing Foundation | Pending |
+| STATUS-01 | Phase 1 - Backend Publishing Foundation | Complete |
+| STATUS-02 | Phase 1 - Backend Publishing Foundation | Complete |
 | STATUS-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | STATUS-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | STATUS-05 | Phase 6 - Manual Fallback And Pilot Support | Pending |
@@ -233,6 +233,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADMIN-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 
 **Coverage:**
+
 - v1 requirements: 69 total
 - Mapped to phases: 69
 - Unmapped: 0
