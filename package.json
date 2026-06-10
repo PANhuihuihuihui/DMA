@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "dev:api": "python3 -m backend.app.server --port 8787 --db .localpilot-dev/backend.sqlite",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:full": "node scripts/dev-full.mjs",
     "build": "vite build --outDir dist/client --emptyOutDir true && node scripts/prepare-sites-dist.mjs",
     "package:sites": "npm run build && node scripts/package-sites.mjs",
     "preview": "vite preview --host 127.0.0.1",
