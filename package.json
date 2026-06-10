@@ -12,6 +12,7 @@
     "package:sites": "npm run build && node scripts/package-sites.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test:approval": "python3 -m unittest backend.tests.test_publish_approval -v && node scripts/smoke-approve-snapshot.mjs",
+    "test:fake-publish": "python3 -m unittest backend.tests.test_fake_publish_lifecycle -v && node scripts/smoke-fake-publish.mjs",
     "test:token-boundary": "python3 -m unittest backend.tests.test_token_boundary -v"
   },
   "dependencies": {
