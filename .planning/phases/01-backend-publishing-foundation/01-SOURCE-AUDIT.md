@@ -89,7 +89,8 @@ Checker-targeted broad plans were split:
 - Former `01-04` retry/idempotency split into `01-05` backend retry/redaction/idempotency (7 files) and `01-06` retry UI (6 files).
 - Former `01-05` debug slice split into `01-07` debug API (6 files) and `01-08` debug route/UI (6 files).
 - Final storage guardrails moved to `01-09` (5 files).
+- `01-01` narrowed to 10 files by omitting an unnecessary Python package marker from the planned file list.
 
 ## Authority Check
 
-No required item is omitted. No item is deferred due to implementation difficulty. The checker blocker items remain addressed by explicit `media_assets` coverage and explicit SEC-02 token-boundary coverage, and the remaining checker warning items are reduced by splitting the three broad plans into focused backend/frontend slices.
+No required item is omitted. No item is deferred due to implementation difficulty. The checker blocker items remain addressed by explicit `media_assets` coverage and explicit SEC-02 token-boundary coverage, and all current plan `files_modified` lists are at or below 10 entries.
