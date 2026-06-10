@@ -6,6 +6,23 @@ const text = (value, fallback = "") => (typeof value === "string" && value ? val
 
 const number = (value, fallback = 0) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
 
+export const LIFECYCLE_STATES = Object.freeze([
+  "draft",
+  "needs_review",
+  "approved",
+  "queued",
+  "publishing",
+  "published",
+  "failed",
+  "retry_needed",
+  "manual_fallback_required",
+]);
+
+const normalizeLifecycleState = (value, fallback = "draft") => {
+  const candidate = text(value, fallback);
+  return LIFECYCLE_STATES.includes(candidate) ? candidate : candidate;
+};
+
 const normalizeMediaRef = (media = {}) => {
   const source = asObject(media);
   return {
@@ -144,6 +161,61 @@ const normalizeApproval = (approval = {}) => {
   };
 };
 
+const normalizeSafeDiagnostics = (diagnostics = {}) => asObject(diagnostics);
+
+const normalizePublishAttempt = (attempt = {}) => {
+  const source = asObject(attempt);
+  return {
+    id: text(source.id),
+    attemptNumber: number(source.attemptNumber, 0),
+    status: normalizeLifecycleState(source.status, "queued"),
+    traceId: text(source.traceId),
+    requestDigest: text(source.requestDigest),
+    diagnostics: normalizeSafeDiagnostics(source.diagnostics),
+    retryClassification: text(source.retryClassification, "none"),
+    startedAt: text(source.startedAt),
+    finishedAt: text(source.finishedAt),
+    createdAt: text(source.createdAt),
+    updatedAt: text(source.updatedAt),
+  };
+};
+
+const normalizePublishEvent = (event = {}) => {
+  const source = asObject(event);
+  return {
+    id: text(source.id),
+    timestamp: text(source.timestamp || source.createdAt),
+    sourceActor: text(source.sourceActor || source.actor, "system"),
+    attemptNumber: number(source.attemptNumber, 0),
+    status: normalizeLifecycleState(source.status || source.eventType, "queued"),
+    summary: text(source.summary),
+  };
+};
+
+export const normalizePublishJob = (job = {}) => {
+  const source = asObject(job);
+  const attempts = asArray(source.attempts).map(normalizePublishAttempt);
+  const events = asArray(source.events).map(normalizePublishEvent);
+  const currentStatus = normalizeLifecycleState(source.status, events.at(-1)?.status || "draft");
+
+  return {
+    id: text(source.id),
+    approvalId: text(source.approvalId),
+    draftVersionId: text(source.draftVersionId),
+    connectedChannelId: text(source.connectedChannelId),
+    platform: text(source.platform),
+    status: currentStatus,
+    currentStatus,
+    approvalSnapshot: normalizeApprovalSnapshot(source.approvalSnapshot),
+    attempts,
+    events,
+    latestEvent: events.at(-1) || null,
+    latestAttempt: attempts.at(-1) || null,
+    createdAt: text(source.createdAt),
+    updatedAt: text(source.updatedAt),
+  };
+};
+
 export const normalizeWorkflow = (workflow = {}) => {
   const source = asObject(workflow);
   return {
@@ -155,5 +227,6 @@ export const normalizeWorkflow = (workflow = {}) => {
     connectedChannels: asArray(source.connectedChannels).map(normalizeConnectedChannelRef),
     platformDrafts: asArray(source.platformDrafts).map(normalizePlatformDraft),
     approvals: asArray(source.approvals).map(normalizeApproval),
+    publishJobs: asArray(source.publishJobs).map(normalizePublishJob),
   };
 };

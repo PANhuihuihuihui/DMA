@@ -39,3 +39,10 @@ export const approveDraftVersion = (draftId, approval) =>
     method: "POST",
     body: JSON.stringify(approval),
   });
+
+export const queueFakePublish = (approvalId) =>
+  requestJson(`/approvals/${encodeURIComponent(approvalId)}/publish`, {
+    method: "POST",
+  });
+
+export const loadPublishJob = (jobId) => requestJson(`/publish-jobs/${encodeURIComponent(jobId)}`);
