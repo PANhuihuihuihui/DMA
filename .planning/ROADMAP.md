@@ -13,7 +13,7 @@ LocalPilot AI moves from a frontend-only React/Vite demo into a real merchant-ow
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Backend Publishing Foundation** - Adds API-backed workflow state, fake publishing, approval snapshots, status tracking, and preserves the current demo.
+- [x] **Phase 1: Backend Publishing Foundation** - Adds API-backed workflow state, fake publishing, approval snapshots, status tracking, and preserves the current demo. (completed 2026-06-10)
 - [ ] **Phase 2: Publishing Engine Reuse Decision** - Spikes Postiz-style engine reuse and rejects AutoCLI-style production publishing before custom provider wrappers.
 - [ ] **Phase 3: Local Campaign Draft Workbench** - Turns one local offer into editable, platform-native Facebook and TikTok drafts with media and local CTA context.
 - [ ] **Phase 4: Facebook Page Publishing** - Connects merchant-owned Facebook Pages and publishes approved Facebook drafts first.
@@ -133,7 +133,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Backend Publishing Foundation | 6/9 | In Progress|  |
+| 1. Backend Publishing Foundation | 9/9 | Complete   | 2026-06-10 |
 | 2. Publishing Engine Reuse Decision | 0/TBD | Not started | - |
 | 3. Local Campaign Draft Workbench | 0/TBD | Not started | - |
 | 4. Facebook Page Publishing | 0/TBD | Not started | - |

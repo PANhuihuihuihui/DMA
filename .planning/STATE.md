@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 1 plans verified
-last_updated: "2026-06-10T19:07:58.550Z"
-last_activity: 2026-06-10 -- Completed Plan 01-07 debug diagnostics API
+status: completed
+stopped_at: Completed 01-09-PLAN.md
+last_updated: "2026-06-10T19:46:03.417Z"
+last_activity: 2026-06-10 -- Completed Plan 01-09 storage boundary and final verification gates
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_plans: 9
+  percent: 17
 ---
 
 # Project State
@@ -25,18 +25,18 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 01 (Backend Publishing Foundation) — EXECUTING
-Plan: 7 of 9 complete
-Status: Plan 01-07 complete; Phase 01 still has pending plans
-Last activity: 2026-06-10 -- Completed Plan 01-07 debug diagnostics API
+Phase: 01 (Backend Publishing Foundation) — COMPLETE
+Plan: 9 of 9 complete
+Status: Phase 01 complete; storage boundary and final verification gates passed
+Last activity: 2026-06-10 -- Completed Plan 01-09 storage boundary and final verification gates
 
-Progress: [#######---] 67%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 6
+- Total plans completed: 9
 - Average duration: N/A
 - Total execution time: N/A
 
@@ -44,12 +44,12 @@ Progress: [#######---] 67%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 6 | N/A | N/A |
+| 01 | 9 | N/A | N/A |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-02, 01-03, 01-04, 01-05, 01-07
-- Trend: Phase 01 in progress
+- Last 5 plans: 01-05, 01-06, 01-07, 01-08, 01-09
+- Trend: Phase 01 complete
 
 *Updated after each plan completion*
 
@@ -65,6 +65,7 @@ Recent decisions affecting current work:
 - [Roadmap]: AutoCLI/browser-session automation is not allowed for production merchant publishing.
 - [Roadmap]: Phase 1 preserves the current frontend demo while moving publish-critical state to backend-owned records.
 - [Plan 01-07]: Debug publishing diagnostics are exposed through a read-only support endpoint with redacted token-boundary refs and provider diagnostics.
+- [Plan 01-09]: Browser localStorage is limited to allowlisted preferences and final gates cover backend workflow, debug, storage, build, and packaging.
 
 ### Pending Todos
 
@@ -88,6 +89,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-10T19:07:58.547Z
-Stopped at: Completed 01-07-PLAN.md
+Last session: 2026-06-10T19:46:03.414Z
+Stopped at: Completed 01-09-PLAN.md
 Resume file: None

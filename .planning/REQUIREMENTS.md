@@ -9,12 +9,12 @@ Requirements for the first real publishing milestone. Each requirement should ma
 
 ### Publishing Foundation
 
-- [ ] **FOUND-01**: System stores merchants, users, business profiles, connected channels, campaigns, drafts, approvals, media assets, publish jobs, publish attempts, and publish events outside browser localStorage.
+- [x] **FOUND-01**: System stores merchants, users, business profiles, connected channels, campaigns, drafts, approvals, media assets, publish jobs, publish attempts, and publish events outside browser localStorage.
 - [x] **FOUND-02**: System exposes versioned backend API endpoints for publishing workflow records consumed by the React app.
 - [ ] **FOUND-03**: System supports a fake publishing adapter that exercises the full publish lifecycle without live platform credentials.
 - [ ] **FOUND-04**: System records immutable publish job attempts with request metadata, normalized status, redacted provider diagnostics, and timestamps.
 - [ ] **FOUND-05**: System uses idempotency keys so retrying an approved publish job cannot create duplicate external posts for the same approved draft version.
-- [ ] **FOUND-06**: System keeps current demo/marketing routes usable while replacing publish-critical localStorage state with API-backed records.
+- [x] **FOUND-06**: System keeps current demo/marketing routes usable while replacing publish-critical localStorage state with API-backed records.
 
 ### Account Connections
 
@@ -28,8 +28,8 @@ Requirements for the first real publishing milestone. Each requirement should ma
 
 ### Security And Compliance
 
-- [ ] **SEC-01**: OAuth access tokens, refresh tokens, app secrets, and provider credentials are never stored in browser localStorage or committed files.
-- [ ] **SEC-02**: Backend stores provider tokens in a server-side encrypted or secret-managed token boundary.
+- [x] **SEC-01**: OAuth access tokens, refresh tokens, app secrets, and provider credentials are never stored in browser localStorage or committed files.
+- [x] **SEC-02**: Backend stores provider tokens in a server-side encrypted or secret-managed token boundary.
 - [x] **SEC-03**: System redacts secrets and provider tokens from logs, publish events, error messages, and admin diagnostics.
 - [ ] **SEC-04**: System requires explicit merchant approval before any live platform publish request is submitted.
 - [ ] **SEC-05**: System rejects scraping, cookie-based posting, and browser-session automation for production merchant publishing.
@@ -162,12 +162,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-01 | Phase 1 - Backend Publishing Foundation | Complete |
 | FOUND-02 | Phase 1 - Backend Publishing Foundation | Complete |
 | FOUND-03 | Phase 1 - Backend Publishing Foundation | Pending |
 | FOUND-04 | Phase 1 - Backend Publishing Foundation | Pending |
 | FOUND-05 | Phase 1 - Backend Publishing Foundation | Pending |
-| FOUND-06 | Phase 1 - Backend Publishing Foundation | Pending |
+| FOUND-06 | Phase 1 - Backend Publishing Foundation | Complete |
 | ACCT-01 | Phase 4 - Facebook Page Publishing | Pending |
 | ACCT-02 | Phase 4 - Facebook Page Publishing | Pending |
 | ACCT-03 | Phase 4 - Facebook Page Publishing | Pending |
@@ -175,8 +175,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACCT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
 | ACCT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
 | ACCT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| SEC-01 | Phase 1 - Backend Publishing Foundation | Pending |
-| SEC-02 | Phase 1 - Backend Publishing Foundation | Pending |
+| SEC-01 | Phase 1 - Backend Publishing Foundation | Complete |
+| SEC-02 | Phase 1 - Backend Publishing Foundation | Complete |
 | SEC-03 | Phase 1 - Backend Publishing Foundation | Complete |
 | SEC-04 | Phase 1 - Backend Publishing Foundation | Pending |
 | SEC-05 | Phase 2 - Publishing Engine Reuse Decision | Pending |
