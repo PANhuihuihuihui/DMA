@@ -11,6 +11,7 @@
     "build": "vite build --outDir dist/client --emptyOutDir true && node scripts/prepare-sites-dist.mjs",
     "package:sites": "npm run build && node scripts/package-sites.mjs",
     "preview": "vite preview --host 127.0.0.1",
+    "test": "python3 -m unittest discover backend/tests -v && npm run test:approval && npm run test:fake-publish && npm run test:retry-redaction && npm run test:debug && npm run test:storage-boundary && npm run build",
     "test:approval": "python3 -m unittest backend.tests.test_publish_approval -v && node scripts/smoke-approve-snapshot.mjs",
     "test:fake-publish": "python3 -m unittest backend.tests.test_fake_publish_lifecycle -v && node scripts/smoke-fake-publish.mjs",
     "test:debug": "python3 -m unittest backend.tests.test_debug_redaction -v && node scripts/smoke-debug-route.mjs",
