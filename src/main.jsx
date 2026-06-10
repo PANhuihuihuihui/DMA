@@ -2,9 +2,10 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./styles.css";
-import { approveDraftVersion, loadPublishingWorkflow } from "./api/publishingClient.js";
+import { approveDraftVersion, loadPublishJob, loadPublishingWorkflow, queueFakePublish } from "./api/publishingClient.js";
 import { ApprovalSnapshot } from "./components/ApprovalSnapshot.jsx";
-import { normalizeApprovalSnapshot, normalizeWorkflow } from "./models/publishing.js";
+import { PublishTimeline } from "./components/PublishTimeline.jsx";
+import { normalizeApprovalSnapshot, normalizePublishJob, normalizeWorkflow } from "./models/publishing.js";
 import { readPreference, writePreference } from "./storage/preferences.js";
 
 import cafeOwner from "../assets/cafe-owner.png";
@@ -1682,6 +1683,16 @@ const normalizeWorkflowStatus = (status) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
+const planLifecycleStatus = (plan) => {
+  if (plan?.publishJob?.currentStatus) {
+    return plan.publishJob.currentStatus;
+  }
+  if (plan?.approvalSnapshot?.draftVersionId) {
+    return "approved";
+  }
+  return "needs_review";
+};
+
 const workflowDraftToPlan = (draft, index, workflow) => {
   const displayName = platformDisplayName(draft.platform);
   const base = channelPlans.find((plan) => plan.name === displayName) || channelPlans[index] || channelPlans[0];
@@ -1700,6 +1711,7 @@ const workflowDraftToPlan = (draft, index, workflow) => {
       platform: draft.platform,
       connectedChannelId: draft.connectedChannelId,
       connectedChannel,
+      approvalId: approval?.id || "",
       currentVersion,
       approvalSnapshot: approval?.snapshot ? normalizeApprovalSnapshot(approval.snapshot) : null,
       mediaRefs,
@@ -2211,14 +2223,32 @@ function AppDemo() {
   const [workflowStatus, setWorkflowStatus] = useState("loading");
   const [workflowError, setWorkflowError] = useState("");
   const [approvalPending, setApprovalPending] = useState("");
+  const [publishPending, setPublishPending] = useState("");
+  const [queuedPublishJobs, setQueuedPublishJobs] = useState({});
   const [aiResponse, setAiResponse] = useState(
     "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
   );
   const [appToast, setAppToast] = useState("");
   const campaignInput = workflowCampaignInput(workflow);
+  const publishJobsByApprovalId = useMemo(() => {
+    const jobs = {};
+    workflow.publishJobs.forEach((job) => {
+      if (job.approvalId) {
+        jobs[job.approvalId] = job;
+      }
+    });
+    return { ...jobs, ...queuedPublishJobs };
+  }, [queuedPublishJobs, workflow.publishJobs]);
   const plans = useMemo(
-    () => workflow.platformDrafts.map((draft, index) => workflowDraftToPlan(draft, index, workflow)),
-    [workflow],
+    () =>
+      workflow.platformDrafts.map((draft, index) => {
+        const plan = workflowDraftToPlan(draft, index, workflow);
+        return {
+          ...plan,
+          publishJob: plan.approvalId ? publishJobsByApprovalId[plan.approvalId] || null : null,
+        };
+      }),
+    [publishJobsByApprovalId, workflow],
   );
   const safeSelectedChannel = clampIndex(selectedChannel, plans);
   const safeSelectedPost = clampIndex(selectedPost, plans);
@@ -2336,6 +2366,7 @@ function AppDemo() {
     selectModule("Home");
     setSelectedPost(0);
     setSelectedChannel(0);
+    setQueuedPublishJobs({});
     reloadWorkflow();
     setAiResponse(
       "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
@@ -2378,6 +2409,38 @@ function AppDemo() {
       showAppToast(error instanceof Error ? error.message : "Approval failed.");
     } finally {
       setApprovalPending("");
+    }
+  };
+
+  const queuePublishJob = async (index) => {
+    const plan = plans[index];
+    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+      showAppToast("Approve this exact draft before starting a fake publish job.");
+      return;
+    }
+    if (plan.publishJob?.id) {
+      showAppToast(`${plan.name} fake publish timeline is already loaded.`);
+      return;
+    }
+
+    setPublishPending(plan.id);
+    try {
+      const queued = await queueFakePublish(plan.approvalId);
+      const queuedJob = normalizePublishJob(queued?.job);
+      const loaded = queuedJob.id ? await loadPublishJob(queuedJob.id) : null;
+      const nextJob = normalizePublishJob(loaded?.job || queuedJob);
+      if (nextJob.approvalId) {
+        setQueuedPublishJobs((currentJobs) => ({
+          ...currentJobs,
+          [nextJob.approvalId]: nextJob,
+        }));
+      }
+      await reloadWorkflow({ silent: true });
+      showAppToast(`${plan.name} fake publish timeline loaded.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Fake publish queue failed.");
+    } finally {
+      setPublishPending("");
     }
   };
 
@@ -2629,9 +2692,20 @@ function AppDemo() {
                         >
                           Approve exact draft
                         </button>
+                        {channel.approvalSnapshot?.draftVersionId && !channel.publishJob?.id && (
+                          <button
+                            className="secondary-action"
+                            type="button"
+                            disabled={publishPending === channel.id}
+                            onClick={() => queuePublishJob(safeSelectedChannel)}
+                          >
+                            Queue fake publish
+                          </button>
+                        )}
                         <button className="secondary-action" type="button" onClick={() => requestChanges(safeSelectedChannel)}>
                           Request changes
                         </button>
+                        {publishPending === channel.id && <small className="inline-pending">Queueing fake publish...</small>}
                         {approvalPending === channel.id && <small className="inline-pending">Freezing snapshot...</small>}
                       </div>
 
@@ -2711,6 +2785,17 @@ function AppDemo() {
                     </div>
                   </section>
                 )}
+
+                <section className="publish-timeline-grid" aria-label="Per-platform fake publish timelines">
+                  {plans.map((plan) => (
+                    <PublishTimeline
+                      fallbackStatus={planLifecycleStatus(plan)}
+                      job={plan.publishJob}
+                      key={`${plan.id || plan.name}-timeline`}
+                      platform={plan.name}
+                    />
+                  ))}
+                </section>
 
                 <div className="feature-spotlight" aria-label="LocalPilot standout features">
                   {localpilotDifferentiators.map(({ title, proof }) => (
@@ -2814,6 +2899,15 @@ function AppDemo() {
                         >
                           Approve exact draft
                         </button>
+                        {selectedPlan.approvalSnapshot?.draftVersionId && !selectedPlan.publishJob?.id && (
+                          <button
+                            type="button"
+                            disabled={publishPending === selectedPlan.id}
+                            onClick={() => queuePublishJob(safeSelectedPost)}
+                          >
+                            Queue fake publish
+                          </button>
+                        )}
                         <button type="button" onClick={() => requestChanges(safeSelectedPost)}>
                           Request edit
                         </button>
@@ -2829,6 +2923,11 @@ function AppDemo() {
                         </ul>
                       </div>
                       <ApprovalSnapshot snapshot={selectedPlan.approvalSnapshot} />
+                      <PublishTimeline
+                        fallbackStatus={planLifecycleStatus(selectedPlan)}
+                        job={selectedPlan.publishJob}
+                        platform={selectedPlan.name}
+                      />
                     </div>
                     <img src={selectedPlan.asset} alt="Selected campaign preview" />
                   </article>
