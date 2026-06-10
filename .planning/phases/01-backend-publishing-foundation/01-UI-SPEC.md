@@ -1,7 +1,7 @@
 ---
 phase: 01
 slug: backend-publishing-foundation
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-10
@@ -60,8 +60,8 @@ Declared values (must be multiples of 4):
 
 Exceptions:
 - Interactive controls must be at least 44px tall on touch viewports and at least 40px tall on dense desktop/operator tables.
-- Timeline dots are 12px diameter; connecting lines are 2px.
-- Status chips use 8px vertical and 10px horizontal padding.
+- Timeline dots are 8px diameter; connecting lines are 4px.
+- Status chips use 8px vertical and 16px horizontal padding.
 - New cards/panels use 8px radius for dense operational surfaces. Existing legacy app panels may keep their current radius until intentionally refactored.
 
 ---
@@ -260,11 +260,11 @@ Safety rule:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
