@@ -1,0 +1,115 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-06-10T19:47:46.010Z",
+  "phase": "01",
+  "phase_name": "Backend Publishing Foundation",
+  "phase_dir": ".planning/phases/01-backend-publishing-foundation",
+  "plan": "post-execution",
+  "task": "phase-level gates",
+  "total_tasks": 9,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": "01-01",
+      "name": "Backend contract and persistence foundation",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-01-SUMMARY.md"
+    },
+    {
+      "id": "01-02",
+      "name": "Frontend backend-backed approval workflow",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-02-SUMMARY.md"
+    },
+    {
+      "id": "01-03",
+      "name": "Backend fake publish lifecycle",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-03-SUMMARY.md"
+    },
+    {
+      "id": "01-04",
+      "name": "React fake publish timeline",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-04-SUMMARY.md"
+    },
+    {
+      "id": "01-05",
+      "name": "Retry, idempotency, and redaction backend",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-05-SUMMARY.md"
+    },
+    {
+      "id": "01-06",
+      "name": "Retry publish control and attempt timeline UI",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-06-SUMMARY.md"
+    },
+    {
+      "id": "01-07",
+      "name": "Read-only redacted debug diagnostics API",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-07-SUMMARY.md"
+    },
+    {
+      "id": "01-08",
+      "name": "Hidden /app/debug route and route extraction",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-08-SUMMARY.md"
+    },
+    {
+      "id": "01-09",
+      "name": "Storage boundary and final verification scripts",
+      "status": "done",
+      "summary": ".planning/phases/01-backend-publishing-foundation/01-09-SUMMARY.md"
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": "code-review",
+      "name": "Run the required phase code review gate",
+      "status": "not_started"
+    },
+    {
+      "id": "security",
+      "name": "Run the security enforcement gate for Phase 1",
+      "status": "not_started"
+    },
+    {
+      "id": "verify",
+      "name": "Run phase-level verification / verify-work after review and security",
+      "status": "not_started"
+    },
+    {
+      "id": "closeout",
+      "name": "Update final phase tracking and commit handoff/remnant planning state as appropriate",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [],
+  "human_actions_pending": [
+    {
+      "action": "Decide what to do with the untracked .vscode/ directory and uncommitted .planning/config.json model override changes.",
+      "context": "They were present at pause time and were intentionally not staged by the execution agents.",
+      "blocking": false
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Plan 01-02 committed the pre-existing dirty frontend baseline together with backend-backed approval wiring.",
+      "rationale": "The plan had to modify src/main.jsx and src/styles.css and preserved the existing user/UI edits instead of reverting them.",
+      "phase": "01"
+    },
+    {
+      "decision": "Execution stopped immediately after Plan 01-09 completed.",
+      "rationale": "User explicitly asked to stop and write a pickup before phase-level review/security/verification gates.",
+      "phase": "01"
+    }
+  ],
+  "uncommitted_files": [
+    ".planning/config.json",
+    ".vscode/"
+  ],
+  "next_action": "Resume with phase-level gates: run code review, security audit, final regression/verification, then close out Phase 1 tracking.",
+  "context_notes": "All 9 execution plans have SUMMARY.md files and task commits. Plan 01-09 reported npm run test:storage-boundary, npm test, npm run build, and npm run package:sites passed. Do not re-run completed execution plans unless a gate finds a concrete defect."
+}
