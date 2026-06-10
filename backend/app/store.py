@@ -7,8 +7,10 @@ from backend.app.contracts import (
     new_id,
     request_digest,
     safe_diagnostics,
+    redacted_token_boundary_ref,
     serialize_connected_channel,
     serialize_draft_version,
+    summarize_approval_snapshot,
     trace_id,
     utc_now,
 )
@@ -990,6 +992,83 @@ def serialize_publish_job(conn, job):
 
 def get_serialized_publish_job(conn, job_id):
     return serialize_publish_job(conn, get_publish_job(conn, job_id))
+
+
+def debug_next_action(diagnostics):
+    return diagnostics.get("nextRecommendedAction") or diagnostics.get("nextAction") or "none"
+
+
+def debug_error_class(diagnostics):
+    return diagnostics.get("errorClass") or "none"
+
+
+def serialize_debug_publish_job(conn, job):
+    approval = conn.execute("select * from approvals where id = ?", (job["approval_id"],)).fetchone()
+    if approval is None:
+        raise StoreError(400, "Publish job has no approval snapshot.")
+    draft = conn.execute("select * from platform_drafts where id = ?", (approval["draft_id"],)).fetchone()
+    if draft is None:
+        raise StoreError(400, "Publish job has no draft.")
+    merchant = conn.execute("select * from merchants where id = ?", (draft["merchant_id"],)).fetchone()
+    if merchant is None:
+        raise StoreError(400, "Publish job has no merchant.")
+
+    snapshot = json_loads(approval["snapshot_json"], {})
+    attempts = [
+        serialize_publish_attempt(row)
+        for row in conn.execute(
+            "select * from publish_attempts where publish_job_id = ? order by attempt_number",
+            (job["id"],),
+        )
+    ]
+    events = [
+        serialize_publish_event(row)
+        for row in conn.execute(
+            "select * from publish_events where publish_job_id = ? order by created_at, rowid",
+            (job["id"],),
+        )
+    ]
+    latest_attempt = attempts[-1] if attempts else {}
+    diagnostics = safe_diagnostics(latest_attempt.get("diagnostics") or {})
+    return safe_diagnostics(
+        {
+            "id": job["id"],
+            "approvalId": job["approval_id"],
+            "merchant": {
+                "id": merchant["id"],
+                "name": merchant["name"],
+            },
+            "platform": job["platform"] or snapshot.get("platform"),
+            "jobStatus": job["status"],
+            "attemptCount": len(attempts),
+            "latestTraceId": latest_attempt.get("traceId"),
+            "errorClass": debug_error_class(diagnostics),
+            "updatedAt": job["updated_at"],
+            "nextAction": debug_next_action(diagnostics),
+            "approver": {
+                "name": approval["approver_name"],
+                "email": approval["approver_email"],
+            },
+            "draftVersion": {
+                "id": approval["draft_version_id"],
+                "versionNumber": snapshot.get("versionNumber"),
+            },
+            "mediaRefs": snapshot.get("mediaRefs") or [],
+            "tokenBoundaryRef": redacted_token_boundary_ref(snapshot),
+            "approvalSnapshotSummary": summarize_approval_snapshot(snapshot),
+            "attempts": attempts,
+            "events": events,
+            "redactedDiagnostics": diagnostics,
+            "createdAt": job["created_at"],
+        }
+    )
+
+
+def list_debug_publish_jobs(conn):
+    return [
+        serialize_debug_publish_job(conn, row)
+        for row in conn.execute("select * from publish_jobs order by updated_at desc, created_at desc, id")
+    ]
 
 
 def get_serialized_draft(conn, draft_id):

@@ -167,3 +167,47 @@ def build_approval_snapshot(draft, version, media_assets, channel, token_boundar
 
 def safe_diagnostics(value):
     return redact(value or {})
+
+
+def redacted_token_boundary_ref(snapshot):
+    boundary = snapshot.get("tokenBoundaryRef") or {}
+    rotation = boundary.get("rotation") or {}
+    return {
+        "id": boundary.get("id"),
+        "provider": boundary.get("provider"),
+        "connectedChannelId": boundary.get("connectedChannelId"),
+        "storageMode": boundary.get("storageMode"),
+        "visibility": "redacted",
+        "rotation": {
+            "status": rotation.get("status"),
+            "nextRotationDueAt": rotation.get("nextRotationDueAt"),
+        },
+        "updatedAt": boundary.get("updatedAt"),
+    }
+
+
+def summarize_approval_snapshot(snapshot):
+    approver = snapshot.get("approver") or {}
+    return safe_diagnostics(
+        {
+            "platform": snapshot.get("platform"),
+            "draftId": snapshot.get("draftId"),
+            "draftVersionId": snapshot.get("draftVersionId"),
+            "versionNumber": snapshot.get("versionNumber"),
+            "caption": snapshot.get("caption"),
+            "body": snapshot.get("body"),
+            "cta": snapshot.get("cta"),
+            "mediaRefs": snapshot.get("mediaRefs") or [],
+            "connectedChannelRef": snapshot.get("connectedChannelRef") or {},
+            "tokenBoundaryRef": redacted_token_boundary_ref(snapshot),
+            "providerPayloadSummary": snapshot.get("providerPayloadSummary") or {},
+            "disclosureSettingsRef": snapshot.get("disclosureSettingsRef") or {},
+            "approver": {
+                "name": approver.get("name"),
+                "email": approver.get("email"),
+            },
+            "approvedAt": snapshot.get("approvedAt"),
+            "createdAt": snapshot.get("createdAt"),
+            "idempotencyKeySuffix": (snapshot.get("idempotencyKey") or "")[-8:],
+        }
+    )

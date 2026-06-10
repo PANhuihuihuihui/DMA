@@ -38,6 +38,10 @@ class JsonHandler(BaseHTTPRequestHandler):
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json(store.get_workflow(conn))
                 return
+            if method == "GET" and path == "/api/v1/debug/publish-jobs":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json({"status": "ok", "publishJobs": store.list_debug_publish_jobs(conn)})
+                return
             if method == "POST" and path == "/api/v1/campaigns":
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json({"campaign": store.create_campaign(conn, self.read_json())}, status=201)
