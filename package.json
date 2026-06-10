@@ -15,7 +15,8 @@
     "test:fake-publish": "python3 -m unittest backend.tests.test_fake_publish_lifecycle -v && node scripts/smoke-fake-publish.mjs",
     "test:debug": "python3 -m unittest backend.tests.test_debug_redaction -v && node scripts/smoke-debug-route.mjs",
     "test:retry-redaction": "python3 -m unittest backend.tests.test_retry_redaction_idempotency -v && node scripts/smoke-retry-redaction.mjs",
-    "test:token-boundary": "python3 -m unittest backend.tests.test_token_boundary -v"
+    "test:token-boundary": "python3 -m unittest backend.tests.test_token_boundary -v",
+    "test:storage-boundary": "node scripts/smoke-no-publish-localstorage.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",
