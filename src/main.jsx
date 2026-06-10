@@ -13,7 +13,7 @@ import {
   normalizeWorkflow,
 } from "./models/publishing.js";
 import { AppRoutes } from "./routes/AppRoutes.jsx";
-import { readPreference, writePreference } from "./storage/preferences.js";
+import { clearDemoWorkspacePreferences, readPreference, writePreference } from "./storage/preferences.js";
 
 import cafeOwner from "../assets/cafe-owner.png";
 import clinic from "../assets/clinic.png";
@@ -2374,16 +2374,26 @@ export function AppDemo() {
     showAppToast(`Walkthrough: ${step.title}`);
   };
 
-  const resetDemo = () => {
+  const resetDemo = async () => {
+    const confirmed = window.confirm(
+      "Reset demo workspace: This clears local demo preferences and reloads seeded backend records. Published audit records stay unchanged.",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    clearDemoWorkspacePreferences();
     selectModule("Home");
     setSelectedPost(0);
     setSelectedChannel(0);
+    setSelectedInbox(0);
+    setSelectedWalkthrough(0);
     setQueuedPublishJobs({});
-    reloadWorkflow();
+    await reloadWorkflow();
     setAiResponse(
       "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
     );
-    showAppToast("Backend workflow reloaded from seeded records.");
+    showAppToast("Local demo preferences cleared. Backend workflow reloaded from seeded records.");
   };
 
   const approvePlan = async (index) => {

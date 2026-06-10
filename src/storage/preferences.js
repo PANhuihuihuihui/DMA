@@ -8,6 +8,14 @@ const ALLOWED_KEYS = new Set([
   "localpilot-demo-selected-walkthrough",
 ]);
 
+const DEMO_WORKSPACE_PREFERENCE_KEYS = [
+  "localpilot-demo-active-module",
+  "localpilot-demo-selected-channel",
+  "localpilot-demo-selected-post",
+  "localpilot-demo-selected-inbox",
+  "localpilot-demo-selected-walkthrough",
+];
+
 const canUseStorage = () => typeof window !== "undefined" && Boolean(window.localStorage);
 
 const assertAllowedPreference = (key) => {
@@ -46,4 +54,8 @@ export const writePreference = (key, value) => {
   } catch {
     return false;
   }
+};
+
+export const clearDemoWorkspacePreferences = () => {
+  DEMO_WORKSPACE_PREFERENCE_KEYS.forEach((key) => writePreference(key, null));
 };
