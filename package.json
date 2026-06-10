@@ -7,7 +7,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build --outDir dist/client --emptyOutDir true && node scripts/prepare-sites-dist.mjs",
     "package:sites": "npm run build && node scripts/package-sites.mjs",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "test:approval": "python3 -m unittest backend.tests.test_publish_approval -v && node scripts/smoke-approve-snapshot.mjs",
+    "test:token-boundary": "python3 -m unittest backend.tests.test_token_boundary -v"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",
