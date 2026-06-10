@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./styles.css";
 import { approveDraftVersion, loadPublishJob, loadPublishingWorkflow, queueFakePublish } from "./api/publishingClient.js";
 import { ApprovalSnapshot } from "./components/ApprovalSnapshot.jsx";
@@ -12,6 +12,7 @@ import {
   normalizePublishJob,
   normalizeWorkflow,
 } from "./models/publishing.js";
+import { AppRoutes } from "./routes/AppRoutes.jsx";
 import { readPreference, writePreference } from "./storage/preferences.js";
 
 import cafeOwner from "../assets/cafe-owner.png";
@@ -1798,7 +1799,7 @@ function Brand() {
   );
 }
 
-function LandingPage() {
+export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [pilotOpen, setPilotOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -2209,7 +2210,7 @@ function Modal({ eyebrow, title, children, onClose }) {
   );
 }
 
-function AppDemo() {
+export function AppDemo() {
   const navigate = useNavigate();
   const location = useLocation();
   const session = useMemo(() => {
@@ -3226,13 +3227,7 @@ function App() {
   return (
     <LanguageProvider>
       <TranslationLayer />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/app" element={<AppDemo />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <AppRoutes />
     </LanguageProvider>
   );
 }

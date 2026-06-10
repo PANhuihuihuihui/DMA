@@ -51,3 +51,5 @@ export const retryPublishJob = (jobId) =>
   requestJson(`/publish-jobs/${encodeURIComponent(jobId)}/retry`, {
     method: "POST",
   });
+
+export const loadDebugPublishJobs = () => requestJson("/debug/publish-jobs");
