@@ -46,3 +46,8 @@ export const queueFakePublish = (approvalId) =>
   });
 
 export const loadPublishJob = (jobId) => requestJson(`/publish-jobs/${encodeURIComponent(jobId)}`);
+
+export const retryPublishJob = (jobId) =>
+  requestJson(`/publish-jobs/${encodeURIComponent(jobId)}/retry`, {
+    method: "POST",
+  });

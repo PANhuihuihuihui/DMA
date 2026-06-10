@@ -18,6 +18,8 @@ export const LIFECYCLE_STATES = Object.freeze([
   "manual_fallback_required",
 ]);
 
+export const RETRYABLE_PUBLISH_STATUSES = Object.freeze(["failed", "retry_needed"]);
+
 const normalizeLifecycleState = (value, fallback = "draft") => {
   const candidate = text(value, fallback);
   return LIFECYCLE_STATES.includes(candidate) ? candidate : candidate;
@@ -165,14 +167,17 @@ const normalizeSafeDiagnostics = (diagnostics = {}) => asObject(diagnostics);
 
 const normalizePublishAttempt = (attempt = {}) => {
   const source = asObject(attempt);
+  const diagnostics = normalizeSafeDiagnostics(source.diagnostics);
   return {
     id: text(source.id),
     attemptNumber: number(source.attemptNumber, 0),
     status: normalizeLifecycleState(source.status, "queued"),
     traceId: text(source.traceId),
     requestDigest: text(source.requestDigest),
-    diagnostics: normalizeSafeDiagnostics(source.diagnostics),
+    diagnostics,
     retryClassification: text(source.retryClassification, "none"),
+    nextAction: text(diagnostics.nextRecommendedAction || diagnostics.nextAction, "none"),
+    errorClass: text(diagnostics.errorClass, "none"),
     startedAt: text(source.startedAt),
     finishedAt: text(source.finishedAt),
     createdAt: text(source.createdAt),
