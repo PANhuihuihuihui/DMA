@@ -2,6 +2,10 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./styles.css";
+import { approveDraftVersion, loadPublishingWorkflow } from "./api/publishingClient.js";
+import { ApprovalSnapshot } from "./components/ApprovalSnapshot.jsx";
+import { normalizeApprovalSnapshot, normalizeWorkflow } from "./models/publishing.js";
+import { readPreference, writePreference } from "./storage/preferences.js";
 
 import cafeOwner from "../assets/cafe-owner.png";
 import clinic from "../assets/clinic.png";
@@ -212,6 +216,7 @@ const zhTranslations = {
   "Needs review": "待审核",
   "Needs changes": "需修改",
   "Approve plan": "批准计划",
+  "Approve exact draft": "批准确切草稿",
   "Request changes": "请求修改",
   "Post angle": "发布角度",
   Caption: "文案",
@@ -624,7 +629,7 @@ Object.assign(zhTranslations, {
   "Offer expiry set": "优惠截止时间已设置",
   "Five platform-native post plans with captions and CTAs.": "五个渠道原生帖子方案，包含文案和行动按钮。",
   "Channel-specific assets, tracking events, and publishing mode.": "各渠道专属素材、追踪事件和发布方式。",
-  "Approval status, owner tasks, and revision state saved locally.": "审批状态、商家任务和修改状态已本地保存。",
+  "Approval status and frozen snapshots returned by the workflow API.": "审批状态和冻结快照由工作流 API 返回。",
   "Calls and map clicks attached to Google Local and Facebook.": "来电和地图点击已关联到 Google 本地和 Facebook。",
   "DM keyword tracking attached to Instagram.": "私信关键词追踪已关联到 Instagram。",
   "Saves and profile visits attached to Xiaohongshu.": "收藏和资料访问已关联到小红书。",
@@ -930,13 +935,7 @@ const translateSubtree = (root, language) => {
 const LanguageContext = createContext(null);
 
 function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState(() => {
-    try {
-      return window.localStorage.getItem(LANGUAGE_STORAGE_KEY) || "en";
-    } catch {
-      return "en";
-    }
-  });
+  const [language, setLanguage] = useState(() => readPreference(LANGUAGE_STORAGE_KEY, "en"));
 
   const value = useMemo(
     () => ({
@@ -949,11 +948,7 @@ function LanguageProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
-    try {
-      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    } catch {
-      // Local persistence is a convenience for the demo, not a hard requirement.
-    }
+    writePreference(LANGUAGE_STORAGE_KEY, language);
   }, [language]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
@@ -1062,7 +1057,8 @@ const moduleDetails = {
   },
   Calendar: {
     kicker: "Client-visible planning",
-    title: "Week, grid, and list planning",
+    title: "Weekly publishing plan",
+    summary: "Pick the next slot, review the copy, and keep the week moving.",
     view: "calendar",
   },
   Inbox: {
@@ -1653,30 +1649,105 @@ const normalizePlan = (plan, index, input = defaultCampaignInput) => {
   };
 };
 
-const loadStoredPlans = (input = defaultCampaignInput) => {
-  try {
-    const stored = JSON.parse(window.localStorage.getItem("localpilot-demo-plans") || "null");
-    return Array.isArray(stored) && stored.length
-      ? stored.map((plan, index) => normalizePlan(plan, index, input))
-      : createInitialPlans(input);
-  } catch {
-    return createInitialPlans(input);
+const platformDisplayName = (platform = "") => {
+  const normalized = platform.toLowerCase();
+  if (normalized === "facebook") {
+    return "Facebook";
   }
+  if (normalized === "tiktok") {
+    return "TikTok";
+  }
+  return platform || "Platform";
 };
 
-const loadStoredInput = () => {
-  try {
-    return normalizeCampaignInput(
-      JSON.parse(window.localStorage.getItem("localpilot-demo-input") || "null") || defaultCampaignInput,
-    );
-  } catch {
+const workflowCampaignInput = (workflow) => {
+  const campaign = workflow.campaigns[0];
+  const profile = workflow.businessProfiles[0] || {};
+  if (!campaign) {
     return normalizeCampaignInput(defaultCampaignInput);
   }
+
+  return normalizeCampaignInput({
+    business: profile.business_name || profile.businessName || defaultCampaignInput.business,
+    businessType: profile.business_type || profile.businessType || defaultCampaignInput.businessType,
+    offer: campaign.offer,
+    goal: campaign.goal,
+    audience: campaign.audience,
+  });
+};
+
+const normalizeWorkflowStatus = (status) =>
+  String(status || "needs_review")
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const workflowDraftToPlan = (draft, index, workflow) => {
+  const displayName = platformDisplayName(draft.platform);
+  const base = channelPlans.find((plan) => plan.name === displayName) || channelPlans[index] || channelPlans[0];
+  const currentVersion = draft.currentVersion || {};
+  const connectedChannel = workflow.connectedChannels.find((channelRef) => channelRef.id === draft.connectedChannelId);
+  const approval = workflow.approvals.find(
+    (item) => item.draftId === draft.id && item.draftVersionId === currentVersion.id,
+  );
+  const status = normalizeWorkflowStatus(draft.status);
+  const mediaRefs = currentVersion.mediaRefs || [];
+
+  return normalizePlan(
+    {
+      ...base,
+      id: draft.id,
+      platform: draft.platform,
+      connectedChannelId: draft.connectedChannelId,
+      connectedChannel,
+      currentVersion,
+      approvalSnapshot: approval?.snapshot ? normalizeApprovalSnapshot(approval.snapshot) : null,
+      mediaRefs,
+      tokenBoundaryRef: connectedChannel?.tokenBoundaryRef || {},
+      name: displayName,
+      status,
+      nativeCreative: {
+        ...base.nativeCreative,
+        hook: currentVersion.caption || base.nativeCreative.hook,
+        caption: currentVersion.body || base.nativeCreative.caption,
+        cover: currentVersion.caption || base.nativeCreative.cover,
+        cta: currentVersion.cta || base.nativeCreative.cta,
+      },
+      role: connectedChannel?.displayName || base.role,
+      format: `${displayName} draft v${currentVersion.versionNumber || 1}`,
+      publishingMode: `Backend-backed ${displayName} workflow`,
+      scheduleSlot: connectedChannel?.status || "Connected channel pending",
+      assets: mediaRefs.length
+        ? mediaRefs.map((media) => `${media.kind || "media"}: ${media.storageRef}`)
+        : base.assets,
+      trackingEvents: base.trackingEvents,
+      ownerAction: approval?.snapshot
+        ? "Approved snapshot is frozen for publishing"
+        : "Review backend draft version and approve exact payload",
+      riskNote: "Provider credentials stay behind the server token boundary.",
+      checklist: [
+        {
+          text: `Draft version v${currentVersion.versionNumber || 1} selected`,
+          done: Boolean(currentVersion.id),
+        },
+        {
+          text: `${mediaRefs.length || 0} server media ref${mediaRefs.length === 1 ? "" : "s"} attached`,
+          done: mediaRefs.length > 0,
+        },
+        {
+          text: approval?.snapshot ? "Backend approval snapshot frozen" : "Exact approval pending",
+          done: Boolean(approval?.snapshot),
+        },
+      ],
+    },
+    index,
+    workflowCampaignInput(workflow),
+  );
 };
 
 const loadStoredIndex = (key, fallback = 0) => {
   try {
-    const value = Number.parseInt(window.localStorage.getItem(key) || "", 10);
+    const value = Number.parseInt(readPreference(key, ""), 10);
     return Number.isFinite(value) && value >= 0 ? value : fallback;
   } catch {
     return fallback;
@@ -1687,7 +1758,7 @@ const clampIndex = (index, collection) => Math.min(Math.max(index, 0), Math.max(
 
 const loadStoredModule = () => {
   try {
-    return moduleFromSlug(window.localStorage.getItem("localpilot-demo-active-module")) || "Home";
+    return moduleFromSlug(readPreference("localpilot-demo-active-module")) || "Home";
   } catch {
     return "Home";
   }
@@ -1718,17 +1789,15 @@ function LandingPage() {
 
   const submitPilot = (event) => {
     event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    window.localStorage.setItem("localpilot-pilot-request", JSON.stringify(data));
     event.currentTarget.reset();
     setPilotOpen(false);
-    showToast("Thanks. Your pilot request is saved for this prototype.");
+    showToast("Thanks. Your pilot request is ready for this prototype.");
   };
 
   const submitLogin = (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    window.localStorage.setItem(
+    writePreference(
       "localpilot-demo-session",
       JSON.stringify({ ...data, loggedInAt: new Date().toISOString() }),
     );
@@ -2122,7 +2191,7 @@ function AppDemo() {
   const location = useLocation();
   const session = useMemo(() => {
     try {
-      return JSON.parse(window.localStorage.getItem("localpilot-demo-session") || "null");
+      return JSON.parse(readPreference("localpilot-demo-session", "null"));
     } catch {
       return null;
     }
@@ -2138,18 +2207,25 @@ function AppDemo() {
   const [selectedWalkthrough, setSelectedWalkthrough] = useState(() =>
     loadStoredIndex("localpilot-demo-selected-walkthrough"),
   );
-  const initialCampaignInput = useMemo(loadStoredInput, []);
-  const [campaignInput, setCampaignInput] = useState(initialCampaignInput);
-  const [plans, setPlans] = useState(() => loadStoredPlans(initialCampaignInput));
+  const [workflow, setWorkflow] = useState(() => normalizeWorkflow());
+  const [workflowStatus, setWorkflowStatus] = useState("loading");
+  const [workflowError, setWorkflowError] = useState("");
+  const [approvalPending, setApprovalPending] = useState("");
   const [aiResponse, setAiResponse] = useState(
     "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
   );
   const [appToast, setAppToast] = useState("");
+  const campaignInput = workflowCampaignInput(workflow);
+  const plans = useMemo(
+    () => workflow.platformDrafts.map((draft, index) => workflowDraftToPlan(draft, index, workflow)),
+    [workflow],
+  );
   const safeSelectedChannel = clampIndex(selectedChannel, plans);
   const safeSelectedPost = clampIndex(selectedPost, plans);
   const safeSelectedInbox = clampIndex(selectedInbox, inboxThreads);
   const config = moduleDetails[activeModule] || moduleDetails.Home;
   const channel = plans[safeSelectedChannel];
+  const selectedPlan = plans[safeSelectedPost];
   const pendingPlans = plans.filter((plan) => plan.status !== "Approved");
   const approvedCount = plans.length - pendingPlans.length;
   const checklistDone = plans.reduce((total, plan) => total + plan.checklist.filter((item) => item.done).length, 0);
@@ -2157,14 +2233,47 @@ function AppDemo() {
   const checklistPercent = checklistTotal ? Math.round((checklistDone / checklistTotal) * 100) : 0;
   const approvalPercent = plans.length ? Math.round((approvedCount / plans.length) * 100) : 0;
   const packageReadiness = Math.round((approvalPercent + checklistPercent) / 2);
+  const topbarPrimaryAction =
+    activeModule === "Calendar"
+      ? { label: "Approve exact draft", handler: () => approvePlan(safeSelectedPost) }
+      : { label: "Create with AI", handler: () => selectModule("AI Studio") };
+  const topbarSecondaryAction =
+    activeModule === "Calendar"
+      ? { label: "Save package", handler: () => exportPackage() }
+      : { label: "Review calendar", handler: () => selectModule("Calendar") };
+  const workspaceMetrics =
+    activeModule === "Calendar"
+      ? [
+          ["Pending approvals", String(pendingPlans.length), "Need a decision before publishing"],
+          ["Selected slot", selectedPlan?.name || "—", selectedPlan?.scheduleSlot || "Choose a slot"],
+          ["Package readiness", `${packageReadiness}%`, `${approvedCount}/${plans.length || 0} approved`],
+          ["Local ROI", "6 events", "Calls, bookings, DMs, saves, map clicks"],
+        ]
+      : [
+          ["Business input", "1", campaignInput.offer],
+          ["Native outputs", String(plans.length), plans.length ? "Facebook and TikTok backend drafts" : "Loading workflow"],
+          ["Local ROI intent", "6", "Calls, bookings, DMs, scans, saves, maps"],
+          ["Package ready", `${packageReadiness}%`, `${pendingPlans.length} channels pending`],
+        ];
+
+  const reloadWorkflow = async ({ silent = false } = {}) => {
+    if (!silent) {
+      setWorkflowStatus("loading");
+    }
+    setWorkflowError("");
+    try {
+      const nextWorkflow = normalizeWorkflow(await loadPublishingWorkflow());
+      setWorkflow(nextWorkflow);
+      setWorkflowStatus("ready");
+    } catch (error) {
+      setWorkflowStatus("error");
+      setWorkflowError(error instanceof Error ? error.message : "Publishing status could not load.");
+    }
+  };
 
   useEffect(() => {
-    window.localStorage.setItem("localpilot-demo-input", JSON.stringify(campaignInput));
-  }, [campaignInput]);
-
-  useEffect(() => {
-    window.localStorage.setItem("localpilot-demo-plans", JSON.stringify(plans));
-  }, [plans]);
+    reloadWorkflow();
+  }, []);
 
   useEffect(() => {
     const queryModule = moduleFromSlug(new URLSearchParams(location.search).get("module"));
@@ -2174,23 +2283,23 @@ function AppDemo() {
   }, [activeModule, location.search]);
 
   useEffect(() => {
-    window.localStorage.setItem("localpilot-demo-active-module", moduleSlug(activeModule));
+    writePreference("localpilot-demo-active-module", moduleSlug(activeModule));
   }, [activeModule]);
 
   useEffect(() => {
-    window.localStorage.setItem("localpilot-demo-selected-channel", String(safeSelectedChannel));
+    writePreference("localpilot-demo-selected-channel", String(safeSelectedChannel));
   }, [safeSelectedChannel]);
 
   useEffect(() => {
-    window.localStorage.setItem("localpilot-demo-selected-post", String(safeSelectedPost));
+    writePreference("localpilot-demo-selected-post", String(safeSelectedPost));
   }, [safeSelectedPost]);
 
   useEffect(() => {
-    window.localStorage.setItem("localpilot-demo-selected-inbox", String(safeSelectedInbox));
+    writePreference("localpilot-demo-selected-inbox", String(safeSelectedInbox));
   }, [safeSelectedInbox]);
 
   useEffect(() => {
-    window.localStorage.setItem("localpilot-demo-selected-walkthrough", String(selectedWalkthrough));
+    writePreference("localpilot-demo-selected-walkthrough", String(selectedWalkthrough));
   }, [selectedWalkthrough]);
 
   const showAppToast = (message) => {
@@ -2199,7 +2308,7 @@ function AppDemo() {
   };
 
   const logout = () => {
-    window.localStorage.removeItem("localpilot-demo-session");
+    writePreference("localpilot-demo-session", null);
     navigate("/");
   };
 
@@ -2224,78 +2333,80 @@ function AppDemo() {
   };
 
   const resetDemo = () => {
-    const nextInput = normalizeCampaignInput(defaultCampaignInput);
-    window.localStorage.removeItem("localpilot-export-package");
     selectModule("Home");
     setSelectedPost(0);
     setSelectedChannel(0);
-    setCampaignInput(nextInput);
-    setPlans(createInitialPlans(nextInput));
+    reloadWorkflow();
     setAiResponse(
       "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
     );
-    showAppToast("Demo data reset to the restaurant workflow.");
+    showAppToast("Backend workflow reloaded from seeded records.");
   };
 
-  const updatePlan = (index, updater) => {
-    setPlans((currentPlans) =>
-      currentPlans.map((plan, planIndex) => (planIndex === index ? updater(plan) : plan)),
+  const approvePlan = async (index) => {
+    const plan = plans[index];
+    if (!plan?.id || !plan.currentVersion?.id) {
+      showAppToast("Publishing status could not load. Reload the workflow and try again.");
+      return;
+    }
+    if (plan.status === "Approved") {
+      showAppToast(`${plan.name} draft v${plan.currentVersion.versionNumber} is already approved.`);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Approve ${plan.name} draft v${plan.currentVersion.versionNumber}? LocalPilot will freeze this exact payload for publishing. Later edits will create a new version.`,
     );
-  };
+    if (!confirmed) {
+      return;
+    }
 
-  const approvePlan = (index) => {
-    updatePlan(index, (plan) => ({ ...plan, status: "Approved" }));
-    showAppToast(`${plans[index].name} approved.`);
+    setApprovalPending(plan.id);
+    try {
+      await approveDraftVersion(plan.id, {
+        draftVersionId: plan.currentVersion.id,
+        confirmation: "APPROVE_EXACT_VERSION",
+        approver: {
+          name: session?.name || "Karen Li",
+          email: session?.email || "karen@example.com",
+        },
+        mediaRefs: plan.mediaRefs.map((media) => media.mediaAssetId),
+      });
+      await reloadWorkflow({ silent: true });
+      showAppToast(`${plan.name} draft v${plan.currentVersion.versionNumber} approved.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Approval failed.");
+    } finally {
+      setApprovalPending("");
+    }
   };
 
   const requestChanges = (index) => {
-    updatePlan(index, (plan) => ({ ...plan, status: "Needs changes" }));
-    showAppToast(`${plans[index].name} marked for changes.`);
+    const plan = plans[index];
+    showAppToast(`${plan?.name || "Draft"} remains in backend review until a new version is created.`);
   };
 
   const toggleChecklist = (planIndex, itemIndex) => {
-    updatePlan(planIndex, (plan) => ({
-      ...plan,
-      checklist: plan.checklist.map((item, index) =>
-        index === itemIndex ? { ...item, done: !item.done } : item,
-      ),
-    }));
+    const plan = plans[planIndex];
+    const item = plan?.checklist[itemIndex];
+    showAppToast(item?.done ? "Backend checklist item is already satisfied." : "Backend workflow controls this item.");
   };
 
   const regeneratePlan = (event) => {
     event.preventDefault();
-    setPlans(createInitialPlans(campaignInput));
     setSelectedChannel(0);
-    showAppToast("Weekly plan regenerated from the campaign input.");
+    reloadWorkflow();
+    showAppToast("Workflow reloaded from backend draft records.");
   };
 
   const exportPackage = () => {
-    const payload = {
-      campaignInput,
-      plans,
-      packageReadiness,
-      approvedCount,
-      checklistDone,
-      exportedAt: new Date().toISOString(),
-    };
-    window.localStorage.setItem("localpilot-export-package", JSON.stringify(payload));
-    showAppToast("Ready-to-post package saved locally.");
+    showAppToast("Backend-backed workflow package is ready for assisted review.");
   };
 
   const applyBusinessType = (businessType) => {
     const template = businessTemplates[businessType] || businessTemplates.restaurant;
-    const nextInput = normalizeCampaignInput({
-      ...campaignInput,
-      businessType,
-      business: template.business,
-      offer: template.offer,
-      goal: template.goal,
-      audience: template.audience,
-    });
-    setCampaignInput(nextInput);
-    setPlans(createInitialPlans(nextInput));
     setSelectedChannel(0);
-    showAppToast(`${template.label} demo loaded.`);
+    showAppToast(`${template.label} selection noted. Backend workflow records remain the source of truth.`);
   };
 
   const submitPrompt = (event) => {
@@ -2351,7 +2462,8 @@ function AppDemo() {
         <header className="app-topbar">
           <div>
             <p className="app-kicker">Agency demo workspace</p>
-            <h1>{activeModule === "Home" ? "Home command center" : activeModule}</h1>
+            <h1>{config.title}</h1>
+            {config.summary && <p className="topbar-summary">{config.summary}</p>}
           </div>
           <div className="topbar-actions">
             <LanguageToggle compact />
@@ -2366,11 +2478,11 @@ function AppDemo() {
                 </option>
               ))}
             </select>
-            <button className="secondary-action" type="button" onClick={() => selectModule("AI Studio")}>
-              Create with AI
+            <button className="primary-action" type="button" onClick={topbarPrimaryAction.handler}>
+              {topbarPrimaryAction.label}
             </button>
-            <button className="primary-action" type="button" onClick={() => selectModule("Calendar")}>
-              Review calendar
+            <button className="secondary-action" type="button" onClick={topbarSecondaryAction.handler}>
+              {topbarSecondaryAction.label}
             </button>
             <button className="secondary-action" type="button" onClick={resetDemo}>
               Reset demo
@@ -2382,12 +2494,7 @@ function AppDemo() {
         </header>
 
         <section className="hero-metrics" aria-label="Workspace summary">
-          {[
-            ["Business input", "1", campaignInput.offer],
-            ["Native outputs", String(plans.length), "TikTok, IG, FB, RED, Google"],
-            ["Local ROI intent", "6", "Calls, bookings, DMs, scans, saves, maps"],
-            ["Package ready", `${packageReadiness}%`, `${pendingPlans.length} channels pending`],
-          ].map(([label, value, note]) => (
+          {workspaceMetrics.map(([label, value, note]) => (
             <article key={label}>
               <span>{label}</span>
               <strong>{value}</strong>
@@ -2450,24 +2557,15 @@ function AppDemo() {
                   </label>
                   <label>
                     Offer
-                    <input
-                      value={campaignInput.offer}
-                      onChange={(event) => setCampaignInput((input) => ({ ...input, offer: event.target.value }))}
-                    />
+                    <input value={campaignInput.offer} readOnly />
                   </label>
                   <label>
                     Goal
-                    <input
-                      value={campaignInput.goal}
-                      onChange={(event) => setCampaignInput((input) => ({ ...input, goal: event.target.value }))}
-                    />
+                    <input value={campaignInput.goal} readOnly />
                   </label>
                   <label>
                     Audience
-                    <input
-                      value={campaignInput.audience}
-                      onChange={(event) => setCampaignInput((input) => ({ ...input, audience: event.target.value }))}
-                    />
+                    <input value={campaignInput.audience} readOnly />
                   </label>
                   <button className="primary-action" type="submit">
                     Regenerate weekly plan
@@ -2491,30 +2589,51 @@ function AppDemo() {
                   ))}
                 </div>
 
-                <section className={`channel-breakdown ${channel.tone}`}>
-                  <div className="channel-preview">
-                    <img src={channel.asset} alt={`${channel.name} generated campaign preview`} />
-                    <div className="phone-frame">
-                      <span>{channel.name}</span>
-                      <strong>{channel.nativeCreative.cover}</strong>
-                      <p>{channel.nativeCreative.hook}</p>
-                      <small>{channel.nativeCreative.cta}</small>
-                    </div>
-                  </div>
+                {!channel && (
+                  <section className="workflow-state-panel">
+                    <span>{workflowStatus === "error" ? "Workflow error" : "Loading workflow"}</span>
+                    <h3>{workflowStatus === "error" ? "Publishing status could not load." : "Loading backend records."}</h3>
+                    <p>
+                      {workflowError ||
+                        "LocalPilot is loading campaign, draft, media, channel, and approval records from the backend."}
+                    </p>
+                    <button className="secondary-action" type="button" onClick={() => reloadWorkflow()}>
+                      Reload workflow
+                    </button>
+                  </section>
+                )}
 
-                  <div className="channel-detail">
-                    <div className="channel-heading">
-                      <div>
-                        <span>{channel.format}</span>
-                        <h3>{channel.name}: {channel.role}</h3>
+                {channel && (
+                  <section className={`channel-breakdown ${channel.tone}`}>
+                    <div className="channel-preview">
+                      <img src={channel.asset} alt={`${channel.name} generated campaign preview`} />
+                      <div className="phone-frame">
+                        <span>{channel.name}</span>
+                        <strong>{channel.nativeCreative.cover}</strong>
+                        <p>{channel.nativeCreative.hook}</p>
+                        <small>{channel.nativeCreative.cta}</small>
                       </div>
-                      <button className="primary-action" type="button" onClick={() => approvePlan(safeSelectedChannel)}>
-                        {channel.status === "Approved" ? "Approved" : "Approve plan"}
-                      </button>
-                      <button className="secondary-action" type="button" onClick={() => requestChanges(safeSelectedChannel)}>
-                        Request changes
-                      </button>
                     </div>
+
+                    <div className="channel-detail">
+                      <div className="channel-heading">
+                        <div>
+                          <span>{channel.format}</span>
+                          <h3>{channel.name}: {channel.role}</h3>
+                        </div>
+                        <button
+                          className="primary-action"
+                          type="button"
+                          disabled={approvalPending === channel.id || channel.status === "Approved"}
+                          onClick={() => approvePlan(safeSelectedChannel)}
+                        >
+                          Approve exact draft
+                        </button>
+                        <button className="secondary-action" type="button" onClick={() => requestChanges(safeSelectedChannel)}>
+                          Request changes
+                        </button>
+                        {approvalPending === channel.id && <small className="inline-pending">Freezing snapshot...</small>}
+                      </div>
 
                     <dl className="creative-spec">
                       <div>
@@ -2588,8 +2707,10 @@ function AppDemo() {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                </section>
+                      <ApprovalSnapshot snapshot={channel.approvalSnapshot} />
+                    </div>
+                  </section>
+                )}
 
                 <div className="feature-spotlight" aria-label="LocalPilot standout features">
                   {localpilotDifferentiators.map(({ title, proof }) => (
@@ -2617,9 +2738,9 @@ function AppDemo() {
                     <article>
                       <span>What the customer gets</span>
                       <ul>
-                        <li>Five platform-native post plans with captions and CTAs.</li>
-                        <li>Channel-specific assets, tracking events, and publishing mode.</li>
-                        <li>Approval status, owner tasks, and revision state saved locally.</li>
+                        <li>Backend-owned Facebook and TikTok drafts with captions and CTAs.</li>
+                        <li>Server media refs, connected channel refs, and publishing mode.</li>
+                        <li>Approval status and frozen snapshots returned by the workflow API.</li>
                       </ul>
                     </article>
                     <article>
@@ -2644,7 +2765,23 @@ function AppDemo() {
             )}
 
             {config.view === "calendar" && (
-              <>
+              <div className="calendar-workbench">
+                <section className="calendar-intro">
+                  <div>
+                    <p className="app-kicker">This week</p>
+                    <h2>Approve the posts that are ready to go live</h2>
+                    <p>
+                      Pick a slot, inspect the angle, and approve or request edits. The calendar should
+                      help the owner decide what happens next, not show every possible thing at once.
+                    </p>
+                  </div>
+                  <div className="calendar-intro-chip">
+                    <span>Current focus</span>
+                    <strong>{pendingPlans.length} approvals pending</strong>
+                    <small>{packageReadiness}% package readiness</small>
+                  </div>
+                </section>
+
                 <div className="calendar-board">
                   {plans.map((plan, index) => (
                     <button
@@ -2660,36 +2797,55 @@ function AppDemo() {
                     </button>
                   ))}
                 </div>
-                <article className="selected-post">
-                  <div>
-                    <span className="status-pill">{plans[safeSelectedPost].status}</span>
-                    <h3>
-                      {plans[safeSelectedPost].name}: {plans[safeSelectedPost].publishingMode}
-                    </h3>
-                    <p>
-                      {plans[safeSelectedPost].nativeCreative.caption}
-                    </p>
-                    <div className="calendar-actions">
-                      <button type="button" onClick={() => approvePlan(safeSelectedPost)}>
-                        Approve slot
-                      </button>
-                      <button type="button" onClick={() => requestChanges(safeSelectedPost)}>
-                        Request edit
-                      </button>
+
+                {selectedPlan ? (
+                  <article className="selected-post selected-post--calendar">
+                    <div className="selected-post-copy">
+                      <span className="status-pill">{selectedPlan.status}</span>
+                      <h3>
+                        {selectedPlan.name}: {selectedPlan.publishingMode}
+                      </h3>
+                      <p>{selectedPlan.nativeCreative.caption}</p>
+                      <div className="calendar-actions">
+                        <button
+                          type="button"
+                          disabled={approvalPending === selectedPlan.id || selectedPlan.status === "Approved"}
+                          onClick={() => approvePlan(safeSelectedPost)}
+                        >
+                          Approve exact draft
+                        </button>
+                        <button type="button" onClick={() => requestChanges(safeSelectedPost)}>
+                          Request edit
+                        </button>
+                      </div>
+                      <div className="selected-checklist">
+                        <span>Before publishing</span>
+                        <ul>
+                          {selectedPlan.checklist.map((item) => (
+                            <li key={item.text} className={item.done ? "done" : ""}>
+                              {item.text}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <ApprovalSnapshot snapshot={selectedPlan.approvalSnapshot} />
                     </div>
-                  </div>
-                  <img src={plans[safeSelectedPost].asset} alt="Selected campaign preview" />
-                </article>
-                <div className="calendar-delivery-list">
-                  {plans.map((plan) => (
-                    <article key={`${plan.name}-delivery`}>
-                      <span>{plan.name}</span>
-                      <strong>{plan.scheduleSlot}</strong>
-                      <p>{plan.ownerAction}</p>
-                    </article>
-                  ))}
-                </div>
-              </>
+                    <img src={selectedPlan.asset} alt="Selected campaign preview" />
+                  </article>
+                ) : (
+                  <section className="workflow-state-panel">
+                    <span>{workflowStatus === "error" ? "Workflow error" : "Loading workflow"}</span>
+                    <h3>{workflowStatus === "error" ? "Publishing status could not load." : "Loading backend records."}</h3>
+                    <p>
+                      {workflowError ||
+                        "LocalPilot is loading campaign, draft, media, channel, and approval records from the backend."}
+                    </p>
+                    <button className="secondary-action" type="button" onClick={() => reloadWorkflow()}>
+                      Reload workflow
+                    </button>
+                  </section>
+                )}
+              </div>
             )}
 
             {config.view === "ai" && (
@@ -2863,13 +3019,15 @@ function AppDemo() {
             </section>
             <section className="insight-card">
               <div className="panel-head compact-head">
-                <h2>AI recommendations</h2>
-                <span>3 new</span>
+                <h2>What needs attention</h2>
+                <span>{pendingPlans.length} items</span>
               </div>
               <ul className="recommendation-list">
-                <li>Move the Facebook offer to Thursday morning for stronger local group pickup.</li>
-                <li>Create a RED note around "weekend lunch near me" with save-first formatting.</li>
-                <li>Recycle the top Instagram Reel as an evergreen campaign next month.</li>
+                {pendingPlans.slice(0, 3).map((plan) => (
+                  <li key={plan.name}>
+                    {plan.name} is still pending. Review the {plan.kpi.toLowerCase()} angle before publishing.
+                  </li>
+                ))}
               </ul>
             </section>
             <section className="insight-card">
@@ -2883,8 +3041,12 @@ function AppDemo() {
                     <article key={plan.name}>
                       <strong>{plan.name} plan</strong>
                       <small>{plan.status} · KPI: {plan.kpi}</small>
-                      <button type="button" onClick={() => approvePlan(index)}>
-                        Approve
+                      <button
+                        type="button"
+                        disabled={approvalPending === plan.id}
+                        onClick={() => approvePlan(index)}
+                      >
+                        Approve exact draft
                       </button>
                     </article>
                   ),
@@ -2899,13 +3061,6 @@ function AppDemo() {
                   </article>
                 )}
               </div>
-            </section>
-            <section className="insight-card">
-              <div className="panel-head compact-head">
-                <h2>Competitor watch</h2>
-                <span>Hot now</span>
-              </div>
-              <p>Nearby competitors are getting traction with owner-led lunch specials and "under $15" captions.</p>
             </section>
             <section className="insight-card roi-card">
               <h2>Local ROI loop</h2>
