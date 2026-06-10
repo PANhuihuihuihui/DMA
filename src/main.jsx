@@ -5,7 +5,13 @@ import "./styles.css";
 import { approveDraftVersion, loadPublishJob, loadPublishingWorkflow, queueFakePublish } from "./api/publishingClient.js";
 import { ApprovalSnapshot } from "./components/ApprovalSnapshot.jsx";
 import { PublishTimeline } from "./components/PublishTimeline.jsx";
-import { normalizeApprovalSnapshot, normalizePublishJob, normalizeWorkflow } from "./models/publishing.js";
+import { RetryPublishControl } from "./components/RetryPublishControl.jsx";
+import {
+  RETRYABLE_PUBLISH_STATUSES,
+  normalizeApprovalSnapshot,
+  normalizePublishJob,
+  normalizeWorkflow,
+} from "./models/publishing.js";
 import { readPreference, writePreference } from "./storage/preferences.js";
 
 import cafeOwner from "../assets/cafe-owner.png";
@@ -1693,6 +1699,11 @@ const planLifecycleStatus = (plan) => {
   return "needs_review";
 };
 
+const canRetryPublishJob = (job) => {
+  const normalizedJob = normalizePublishJob(job);
+  return RETRYABLE_PUBLISH_STATUSES.includes(normalizedJob.currentStatus);
+};
+
 const workflowDraftToPlan = (draft, index, workflow) => {
   const displayName = platformDisplayName(draft.platform);
   const base = channelPlans.find((plan) => plan.name === displayName) || channelPlans[index] || channelPlans[0];
@@ -2444,6 +2455,18 @@ function AppDemo() {
     }
   };
 
+  const acceptRetriedJob = async (job, platform = "Publish job") => {
+    const nextJob = normalizePublishJob(job);
+    if (nextJob.approvalId) {
+      setQueuedPublishJobs((currentJobs) => ({
+        ...currentJobs,
+        [nextJob.approvalId]: nextJob,
+      }));
+    }
+    await reloadWorkflow({ silent: true });
+    showAppToast(`${platform} retry accepted. Attempt history updated.`);
+  };
+
   const requestChanges = (index) => {
     const plan = plans[index];
     showAppToast(`${plan?.name || "Draft"} remains in backend review until a new version is created.`);
@@ -2787,13 +2810,21 @@ function AppDemo() {
                 )}
 
                 <section className="publish-timeline-grid" aria-label="Per-platform fake publish timelines">
-                  {plans.map((plan) => (
-                    <PublishTimeline
-                      fallbackStatus={planLifecycleStatus(plan)}
-                      job={plan.publishJob}
-                      key={`${plan.id || plan.name}-timeline`}
-                      platform={plan.name}
-                    />
+                  {plans.map((plan, index) => (
+                    <div className="publish-timeline-stack" key={`${plan.id || plan.name}-timeline`}>
+                      <PublishTimeline
+                        fallbackStatus={planLifecycleStatus(plan)}
+                        job={plan.publishJob}
+                        platform={plan.name}
+                      />
+                      {safeSelectedChannel === index && canRetryPublishJob(plan.publishJob) && (
+                        <RetryPublishControl
+                          job={plan.publishJob}
+                          platform={plan.name}
+                          onRetryAccepted={(nextJob) => acceptRetriedJob(nextJob, plan.name)}
+                        />
+                      )}
+                    </div>
                   ))}
                 </section>
 
@@ -2928,6 +2959,13 @@ function AppDemo() {
                         job={selectedPlan.publishJob}
                         platform={selectedPlan.name}
                       />
+                      {canRetryPublishJob(selectedPlan.publishJob) && (
+                        <RetryPublishControl
+                          job={selectedPlan.publishJob}
+                          platform={selectedPlan.name}
+                          onRetryAccepted={(nextJob) => acceptRetriedJob(nextJob, selectedPlan.name)}
+                        />
+                      )}
                     </div>
                     <img src={selectedPlan.asset} alt="Selected campaign preview" />
                   </article>

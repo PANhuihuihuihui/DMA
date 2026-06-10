@@ -1983,6 +1983,13 @@ h3 {
   gap: 14px;
 }
 
+.publish-timeline-stack {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  align-content: start;
+}
+
 .publish-timeline-panel {
   display: grid;
   gap: 16px;
@@ -2129,12 +2136,78 @@ h3 {
   background: rgba(21, 130, 92, 0.45);
 }
 
+.publish-timeline-attempts {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.publish-timeline-attempt {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfaf6;
+}
+
+.publish-timeline-attempt header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.publish-timeline-attempt header div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.publish-timeline-attempt header span,
+.publish-timeline-attempt-meta dt,
+.publish-timeline-diagnostics dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.publish-timeline-attempt header strong,
+.publish-timeline-attempt-meta dd,
+.publish-timeline-diagnostics dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.publish-timeline-attempt-meta,
+.publish-timeline-diagnostics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.publish-timeline-attempt-meta div,
+.publish-timeline-diagnostics div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
 .publish-timeline-events {
   display: grid;
   gap: 10px;
 }
 
-.publish-timeline-events article,
+.publish-timeline-events section,
 .publish-timeline-empty {
   display: grid;
   gap: 8px;
@@ -2145,7 +2218,11 @@ h3 {
   background: #fbfaf6;
 }
 
-.publish-timeline-events article > div {
+.publish-timeline-events section {
+  background: white;
+}
+
+.publish-timeline-events section > div {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -2175,6 +2252,65 @@ h3 {
 .publish-timeline-empty strong {
   font-size: 16px;
   line-height: 1.35;
+}
+
+.publish-timeline-retry {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #f7d1b5;
+  border-radius: 8px;
+  background: #fff9f3;
+}
+
+.publish-timeline-retry--failed {
+  border-color: #f2c0bb;
+  background: #fff6f5;
+}
+
+.publish-timeline-retry-button {
+  justify-self: start;
+  min-height: 40px;
+  border-color: #f7d1b5;
+  color: #a86124;
+}
+
+.publish-timeline-retry--failed .publish-timeline-retry-button {
+  border-color: #f2c0bb;
+  color: var(--red);
+}
+
+.publish-timeline-retry-confirm {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.publish-timeline-retry-confirm strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.publish-timeline-retry-confirm p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.publish-timeline-retry-confirm > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.publish-timeline-retry-error {
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .delivery-package {
@@ -3055,6 +3191,8 @@ h3 {
   .why-row,
   .publish-checklist,
   .delivery-meta-grid,
+  .publish-timeline-attempt-meta,
+  .publish-timeline-diagnostics,
   .package-columns,
   .insights-panel {
     grid-template-columns: 1fr;
