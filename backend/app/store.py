@@ -5,8 +5,11 @@ from backend.app.contracts import (
     json_dumps,
     json_loads,
     new_id,
+    request_digest,
+    safe_diagnostics,
     serialize_connected_channel,
     serialize_draft_version,
+    trace_id,
     utc_now,
 )
 from backend.app.token_boundary import create_token_boundary
@@ -154,6 +157,7 @@ def initialize_database(conn):
         create table if not exists publish_jobs (
           id text primary key,
           approval_id text references approvals(id),
+          platform text,
           status text not null,
           created_at text not null,
           updated_at text not null
@@ -167,6 +171,9 @@ def initialize_database(conn):
           trace_id text not null,
           request_digest text not null,
           diagnostics_json text not null,
+          retry_classification text,
+          started_at text,
+          finished_at text,
           created_at text not null,
           updated_at text not null
         );
@@ -175,8 +182,11 @@ def initialize_database(conn):
           id text primary key,
           publish_job_id text references publish_jobs(id),
           event_type text not null,
+          status text,
           summary text not null,
           actor text not null,
+          source_actor text,
+          attempt_number integer,
           created_at text not null
         );
 
@@ -187,7 +197,34 @@ def initialize_database(conn):
         );
         """
     )
+    migrate_database(conn)
     conn.commit()
+
+
+def column_names(conn, table_name):
+    return {row["name"] for row in conn.execute(f"pragma table_info({table_name})")}
+
+
+def migrate_database(conn):
+    job_columns = column_names(conn, "publish_jobs")
+    if "platform" not in job_columns:
+        conn.execute("alter table publish_jobs add column platform text")
+
+    attempt_columns = column_names(conn, "publish_attempts")
+    if "retry_classification" not in attempt_columns:
+        conn.execute("alter table publish_attempts add column retry_classification text")
+    if "started_at" not in attempt_columns:
+        conn.execute("alter table publish_attempts add column started_at text")
+    if "finished_at" not in attempt_columns:
+        conn.execute("alter table publish_attempts add column finished_at text")
+
+    event_columns = column_names(conn, "publish_events")
+    if "status" not in event_columns:
+        conn.execute("alter table publish_events add column status text")
+    if "source_actor" not in event_columns:
+        conn.execute("alter table publish_events add column source_actor text")
+    if "attempt_number" not in event_columns:
+        conn.execute("alter table publish_events add column attempt_number integer")
 
 
 def row_to_boundary(row):
@@ -683,6 +720,180 @@ def approve_draft(conn, draft_id, payload):
             "createdAt": approved_at,
         }
     }
+
+
+def get_approval(conn, approval_id):
+    approval = conn.execute("select * from approvals where id = ?", (approval_id,)).fetchone()
+    if approval is None:
+        raise StoreError(400, "Approval not found.")
+    if approval["status"] != "approved":
+        raise StoreError(409, "Approval is not ready to publish.")
+    return approval
+
+
+def get_existing_publish_job_for_approval(conn, approval_id):
+    return conn.execute(
+        "select * from publish_jobs where approval_id = ? order by created_at desc limit 1",
+        (approval_id,),
+    ).fetchone()
+
+
+def create_publish_job(conn, approval):
+    existing = get_existing_publish_job_for_approval(conn, approval["id"])
+    if existing is not None:
+        return existing
+
+    snapshot = json_loads(approval["snapshot_json"], {})
+    now = utc_now()
+    job_id = new_id("publish_job")
+    conn.execute(
+        "insert into publish_jobs (id, approval_id, platform, status, created_at, updated_at) values (?, ?, ?, ?, ?, ?)",
+        (job_id, approval["id"], snapshot.get("platform"), "queued", now, now),
+    )
+    return conn.execute("select * from publish_jobs where id = ?", (job_id,)).fetchone()
+
+
+def update_publish_job_status(conn, job_id, status):
+    now = utc_now()
+    conn.execute(
+        "update publish_jobs set status = ?, updated_at = ? where id = ?",
+        (status, now, job_id),
+    )
+
+
+def append_publish_event(conn, job_id, status, summary, source_actor, attempt_number):
+    now = utc_now()
+    conn.execute(
+        """
+        insert into publish_events (
+          id, publish_job_id, event_type, status, summary, actor,
+          source_actor, attempt_number, created_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            new_id("publish_event"),
+            job_id,
+            status,
+            status,
+            summary,
+            source_actor,
+            source_actor,
+            attempt_number,
+            now,
+        ),
+    )
+
+
+def create_publish_attempt(conn, job_id, snapshot, outcome):
+    now = utc_now()
+    attempt_number = next_attempt_number(conn, job_id)
+    attempt_id = new_id("publish_attempt")
+    diagnostics = safe_diagnostics(outcome.get("diagnostics", {}))
+    conn.execute(
+        """
+        insert into publish_attempts (
+          id, publish_job_id, attempt_number, status, trace_id, request_digest,
+          diagnostics_json, retry_classification, started_at, finished_at, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            attempt_id,
+            job_id,
+            attempt_number,
+            outcome["attemptStatus"],
+            trace_id(),
+            request_digest(snapshot),
+            json_dumps(diagnostics),
+            outcome["retryClassification"],
+            now,
+            now,
+            now,
+            now,
+        ),
+    )
+    return conn.execute("select * from publish_attempts where id = ?", (attempt_id,)).fetchone()
+
+
+def next_attempt_number(conn, job_id):
+    current = conn.execute(
+        "select max(attempt_number) from publish_attempts where publish_job_id = ?",
+        (job_id,),
+    ).fetchone()[0]
+    return (current or 0) + 1
+
+
+def get_publish_job(conn, job_id):
+    job = conn.execute("select * from publish_jobs where id = ?", (job_id,)).fetchone()
+    if job is None:
+        raise StoreError(404, "Publish job not found.")
+    return job
+
+
+def serialize_publish_event(row):
+    return {
+        "id": row["id"],
+        "timestamp": row["created_at"],
+        "sourceActor": row["source_actor"] or row["actor"],
+        "attemptNumber": row["attempt_number"] or 1,
+        "status": row["status"] or row["event_type"],
+        "summary": row["summary"],
+    }
+
+
+def serialize_publish_attempt(row):
+    return {
+        "id": row["id"],
+        "attemptNumber": row["attempt_number"],
+        "status": row["status"],
+        "traceId": row["trace_id"],
+        "requestDigest": row["request_digest"],
+        "diagnostics": safe_diagnostics(json_loads(row["diagnostics_json"], {})),
+        "retryClassification": row["retry_classification"] or "none",
+        "startedAt": row["started_at"] or row["created_at"],
+        "finishedAt": row["finished_at"] or row["updated_at"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def serialize_publish_job(conn, job):
+    approval = conn.execute("select * from approvals where id = ?", (job["approval_id"],)).fetchone()
+    if approval is None:
+        raise StoreError(400, "Publish job has no approval snapshot.")
+    snapshot = json_loads(approval["snapshot_json"], {})
+    events = [
+        serialize_publish_event(row)
+        for row in conn.execute(
+            "select * from publish_events where publish_job_id = ? order by created_at, rowid",
+            (job["id"],),
+        )
+    ]
+    attempts = [
+        serialize_publish_attempt(row)
+        for row in conn.execute(
+            "select * from publish_attempts where publish_job_id = ? order by attempt_number",
+            (job["id"],),
+        )
+    ]
+    return safe_diagnostics(
+        {
+            "id": job["id"],
+            "approvalId": job["approval_id"],
+            "draftVersionId": approval["draft_version_id"],
+            "connectedChannelId": approval["connected_channel_id"],
+            "platform": job["platform"] or snapshot.get("platform"),
+            "status": job["status"],
+            "approvalSnapshot": snapshot,
+            "attempts": attempts,
+            "events": events,
+            "createdAt": job["created_at"],
+            "updatedAt": job["updated_at"],
+        }
+    )
+
+
+def get_serialized_publish_job(conn, job_id):
+    return serialize_publish_job(conn, get_publish_job(conn, job_id))
 
 
 def get_serialized_draft(conn, draft_id):

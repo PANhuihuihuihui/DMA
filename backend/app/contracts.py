@@ -74,6 +74,14 @@ def idempotency_key(platform, draft_version_id, connected_channel_id):
     return f"lp:{platform}:{digest[:32]}"
 
 
+def request_digest(value):
+    return "sha256:" + hashlib.sha256(json_dumps(redact(value)).encode("utf-8")).hexdigest()
+
+
+def trace_id():
+    return new_id("trace")
+
+
 def serialize_media_asset(row):
     return {
         "mediaAssetId": row["id"],
@@ -153,3 +161,7 @@ def build_approval_snapshot(draft, version, media_assets, channel, token_boundar
             "idempotencyKey": key,
         }
     )
+
+
+def safe_diagnostics(value):
+    return redact(value or {})
