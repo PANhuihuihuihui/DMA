@@ -36,7 +36,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Retrying an approved fake publish job records a new immutable attempt without duplicating the approved external outcome.
   5. Support-visible diagnostics and events show approver, draft version, timestamps, and redacted provider details without exposing tokens or secrets.
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Bounded Postiz-vs-native comparison matrix, evidence capture, and go/no-go decision memo
 **UI hint**: yes
 
 ### Phase 2: Publishing Engine Reuse Decision
@@ -52,7 +55,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A documented go/no-go decision selects Postiz-style wrapping or native provider adapters before deep Facebook or TikTok custom request wrappers are built.
   4. Production publishing paths reject scraping, cookie-based posting, and AutoCLI/browser-session automation, with AutoCLI allowed only for internal research if needed.
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Bounded Postiz-vs-native comparison matrix, evidence capture, and go/no-go decision memo
 
 ### Phase 3: Local Campaign Draft Workbench
 
