@@ -18,11 +18,13 @@
 - **Predis.ai** ($19-249/mo, US SMB) — closest US price-comparable, but admits "fully automated posting not recommended"
 - **Nectar Social** ($30M Series A, US enterprise engagement) — different use case (engagement, not creation), but validates the category
 
-**The features NOBODY ELSE has:** real attribution loop, strategy engine (not captions), owner approval as first-class.
+**The features NOBODY ELSE has:** measurable response loop, strategy engine (not captions), owner approval as first-class.
+
+**Important correction:** Pan was right to challenge "accurate attribution." Exact organic-social → offline walk-in/revenue attribution is not technically possible for SMBs. The feasible product is an **evidence loop / measurable response loop**: tracked clicks, call taps, direction taps, coupon redemptions, DMs, and owner-confirmed mentions.
 
 **Three things must be true for the wedge to hold:**
-1. Ship the conversion attribution loop (our #1 moat)
-2. Brand against AI-spam with provable real outcomes
+1. Ship the evidence loop (our #1 moat, but do not claim exact ROI)
+2. Brand against AI-spam with provable response signals
 3. Avoid the Youzan trap (don't try to compete in China)
 
 ---
@@ -105,8 +107,12 @@ For the full matrix, see `03_feature_gap_matrix.md`. Key findings:
 
 ```
 docs/research/v3/
-├── README.md                                    # this file (executive report)
+├── README.md                                    # executive report
+├── index.html                                   # shareable cofounder-facing HTML
 ├── 03_feature_gap_matrix.md                     # detailed feature × competitor table
+├── 04_attribution_feasibility.md                # Pan's concern: exact attribution is impossible; evidence loop is feasible
+├── 05_naming_scan.md                            # rename scan; recommends Brickbeat / MainStreetProof / CornerLift
+├── 06_restaurant_outreach_playbook.md           # Ann Arbor 10-restaurant pilot outreach
 ├── competitors/
 │   ├── 01_scale_social.md                       # US enterprise UGC, $1.3M pre-seed
 │   ├── 02_youzan.md                             # China SMB XHS AI, Youzan platform
@@ -158,4 +164,4 @@ docs/research/v3/
 
 ## One-line answer for co-founder
 
-> "Market is real ($32B → $164B by 2034), and no US SMB competitor combines our 3 wedge features (one-input → 4-platform strategy, owner approval, real attribution to calls/bookings). Closest competitor (Youzan) is China + XHS-locked. Closest US competitor (Predis.ai at $19/mo) admits they can't fully auto-post — we make that our promise. Ship the attribution loop first, run the 10-restaurant pilot, prove real outcomes, then expand. Watch Nectar Social ($30M Series A, May 2026) for category validation but they serve enterprise, not us."
+> "Market is real ($32B → $164B by 2034), and no US SMB competitor combines our 3 wedge features (one-input → 4-platform strategy, owner approval, measurable response loop). Pan was right: exact offline attribution is impossible, so we should sell honest lower-bound evidence — clicks, call taps, direction taps, coupons, DMs, owner-confirmed mentions — not fake ROI precision. Closest competitor (Youzan) is China + XHS-locked. Closest US competitor (Predis.ai at $19/mo) admits they can't fully auto-post — we make owner approval our promise. Rename away from LocalPilot; my current favorite is Brickbeat, with Proof Loop as the measurement feature. Run the 10-restaurant Ann Arbor pilot and prove useful response signals before expanding."

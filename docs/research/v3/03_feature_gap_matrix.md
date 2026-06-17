@@ -32,7 +32,7 @@
 
 ## The 3 features NOBODY ELSE has
 
-### 🏆 Feature 1 — Real attribution loop (calls / bookings / DMs / walk-ins per post)
+### 🏆 Feature 1 — Evidence loop / measurable response loop (clicks / call taps / direction taps / DMs / coupons)
 
 | Who has it | Detail |
 |---|---|
@@ -41,9 +41,9 @@
 | Predis.ai | ❌ No (vanity metrics only) |
 | Nectar Social | ⚠️ Klaviyo integration for downstream email/SMS retargeting |
 | Buffer / Hootsuite | ❌ No |
-| **LocalPilot AI** | ✅ Per-post unique QR + URL → owner sees clicks/calls/DMs/reservations attributed |
+| **LocalPilot AI** | ✅ Per-post unique QR + URL → owner sees lower-bound measurable response signals (clicks, call taps, direction taps, DMs, coupons, owner-confirmed mentions). Not exact offline attribution. |
 
-**Pain signal anchor**: Reddit r/smallbusiness "Buying posts on linkedin" (454↑): *"It's literally bots. Bots everywhere. Total conversions: 0."* SMBs are desperate for **proof that marketing drove real outcomes**. This is our wedge.
+**Pain signal anchor**: Reddit r/smallbusiness "Buying posts on linkedin" (454↑): *"It's literally bots. Bots everywhere. Total conversions: 0."* SMBs are desperate for evidence that marketing drove something real beyond vanity metrics. This is our wedge.
 
 ---
 
@@ -108,7 +108,7 @@
 
 ## Competitive positioning statement (one-line)
 
-> **LocalPilot AI is the only "one prompt → platform-native strategy → owner-approved → published → attributed to real calls/DMs/bookings" workflow built for single-location US small businesses.** No competitor combines all five in the SMB segment.
+> **LocalPilot AI is the only "one prompt → platform-native strategy → owner-approved → published → measured with lower-bound response signals" workflow built for single-location US small businesses.** No competitor combines all five in the SMB segment.
 
 ---
 
@@ -116,7 +116,7 @@
 
 Based on this feature gap analysis, in priority order:
 
-1. **Conversion attribution loop** — unique QR/URL per post + weekly email with clicks/calls/DMs. This is our #1 wedge. Build in Week 1-4.
+1. **Evidence loop / measurable response loop** — unique QR/URL per post + weekly email with clicks/call taps/direction taps/DMs/coupons/owner-confirmed mentions. This is our #1 wedge, but do not claim exact attribution. Build in Week 1-4.
 2. **One input → 4 platform-native posts** — different strategies per platform, not the same caption 4×. Build in Week 1-4 alongside #1.
 3. **Owner approval workflow** — email + WhatsApp notification, 1-click approve. Build in Week 2-5.
 4. **Weekly autopilot** — Sunday evening email with the next week's content, owner clicks "approve all" or edits individually. Build in Week 5-8.
