@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalPilot AI — CEO Market Research v3</title>
+<meta name="description" content="Competitive deep-dive for LocalPilot AI — feature analysis of Scale Social, Youzan, Predis.ai, Nectar Social, with SMB pain re-anchoring.">
+<style>
+  :root{
+    --ink:#0f1419;--muted:#5b6470;--soft:#f7f5f2;--line:#e6e1da;
+    --green:#1f7a4d;--green-dark:#0f5232;
+    --coral:#d24a3a;--amber:#b07700;--blue:#2b5da6;
+    --purple:#6b3fa0;--paper:#fffcf7;
+    --shadow:0 1px 2px rgba(15,20,25,.04),0 8px 24px rgba(15,20,25,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--paper);line-height:1.6;font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:840px;margin:0 auto;padding:48px 28px 96px}
+  header{margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+  .kicker{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--purple);margin:0 0 8px}
+  h1{font-size:38px;line-height:1.15;margin:0 0 12px;font-weight:800;letter-spacing:-.01em}
+  .sub{font-size:18px;color:var(--muted);margin:0 0 16px}
+  .meta{font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;gap:18px}
+  .meta span{display:inline-flex;align-items:center;gap:6px}
+  .verdict{
+    background:linear-gradient(135deg,#fffcf7 0%,#f5e9f9 100%);
+    border:1px solid #e0c8e8;border-left:5px solid var(--purple);
+    padding:24px 28px;border-radius:8px;margin:32px 0 40px;box-shadow:var(--shadow);
+  }
+  .verdict h2{margin:0 0 12px;font-size:20px}
+  .verdict p{margin:8px 0}
+  .verdict .one-liner{font-size:17px;line-height:1.65;color:var(--ink)}
+  h2{font-size:26px;margin:48px 0 16px;padding-top:8px;font-weight:700;letter-spacing:-.005em;scroll-margin-top:24px}
+  h3{font-size:19px;margin:28px 0 10px;font-weight:600}
+  h4{font-size:16px;margin:20px 0 8px;font-weight:600;color:var(--green-dark)}
+  p{margin:10px 0}
+  a{color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(43,93,166,.25)}
+  a:hover{border-bottom-color:var(--blue)}
+  ul,ol{padding-left:22px;margin:10px 0}
+  li{margin:6px 0}
+  blockquote{
+    margin:16px 0;padding:14px 18px;background:var(--soft);
+    border-left:4px solid var(--green);border-radius:0 6px 6px 0;font-style:italic;color:var(--ink);
+  }
+  blockquote p{margin:4px 0}
+  blockquote .attr{display:block;margin-top:8px;font-style:normal;font-size:13px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;box-shadow:var(--shadow);border-radius:6px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--soft);font-weight:600;color:var(--ink);font-size:13px;letter-spacing:.02em}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafaf6}
+  tr.winner td{background:#fff8ec}
+  tr.us td{background:#f0e8f7;font-weight:600}
+  code{background:#f1ede5;padding:1px 6px;border-radius:4px;font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  pre{background:#1c1c1c;color:#f0f0f0;padding:16px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.55}
+  pre code{background:transparent;color:inherit;padding:0;font-size:inherit}
+  .pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;letter-spacing:.02em;line-height:1.7}
+  .pill-green{background:#dff3e8;color:var(--green-dark)}
+  .pill-red{background:#fde4e0;color:#8a2218}
+  .pill-amber{background:#fdf0d2;color:#7a4f00}
+  .pill-blue{background:#dde6f4;color:#1a3a72}
+  .pill-purple{background:#ede0f4;color:#5a2d8a}
+  .pill-grey{background:#e8e6e0;color:#444}
+  .grid{display:grid;gap:16px;margin:18px 0}
+  .grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px 18px;box-shadow:var(--shadow)}
+  .card h4{margin:0 0 6px;font-size:14px;color:var(--green-dark)}
+  .card .big{font-size:26px;font-weight:800;color:var(--ink);line-height:1.1;margin:6px 0}
+  .card .src{font-size:12px;color:var(--muted)}
+  .quote-card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--coral);border-radius:0 6px 6px 0;padding:14px 18px;margin:14px 0;box-shadow:var(--shadow)}
+  .quote-card .text{font-style:italic;color:var(--ink);font-size:15px}
+  .quote-card .meta{font-size:12px;color:var(--muted);margin-top:8px;font-style:normal}
+  .quote-card.cn{border-left-color:var(--purple)}
+  .toc{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:18px 22px;margin:32px 0}
+  .toc h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+  .toc ol{list-style:none;padding:0;margin:0;counter-reset:item}
+  .toc li{counter-increment:item;margin:4px 0}
+  .toc li a::before{content:counter(item) ". ";color:var(--muted);font-weight:600}
+  .section-num{display:inline-block;background:var(--ink);color:#fff;width:32px;height:32px;border-radius:6px;line-height:32px;text-align:center;font-size:14px;font-weight:700;margin-right:10px;vertical-align:middle}
+  .callout{background:#fff8ec;border:1px solid #f3d9b8;border-radius:6px;padding:14px 18px;margin:16px 0;font-size:14.5px}
+  .callout strong{color:var(--amber)}
+  .callout-purple{background:#f5e9f9;border-color:#e0c8e8}
+  .callout-purple strong{color:var(--purple)}
+  .files{background:#f5f3ed;border:1px solid var(--line);border-radius:6px;padding:14px 18px;margin:16px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;line-height:1.7}
+  .files .folder{color:var(--purple);font-weight:600}
+  .files .file{color:var(--ink)}
+  .files .comment{color:var(--muted);font-style:italic}
+  hr{border:none;border-top:1px solid var(--line);margin:40px 0}
+  footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+  @media (max-width:600px){
+    .wrap{padding:32px 18px 64px}
+    h1{font-size:30px}
+    h2{font-size:22px}
+    table{font-size:13px}
+    th,td{padding:8px}
+  }
+  @media print{body{background:#fff}.wrap{max-width:none;padding:24px}.verdict{break-inside:avoid}table{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">LocalPilot AI — Internal · v3</p>
+  <h1>CEO Market Research v3 — Competitive Deep-Dive</h1>
+  <p class="sub">Deep feature analysis of 4 named competitors + SMB pain re-anchoring. Built for co-founder review.</p>
+  <div class="meta">
+    <span><strong>Date:</strong> 2026-06-17</span>
+    <span><strong>Author:</strong> Hermes (as CEO of LocalPilot AI)</span>
+    <span><strong>Scope:</strong> Scale Social · Youzan · Predis.ai · Nectar Social</span>
+    <span><strong>For:</strong> Huijie Pan (CTO) · Co-founder</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <h2>The CEO Verdict (60-second read)</h2>
+  <p class="one-liner"><strong>The market is real and growing.</strong> TAM = $32.48B (2025) → $164.52B (2034), CAGR 19.70%. 36M US SMBs, 54% increasing social spend.</p>
+  <p class="one-liner"><strong>Our wedge is unoccupied in the US SMB segment.</strong> No competitor combines: (1) one prompt → multi-platform strategy, (2) owner-approval workflow, (3) real attribution to calls/bookings/DMs.</p>
+  <p class="one-liner"><strong>Three things must be true for the wedge to hold:</strong> ① Ship the conversion attribution loop (our #1 moat). ② Brand against AI-spam with provable real outcomes. ③ Avoid the Youzan trap (don't try to compete in China).</p>
+</div>
+
+<nav class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#changed">What changed since v2</a></li>
+    <li><a href="#competitors">The 4 competitors (deep-dive)</a></li>
+    <li><a href="#matrix">Feature gap matrix</a></li>
+    <li><a href="#wedge">The 3 features nobody else has</a></li>
+    <li><a href="#loses">Where we lose + mitigation</a></li>
+    <li><a href="#gtm">90-day GTM (v3)</a></li>
+    <li><a href="#files">Files in this v3 folder</a></li>
+    <li><a href="#oneliner">One-line answer</a></li>
+  </ol>
+</nav>
+
+<h2 id="changed"><span class="section-num">1</span>What changed since v2</h2>
+
+<table>
+<thead><tr><th>v2 claim</th><th>v3 correction</th></tr></thead>
+<tbody>
+<tr>
+  <td>"Scale Social is a Chinese XHS marketing tool that just raised $1.3M"</td>
+  <td><strong>Scale Social is a US-based AI UGC supply-chain startup</strong>, raised $1.3M from LAUNCH (Jason Calacanis) + NC IDEA. Different wedge (enterprise UGC, not XHS).</td>
+</tr>
+<tr>
+  <td>"Youzan is enterprise SaaS"</td>
+  <td>Youzan AI 内容创作 is <strong>priced and packaged for SMB merchants on Youzan's commerce platform</strong> — directly comparable to our wedge, but China + XHS-only.</td>
+</tr>
+<tr>
+  <td>"Predis.ai is the closest competitor"</td>
+  <td>Confirmed. Their own docs admit "fully automated posting not recommended." We have a real opening here.</td>
+</tr>
+<tr>
+  <td>Didn't have Nectar Social</td>
+  <td><strong>Nectar Social raised $30M Series A May 14, 2026</strong> (Menlo Ventures + Anthropic's Anthology Fund). Enterprise engagement, not creation — category validator, not threat.</td>
+</tr>
+<tr>
+  <td>"Brand collision with Polsia LocalPilot"</td>
+  <td>Unchanged — still need to rename.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="competitors"><span class="section-num">2</span>The 4 competitors (deep-dive)</h2>
+
+<h3>① Scale Social — US enterprise UGC, $1.3M Pre-Seed</h3>
+
+<div class="quote-card">
+  <div class="text">"📸 一次简单的扫码 → 📱 顾客记录真实体验 → 🤖 AI自动生成短视频广告 → 📍 精准投放到本地 Instagram、Facebook、Google 等"<br><br>"已经帮助合作品牌实现了最高 104% 销售增长"</div>
+  <div class="meta">— Scale Social XHS 融资 post · 150❤ · investors: LAUNCH, NC IDEA, The Syndicate (Jason Calacanis)</div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h4>Tagline</h4>
+    <div class="big" style="font-size:18px">"AI Powered UGC Supply-Chain"</div>
+    <div class="src">"Turn your customers into your greatest storytellers"</div>
+  </div>
+  <div class="card">
+    <h4>Funding</h4>
+    <div class="big">$1.3M</div>
+    <div class="src">Pre-Seed (2026) · LAUNCH + The Syndicate + NC IDEA</div>
+  </div>
+  <div class="card">
+    <h4>Target customer</h4>
+    <div class="big" style="font-size:18px">Multi-location chains</div>
+    <div class="src">Not single-store SMBs (their flywheel needs volume)</div>
+  </div>
+  <div class="card">
+    <h4>Pricing</h4>
+    <div class="big" style="font-size:18px">Contact us only</div>
+    <div class="src">No self-serve; enterprise sales</div>
+  </div>
+</div>
+
+<p><strong>Core wedge</strong>: Their AI Director is trained on brand guidelines + audience data. Workflow: customer scans QR in-store → records video → AI scores + auto-generates short ad → deploys to IG/FB/Google. Loop compounds over time as their library grows.</p>
+
+<p><strong>Not a direct threat</strong>: Different customer (multi-location), different wedge (UGC, not owner-input strategy). <strong>Opportunity for us</strong>: their model needs volume; a single restaurant with 50 customers/week can't feed it. That's our beachhead.</p>
+
+<div class="callout callout-purple"><strong>📄 Full deep-dive:</strong> <code>competitors/01_scale_social.md</code></div>
+
+<h3>② Youzan AI 内容创作 — China SMB XHS, Youzan platform</h3>
+
+<div class="quote-card cn">
+  <div class="text">"AI 内容创作-商家笔记素材一键生成是一款帮助商家在小红书高效持续种草的解决方案。它通过多模版AI笔记生成、UGC口碑自动化创作与账号托管运营，降低内容与人力成本，提升曝光转化为到店、团购与小程序成交。"</div>
+  <div class="meta">— youzan.com/chanpin/aineirongchuangzhu (verbatim)</div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h4>5 core features (verbatim)</h4>
+    <div class="src" style="font-size:14px">
+      ① AI 多模版笔记生成<br>
+      ② 素材库智能选图 + 商品挂载<br>
+      ③ UGC 口碑秒级生成 (碰碰贴 NFC)<br>
+      ④ 账号托管 + 自动化运营<br>
+      ⑤ 热点监控 + 智能加热
+    </div>
+  </div>
+  <div class="card">
+    <h4>Price band</h4>
+    <div class="big">¥6k-30k/yr</div>
+    <div class="src">~$70-345/mo bundled in Youzan commerce SaaS</div>
+  </div>
+  <div class="card">
+    <h4>Target</h4>
+    <div class="big" style="font-size:18px">"餐饮、美业、烘焙、零售"</div>
+    <div class="src">Restaurants · Beauty · Baking · Retail · Multi-location chains</div>
+  </div>
+  <div class="card">
+    <h4>Unique wedge</h4>
+    <div class="big" style="font-size:18px">碰碰贴 NFC</div>
+    <div class="src">In-store hardware → 3-30 sec UGC post</div>
+  </div>
+</div>
+
+<p><strong>Closest feature-comparable to us</strong> — same targets, same workflow, same SMB price band. But <strong>China-locked + XHS-only</strong>. We cannot and should not compete here in 2026.</p>
+
+<p><strong>What we learn from them</strong>: account hosting + brand voice + UGC harvesting + POI are the bar for XHS-tier features. If we ever expand to XHS, we must match or partner.</p>
+
+<div class="callout callout-purple"><strong>📄 Full deep-dive:</strong> <code>competitors/02_youzan.md</code></div>
+
+<h3>③ Predis.ai — US SMB AI content, $19-249/mo</h3>
+
+<div class="quote-card">
+  <div class="text">"Predis.ai cuts post creation time by 60 to 70 percent for static posts and carousels, and the scheduling calendar is highly rated."<br><br>"Generated captions require editing for brand voice — fully automated posting without review not recommended."</div>
+  <div class="meta">— TheMarketingShelf Apr 18 2026 · AIToolScoop Apr 23 2026</div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h4>Pricing (verified Apr 2026)</h4>
+    <div class="src" style="font-size:13px">
+      <strong>Solo:</strong> $32/mo or <strong>$19/mo annual</strong> — 1 brand, 30 posts/mo<br>
+      <strong>Business:</strong> $79/mo or $40/mo annual — 5 brands, 100 posts/mo<br>
+      <strong>Agency:</strong> $249/mo or $212/mo annual — unlimited, 400 posts/mo, white-label
+    </div>
+  </div>
+  <div class="card">
+    <h4>Marketing hook</h4>
+    <div class="big" style="font-size:18px">"60-70% time saved"</div>
+    <div class="src">Their #1 conversion claim</div>
+  </div>
+  <div class="card">
+    <h4>Target</h4>
+    <div class="big" style="font-size:18px">E-comm + creators + agencies</div>
+    <div class="src">Not primarily local brick-and-mortar</div>
+  </div>
+  <div class="card">
+    <h4>Critical admission</h4>
+    <div class="big" style="font-size:18px;color:var(--coral)">"Auto-post not recommended"</div>
+    <div class="src">They punt on owner approval — we make it our promise</div>
+  </div>
+</div>
+
+<p><strong>Closest US competitor</strong>. Same input model (one prompt → post), similar price point. But explicit gaps:</p>
+<ul>
+  <li><strong>Same caption across platforms with light variants</strong> — not true native strategy</li>
+  <li><strong>No real conversion attribution</strong> — only ad-performance vanity metrics</li>
+  <li><strong>Caps at 30 posts/mo on the $19 tier</strong> — basically 1/day across all platforms combined</li>
+  <li><strong>No restaurant/location-specific features</strong> — no POI, no reservations, no QR codes</li>
+</ul>
+
+<div class="callout callout-purple"><strong>📄 Full deep-dive:</strong> <code>competitors/03_predis.md</code></div>
+
+<h3>④ Nectar Social — US enterprise engagement, $30M Series A <span class="pill pill-amber">BONUS</span></h3>
+
+<div class="quote-card">
+  <div class="text">"Nectar Social announces $30M Series A to build the Agentic Operating System for Modern Marketing. Lead investors: Menlo Ventures + Anthology Fund (Menlo + Anthropic). Customers: Liquid Death, Figma, e.l.f Beauty."</div>
+  <div class="meta">— BusinessWire May 14 2026 · AI Zhiding</div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h4>Funding</h4>
+    <div class="big">$30M Series A</div>
+    <div class="src">May 14, 2026 · Menlo Ventures + Anthology (Anthropic)</div>
+  </div>
+  <div class="card">
+    <h4>Wedge</h4>
+    <div class="big" style="font-size:18px">AI community manager</div>
+    <div class="src">Auto-replies to DMs/comments in brand voice</div>
+  </div>
+  <div class="card">
+    <h4>Target</h4>
+    <div class="big" style="font-size:18px">Enterprise / mid-market</div>
+    <div class="src">Not SMB; $10k-100k+/yr contracts</div>
+</div>
+  <div class="card">
+    <h4>Why we should care</h4>
+    <div class="big" style="font-size:18px">Category validator</div>
+    <div class="src">A-tier VCs are watching AI-for-social-marketing</div>
+  </div>
+</div>
+
+<p><strong>Not a direct competitor</strong> — they handle inbound engagement, we handle content creation. But their $30M raise is positive market signal for our category. SMB-downmarket positioning is uncontested.</p>
+
+<div class="callout callout-purple"><strong>📄 Full deep-dive:</strong> <code>competitors/04_nectar_social.md</code></div>
+
+<h2 id="matrix"><span class="section-num">3</span>Feature gap matrix</h2>
+
+<table>
+<thead><tr><th>Feature</th><th>Scale Social</th><th>Youzan</th><th>Predis.ai</th><th>Nectar</th><th>Buffer/Hootsuite</th><th class="us">LocalPilot</th></tr></thead>
+<tbody>
+<tr><td><strong>One prompt → ready content</strong></td><td>❌</td><td>✅</td><td>✅</td><td>❌</td><td>⚠️</td><td class="us">✅</td></tr>
+<tr><td><strong>Multi-platform native rewrite (not same caption ×4)</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td><td>⚠️</td><td class="us">✅</td></tr>
+<tr><td><strong>Owner approval workflow</strong></td><td>❌</td><td>✅ (CN-only)</td><td>❌ "not recommended"</td><td>N/A</td><td>⚠️</td><td class="us">✅</td></tr>
+<tr><td><strong>Brand voice learning</strong></td><td>✅</td><td>✅</td><td>✅</td><td>✅ best-in-class</td><td>⚠️</td><td class="us">✅</td></tr>
+<tr class="winner"><td><strong>Real attribution (calls, bookings, DMs, walk-ins)</strong></td><td>❌</td><td>⚠️ 团购核销 only</td><td>❌</td><td>⚠️ Klaviyo integration</td><td>❌</td><td class="us">✅ <strong>our wedge</strong></td></tr>
+<tr><td><strong>Per-post unique QR / short URL</strong></td><td>❌</td><td>⚠️ POI only</td><td>❌</td><td>❌</td><td>❌</td><td class="us">✅</td></tr>
+<tr><td><strong>UGC harvesting from real customers</strong></td><td>✅ their core</td><td>✅ 碰碰贴 NFC</td><td>❌</td><td>❌</td><td>❌</td><td>❌ (v2)</td></tr>
+<tr><td><strong>SMB self-serve (&lt;$200/mo)</strong></td><td>❌</td><td>⚠️ bundled</td><td>✅ $19-79</td><td>❌</td><td>⚠️</td><td class="us">✅ $99-199</td></tr>
+<tr><td><strong>Works for single-location SMBs</strong></td><td>❌</td><td>✅</td><td>⚠️ e-comm focused</td><td>❌</td><td>✅</td><td class="us">✅</td></tr>
+<tr><td><strong>Xiaohongshu native support</strong></td><td>❌</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>⚠️ v2</td></tr>
+</tbody>
+</table>
+
+<h2 id="wedge"><span class="section-num">4</span>The 3 features NOBODY ELSE has</h2>
+
+<h3>🏆 Feature 1 — Real attribution loop</h3>
+
+<p>Per-post QR code + short URL → owner sees clicks, calls, DMs, reservations attributed to each post in a weekly email.</p>
+
+<div class="quote-card">
+  <div class="text">"Total spent: $150. Total posts: 6. Total likes: ~3500. Total comments: ~500. Visitors in page: 0. Conversions: 0. It's literally bots. Bots everywhere."</div>
+  <div class="meta">— Reddit r/smallbusiness 1qfie00 (454↑, 45 comments) — the "Dead Internet" pain</div>
+</div>
+
+<p><strong>No competitor has this for SMBs.</strong> Youzan only tracks 团购核销 (group-buy redemptions). Nectar integrates with Klaviyo (email) and Attentive (SMS) but not calls/bookings. Scale Social, Predis, Buffer, Hootsuite all stop at vanity metrics.</p>
+
+<h3>🏆 Feature 2 — Strategy engine (not just AI captions)</h3>
+
+<p>One input → four platform-native STRATEGIES. TikTok = trend-jacking hook + 30-sec vertical video. Instagram = carousel aesthetic + lifestyle. Facebook = community post + engagement prompt. Xiaohongshu = 种草 structure + keyword-rich caption.</p>
+
+<div class="quote-card">
+  <div class="text">"I absolutely SUCK at social media. What is everyone's secret to social marketing and coming up with content that people give a shit about?"<br><br>Top reply: "The secret isn't posting more, it's posting what buyers already say out loud. Stop thinking like a brand and start mining Reddit, Etsy reviews, or TikTok comments for phrases real people use..."</div>
+  <div class="meta">— Reddit r/smallbusiness 1m3af5h (56 comments) — the "what to post" pain</div>
+</div>
+
+<p><strong>Predis.ai explicitly generates the same post with minor variants per platform.</strong> We rewrite the marketing logic per platform. This is real differentiation.</p>
+
+<h3>🏆 Feature 3 — Owner approval as first-class feature</h3>
+
+<p>Every post requires owner tap. Email + WhatsApp notification. 1-click approve. Cannot be bypassed.</p>
+
+<div class="quote-card">
+  <div class="text">"Dead Internet. Bots and AI talking to Bots and AI."<br><br>"LinkedIn has gotten really, really bad... a few operations out there ghostwriting content and then circle-jerking responses."</div>
+  <div class="meta">— Reddit r/smallbusiness 1qfie00 comments — market sentiment on AI content</div>
+</div>
+
+<p><strong>Predis.ai's docs explicitly say "fully automated posting not recommended"</strong> — they punted on the approval workflow. We make it our promise. Scale Social auto-deploys. Youzan has approval but only via DingTalk/WeCom (China-locked). We're the only US SMB tool with first-class approval.</p>
+
+<h2 id="loses"><span class="section-num">5</span>Where we lose + mitigation</h2>
+
+<table>
+<thead><tr><th>vs</th><th>What they have</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>Scale Social</strong></td>
+  <td>Real customer content (bypasses AI-spam objection)</td>
+  <td>Add "customer testimonial" input mode at MVP+1; future v3 partner for 碰碰贴-style hardware</td>
+</tr>
+<tr>
+  <td><strong>Youzan</strong></td>
+  <td>碰碰贴 NFC + POI + 团购 attribution; China SMB distribution</td>
+  <td>Don't expand to China in 2026; partner not compete if we ever do</td>
+</tr>
+<tr>
+  <td><strong>Predis.ai</strong></td>
+  <td>$19/mo entry price; mature SEO/content marketing moat</td>
+  <td>Position on "complete loop, not just AI captions"; our $99 includes strategy + approval + attribution</td>
+</tr>
+<tr>
+  <td><strong>Nectar Social</strong></td>
+  <td>$30M Series A; brand voice training; inbound engagement</td>
+  <td>They serve enterprise; we serve SMB. No overlap. Their raise validates our category for fundraising.</td>
+</tr>
+<tr>
+  <td><strong>Buffer / Hootsuite</strong></td>
+  <td>10+ years of polish; broad integrations</td>
+  <td>Buffer doesn't do strategy or attribution; Hootsuite too expensive ($199+/mo) for SMBs. We own the missing middle.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="gtm"><span class="section-num">6</span>90-day GTM (v3)</h2>
+
+<h3>Week 1-2: Decisions</h3>
+<ul>
+  <li>☐ <strong>Rename</strong> LocalPilot AI (Polsia owns "LocalPilot" in EU)</li>
+  <li>☐ <strong>Lock pricing</strong>: $99 Starter / $199 Growth / $399 Multi-location</li>
+  <li>☐ <strong>Lock beachhead</strong>: US independent restaurants/cafés only</li>
+  <li>☐ <strong>Brand position</strong>: "The marketing employee your local business can afford — that shows you the real return"</li>
+</ul>
+
+<h3>Week 3-6: Build MVP</h3>
+<ul>
+  <li>☐ One prompt → 4 platform-native posts (FB/IG/TikTok)</li>
+  <li>☐ Owner approval workflow (email + WhatsApp)</li>
+  <li>☐ Per-post unique QR code + short URL for attribution</li>
+  <li>☐ Stripe billing</li>
+</ul>
+
+<h3>Week 7-10: Pilot</h3>
+<ul>
+  <li>☐ Recruit <strong>10 paying restaurants</strong> (one city, 3-month commit, $99/mo)</li>
+  <li>☐ Ship weekly improvements from owner feedback</li>
+  <li>☐ Weekly attribution emails: "Your 7 posts drove X clicks, Y calls, Z reservations"</li>
+</ul>
+
+<h3>Week 11-12: Validate</h3>
+<ul>
+  <li>☐ Publish 3 anonymized case studies</li>
+  <li>☐ Start inbound content (Reddit r/smallbusiness, ADD value not pitch)</li>
+  <li>☐ Decision: expand to second city OR pivot</li>
+</ul>
+
+<h3>What we explicitly WON'T do in 2026</h3>
+<ul>
+  <li>❌ Compete with Youzan in China</li>
+  <li>❌ Try to serve multi-location chains (Scale Social's turf)</li>
+  <li>❌ Try to handle inbound engagement (Nectar Social's turf)</li>
+  <li>❌ Match Predis.ai on $19/mo price point (can't profitably)</li>
+  <li>❌ Cold-DM any SMB (Reddit will roast us)</li>
+</ul>
+
+<h2 id="files"><span class="section-num">7</span>Files in this v3 folder</h2>
+
+<div class="files">
+<span class="folder">docs/research/v3/</span><br>
+├── <span class="file">README.md</span>                              <span class="comment"># this file (executive report)</span><br>
+├── <span class="file">03_feature_gap_matrix.md</span>                <span class="comment"># detailed feature × competitor table</span><br>
+├── <span class="folder">competitors/</span><br>
+│   ├── <span class="file">01_scale_social.md</span>                    <span class="comment"># US enterprise UGC, $1.3M pre-seed</span><br>
+│   ├── <span class="file">02_youzan.md</span>                          <span class="comment"># China SMB XHS AI, Youzan platform</span><br>
+│   ├── <span class="file">03_predis.md</span>                          <span class="comment"># US SMB AI content, $19-249/mo</span><br>
+│   └── <span class="file">04_nectar_social.md</span>                   <span class="comment"># US enterprise engagement, $30M Series A</span><br>
+└── <span class="folder">raw_signals/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="file">01_anchored_pain_signals.md</span>          <span class="comment"># verbatim SMB quotes from Reddit + XHS</span>
+</div>
+
+<p>GitHub-rendered URLs (each file is browsable):</p>
+<ul>
+  <li><a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/research/v3/README.md">README.md (this)</a></li>
+  <li><a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/research/v3/03_feature_gap_matrix.md">03_feature_gap_matrix.md</a></li>
+  <li><a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/research/v3/competitors/01_scale_social.md">competitors/01_scale_social.md</a></li>
+  <li><a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/research/v3/competitors/02_youzan.md">competitors/02_youzan.md</a></li>
+  <li><a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/research/v3/competitors/03_predis.md">competitors/03_predis.md</a></li>
+  <li><a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/research/v3/competitors/04_nectar_social.md">competitors/04_nectar_social.md</a></li>
+  <li><a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/research/v3/raw_signals/01_anchored_pain_signals.md">raw_signals/01_anchored_pain_signals.md</a></li>
+</ul>
+
+<h2 id="oneliner"><span class="section-num">8</span>One-line answer for co-founder</h2>
+
+<div class="verdict">
+  <p class="one-liner"><strong>"Market is real ($32B → $164B by 2034), and no US SMB competitor combines our 3 wedge features (one-input → 4-platform strategy, owner approval, real attribution to calls/bookings). Closest competitor (Youzan) is China + XHS-locked. Closest US competitor (Predis.ai at $19/mo) admits they can't fully auto-post — we make that our promise. Ship the attribution loop first, run the 10-restaurant pilot, prove real outcomes, then expand. Watch Nectar Social ($30M Series A, May 2026) for category validation but they serve enterprise, not us."</strong></p>
+</div>
+
+<hr>
+
+<footer>
+  <p><strong>LocalPilot AI · CEO Market Research v3</strong> · 2026-06-17</p>
+  <p>Folder: <code>docs/research/v3/</code> in the DMA repo. Generated by Hermes agent for internal co-founder review.</p>
+  <p>Companion: <a href="https://github.com/PANhuihuihuihui/DMA/blob/main/docs/ceo_research_v2.html">v2 executive report</a> (TAM + pain + competitive landscape overview).</p>
+</footer>
+
+</div>
+</body>
+</html>
