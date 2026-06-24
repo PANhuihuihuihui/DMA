@@ -83,9 +83,9 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [x] **TT-01**: System documents the current TikTok Content Posting API scopes, audit requirements, upload modes, creator-info requirements, and visibility constraints.
 - [x] **TT-02**: System supports TikTok Upload-to-Inbox or draft-style delivery as the first compliant TikTok publishing outcome.
 - [x] **TT-03**: System only enables TikTok Direct Post when app audit, required scopes, creator-info UX, privacy settings, and disclosure requirements are satisfied.
-- [ ] **TT-04**: Merchant can choose TikTok privacy and interaction settings from options returned by TikTok creator-info APIs.
-- [ ] **TT-05**: Merchant can explicitly confirm TikTok disclosure settings such as organic business promotion, paid partnership, or AI-generated content where applicable.
-- [ ] **TT-06**: System stores TikTok publish IDs, status responses, and provider diagnostics for support and reconciliation.
+- [x] **TT-04**: Merchant can choose TikTok privacy and interaction settings from options returned by TikTok creator-info APIs.
+- [x] **TT-05**: Merchant can explicitly confirm TikTok disclosure settings such as organic business promotion, paid partnership, or AI-generated content where applicable.
+- [x] **TT-06**: System stores TikTok publish IDs, status responses, and provider diagnostics for support and reconciliation.
 - [ ] **TT-07**: System classifies TikTok failures by authentication, scope, creator setting mismatch, media validation, rate limit, audit/visibility block, platform transient, or unknown error.
 
 ### Publishing Status And Fallback
@@ -212,9 +212,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TT-01 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | TT-02 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | TT-03 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
-| TT-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| TT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| TT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
+| TT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
+| TT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | TT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
 | STATUS-01 | Phase 1 - Backend Publishing Foundation | Complete |
 | STATUS-02 | Phase 1 - Backend Publishing Foundation | Complete |

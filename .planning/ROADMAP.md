@@ -131,7 +131,7 @@ Plans:
 - [x] 05-01-PLAN.md — Multi-channel publishing foundation + real session auth (channel_registry, scheduled_posts, publish_dispatch_queue, sessions; calendar_slots migration)
 - [x] 05-02-PLAN.md — Channel health visibility + disconnect enforcement without blocking content creation (ACCT-04..07)
 - [x] 05-03-PLAN.md — Creator-info snapshot + disclosure, privacy, and interaction approval gates (TT-01..03)
-- [ ] 05-04-PLAN.md — TikTok upload/draft publish path + backend-owned Direct Post gating (TT-04..06)
+- [x] 05-04-PLAN.md — TikTok upload/draft publish path + backend-owned Direct Post gating (TT-04..06)
 - [ ] 05-05-PLAN.md — Backend media validation + failure taxonomy + strictest-channel generation defaults (TT-07, MEDIA-04)
 
 **UI hint**: yes
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Publishing Engine Reuse Decision | 1/1 | Complete | 2026-06-10 |
 | 3. Predis Replica Plus Local Proof Loop MVP | 1/2 | In progress | - |
 | 4. Facebook Page Publishing Hardening | 3/8 | In Progress|  |
-| 5. TikTok Upload And Direct-Post Gates | 3/5 | In Progress|  |
+| 5. TikTok Upload And Direct-Post Gates | 4/5 | In Progress|  |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
 
 ---
