@@ -57,6 +57,7 @@ class FacebookPublisherTest(unittest.TestCase):
     def approve_tiktok(self):
         workflow = store.get_workflow(self.conn)
         draft = next(item for item in workflow["platformDrafts"] if item["platform"] == "tiktok")
+        creator_info = store.get_tiktok_creator_info(self.conn, draft["connectedChannelId"])
         return store.approve_draft(
             self.conn,
             draft["id"],
@@ -64,6 +65,13 @@ class FacebookPublisherTest(unittest.TestCase):
                 "draftVersionId": draft["currentVersion"]["id"],
                 "confirmation": "APPROVE_EXACT_VERSION",
                 "approver": {"name": "Karen Li", "email": "karen@example.com"},
+                "tiktokConfirmations": {
+                    "creatorInfoVersion": creator_info["version"],
+                    "privacyLevel": "PUBLIC_TO_EVERYONE",
+                    "disclosureReviewed": True,
+                    "interactionReviewed": True,
+                    "allowComment": True,
+                },
             },
         )["approval"]
 

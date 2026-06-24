@@ -705,6 +705,8 @@ def migrate_database(conn):
         conn.execute("alter table connected_channels add column connected_by_user_id text references users(id)")
     if "capabilities_json" not in connected_channel_columns:
         conn.execute("alter table connected_channels add column capabilities_json text not null default '{}'")
+    if "creator_info_json" not in connected_channel_columns:
+        conn.execute("alter table connected_channels add column creator_info_json text")
 
     brand_columns = column_names(conn, "brand_kits")
     if "website" not in brand_columns:
@@ -1144,7 +1146,19 @@ def ensure_phase5_foundation_seed(conn):
         """
     )
     ensure_demo_session(conn)
+    ensure_tiktok_creator_info_seed(conn)
     migrate_calendar_slots_to_scheduled_posts(conn)
+
+
+def ensure_tiktok_creator_info_seed(conn):
+    rows = conn.execute(
+        "select id from connected_channels where platform = 'tiktok' and (creator_info_json is null or trim(creator_info_json) = '')"
+    ).fetchall()
+    for row in rows:
+        conn.execute(
+            "update connected_channels set creator_info_json = ?, updated_at = ? where id = ?",
+            (json_dumps(default_tiktok_creator_info(version=1)), utc_now(), row["id"]),
+        )
 
 
 def ensure_demo_session(conn):
@@ -1435,6 +1449,106 @@ def assert_channel_publishable(conn, connected_channel_id):
             "This channel can't publish yet \u2014 reconnect or fix its connection health first.",
         )
     return channel
+
+
+TIKTOK_PRIVACY_LEVELS = (
+    "PUBLIC_TO_EVERYONE",
+    "MUTUAL_FOLLOW_FRIENDS",
+    "FOLLOWER_OF_CREATOR",
+    "SELF_ONLY",
+)
+
+
+def default_tiktok_creator_info(version=1):
+    return {
+        "version": version,
+        "fetchedAt": utc_now(),
+        "creatorNickname": "Aurora Heating & Cooling",
+        "privacyLevelOptions": [
+            "PUBLIC_TO_EVERYONE",
+            "MUTUAL_FOLLOW_FRIENDS",
+            "SELF_ONLY",
+        ],
+        "commentDisabled": False,
+        "duetDisabled": False,
+        "stitchDisabled": False,
+        "maxVideoPostDurationSec": 600,
+        "disclosureRequiredForCommercial": True,
+    }
+
+
+def get_tiktok_creator_info(conn, connected_channel_id, *, ensure=True):
+    channel = conn.execute(
+        "select * from connected_channels where id = ?", (connected_channel_id,)
+    ).fetchone()
+    if channel is None:
+        raise StoreError(404, "Connected channel not found.")
+    if channel["platform"] != "tiktok":
+        raise StoreError(409, "Creator info is only available for TikTok channels.")
+    stored = json_loads(channel["creator_info_json"], None)
+    if stored is None and ensure:
+        stored = default_tiktok_creator_info(version=1)
+        conn.execute(
+            "update connected_channels set creator_info_json = ?, updated_at = ? where id = ?",
+            (json_dumps(stored), utc_now(), connected_channel_id),
+        )
+        conn.commit()
+    return stored
+
+
+def refresh_tiktok_creator_info(conn, connected_channel_id):
+    current = get_tiktok_creator_info(conn, connected_channel_id, ensure=True) or {}
+    next_version = int(current.get("version") or 0) + 1
+    refreshed = default_tiktok_creator_info(version=next_version)
+    conn.execute(
+        "update connected_channels set creator_info_json = ?, updated_at = ? where id = ?",
+        (json_dumps(refreshed), utc_now(), connected_channel_id),
+    )
+    conn.commit()
+    return refreshed
+
+
+def validate_tiktok_confirmations(creator_info, confirmations):
+    creator_info = creator_info or {}
+    if not isinstance(confirmations, dict) or not confirmations:
+        raise StoreError(400, "TikTok approval requires disclosure, privacy, and interaction confirmations.")
+
+    if confirmations.get("creatorInfoVersion") != creator_info.get("version"):
+        raise StoreError(409, "TikTok creator settings changed \u2014 refresh creator info and re-confirm before approving.")
+
+    privacy_level = confirmations.get("privacyLevel")
+    if privacy_level not in (creator_info.get("privacyLevelOptions") or []):
+        raise StoreError(400, "TikTok approval requires a privacyLevel allowed by the creator's settings.")
+
+    if not confirmations.get("disclosureReviewed"):
+        raise StoreError(400, "TikTok approval requires explicit disclosure confirmation.")
+    if not confirmations.get("interactionReviewed"):
+        raise StoreError(400, "TikTok approval requires interaction-settings confirmation.")
+
+    if creator_info.get("commentDisabled") and confirmations.get("allowComment"):
+        raise StoreError(400, "Comments are disabled for this TikTok creator; they cannot be enabled.")
+    if creator_info.get("duetDisabled") and confirmations.get("allowDuet"):
+        raise StoreError(400, "Duets are disabled for this TikTok creator; they cannot be enabled.")
+    if creator_info.get("stitchDisabled") and confirmations.get("allowStitch"):
+        raise StoreError(400, "Stitches are disabled for this TikTok creator; they cannot be enabled.")
+
+    if confirmations.get("commercialContent") and creator_info.get("disclosureRequiredForCommercial"):
+        if not (confirmations.get("yourBrand") or confirmations.get("brandedContent")):
+            raise StoreError(400, "Commercial TikTok content requires a disclosure (your brand or branded content).")
+
+    return {
+        "creatorInfoVersion": creator_info.get("version"),
+        "privacyLevel": privacy_level,
+        "disclosureReviewed": True,
+        "interactionReviewed": True,
+        "allowComment": bool(confirmations.get("allowComment")),
+        "allowDuet": bool(confirmations.get("allowDuet")),
+        "allowStitch": bool(confirmations.get("allowStitch")),
+        "commercialContent": bool(confirmations.get("commercialContent")),
+        "yourBrand": bool(confirmations.get("yourBrand")),
+        "brandedContent": bool(confirmations.get("brandedContent")),
+        "confirmedAt": utc_now(),
+    }
 
 
 def migrate_demo_seed_to_aurora(conn):
@@ -5778,6 +5892,14 @@ def approve_draft(conn, draft_id, payload):
     if boundary_row is None:
         raise StoreError(400, "Connected channel has no token boundary.")
 
+    tiktok_creator_info = None
+    tiktok_confirmations = None
+    if version["platform"] == "tiktok":
+        tiktok_creator_info = get_tiktok_creator_info(conn, channel["id"], ensure=True)
+        tiktok_confirmations = validate_tiktok_confirmations(
+            tiktok_creator_info, payload.get("tiktokConfirmations")
+        )
+
     approved_at = utc_now()
     snapshot = build_approval_snapshot(
         draft,
@@ -5787,6 +5909,8 @@ def approve_draft(conn, draft_id, payload):
         row_to_boundary(boundary_row),
         {"name": approver["name"], "email": approver["email"]},
         approved_at=approved_at,
+        tiktok_creator_info=tiktok_creator_info,
+        tiktok_confirmations=tiktok_confirmations,
     )
     approval_id = new_id("approval")
     try:

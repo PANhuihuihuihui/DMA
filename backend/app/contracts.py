@@ -143,7 +143,17 @@ def serialize_session(row):
     }
 
 
-def build_approval_snapshot(draft, version, media_assets, channel, token_boundary, approver, approved_at=None):
+def build_approval_snapshot(
+    draft,
+    version,
+    media_assets,
+    channel,
+    token_boundary,
+    approver,
+    approved_at=None,
+    tiktok_creator_info=None,
+    tiktok_confirmations=None,
+):
     approved_at = approved_at or utc_now()
     media_refs = [serialize_media_asset(media) for media in media_assets]
     connected_channel_ref = {
@@ -154,29 +164,33 @@ def build_approval_snapshot(draft, version, media_assets, channel, token_boundar
         "providerChannelId": channel["provider_channel_id"],
     }
     key = idempotency_key(draft["platform"], version["id"], channel["id"])
-    return redact(
-        {
-            "platform": draft["platform"],
-            "draftId": draft["id"],
-            "draftVersionId": version["id"],
-            "versionNumber": version["version_number"],
-            "caption": version["caption"],
-            "body": version["body"],
-            "cta": version["cta"],
-            "mediaRefs": media_refs,
-            "connectedChannelRef": connected_channel_ref,
-            "tokenBoundaryRef": serialize_token_boundary_ref(token_boundary),
-            "providerPayloadSummary": json_loads(version["provider_payload_summary"], {}),
-            "disclosureSettingsRef": json_loads(version["disclosure_settings_ref"], {}),
-            "approver": {
-                "name": approver["name"],
-                "email": approver["email"],
-            },
-            "approvedAt": approved_at,
-            "createdAt": approved_at,
-            "idempotencyKey": key,
-        }
-    )
+    snapshot = {
+        "platform": draft["platform"],
+        "draftId": draft["id"],
+        "draftVersionId": version["id"],
+        "versionNumber": version["version_number"],
+        "caption": version["caption"],
+        "body": version["body"],
+        "cta": version["cta"],
+        "mediaRefs": media_refs,
+        "connectedChannelRef": connected_channel_ref,
+        "tokenBoundaryRef": serialize_token_boundary_ref(token_boundary),
+        "providerPayloadSummary": json_loads(version["provider_payload_summary"], {}),
+        "disclosureSettingsRef": json_loads(version["disclosure_settings_ref"], {}),
+        "approver": {
+            "name": approver["name"],
+            "email": approver["email"],
+        },
+        "approvedAt": approved_at,
+        "createdAt": approved_at,
+        "idempotencyKey": key,
+    }
+    if draft["platform"] == "tiktok":
+        # Freeze the creator settings and merchant confirmations that publish
+        # eligibility will later be validated against (D-05, D-07).
+        snapshot["creatorInfoSnapshot"] = tiktok_creator_info or {}
+        snapshot["tiktokConfirmations"] = tiktok_confirmations or {}
+    return redact(snapshot)
 
 
 def safe_diagnostics(value):

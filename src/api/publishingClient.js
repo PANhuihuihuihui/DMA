@@ -219,6 +219,15 @@ export const reconnectChannel = (channelId) =>
     method: "POST",
   });
 
+export const loadTiktokCreatorInfo = (channelId) =>
+  requestJson(`/tiktok/creator-info${channelId ? `?channelId=${encodeURIComponent(channelId)}` : ""}`);
+
+export const refreshTiktokCreatorInfo = (channelId) =>
+  requestJson("/tiktok/creator-info/refresh", {
+    method: "POST",
+    body: JSON.stringify({ channelId }),
+  });
+
 export const loadFacebookConnection = () => requestJson("/facebook/connection");
 
 export const loadFacebookPages = (connectSession) =>

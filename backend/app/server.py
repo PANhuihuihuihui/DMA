@@ -223,6 +223,20 @@ class JsonHandler(BaseHTTPRequestHandler):
                         status=201,
                     )
                 return
+            if method == "GET" and path == "/api/v1/tiktok/creator-info":
+                query = parse_qs(parsed.query)
+                channel_id = (query.get("channelId") or [store.TIKTOK_CHANNEL_ID])[0]
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_merchant_id(conn, parsed)
+                    self.send_json({"creatorInfo": store.get_tiktok_creator_info(conn, channel_id)})
+                return
+            if method == "POST" and path == "/api/v1/tiktok/creator-info/refresh":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_merchant_id(conn, parsed)
+                    body = self.read_json()
+                    channel_id = body.get("channelId") or store.TIKTOK_CHANNEL_ID
+                    self.send_json({"creatorInfo": store.refresh_tiktok_creator_info(conn, channel_id)}, status=201)
+                return
             if method == "GET" and path == "/api/v1/facebook/connection":
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json(facebook_oauth.connection_status(conn=conn))

@@ -13,14 +13,24 @@ class DebugRedactionTest(ApiCase):
     def approve_platform(self, platform):
         workflow = self.get_json("/api/v1/workflow")
         draft = next(item for item in workflow["platformDrafts"] if item["platform"] == platform)
+        body = {
+            "draftVersionId": draft["currentVersion"]["id"],
+            "confirmation": "APPROVE_EXACT_VERSION",
+            "approver": {"name": "Karen Li", "email": "karen@example.com"},
+        }
+        if platform == "tiktok":
+            info = self.get_json("/api/v1/tiktok/creator-info")["creatorInfo"]
+            body["tiktokConfirmations"] = {
+                "creatorInfoVersion": info["version"],
+                "privacyLevel": "PUBLIC_TO_EVERYONE",
+                "disclosureReviewed": True,
+                "interactionReviewed": True,
+                "allowComment": True,
+            }
         return self.send_json(
             "POST",
             f"/api/v1/drafts/{draft['id']}/approve",
-            {
-                "draftVersionId": draft["currentVersion"]["id"],
-                "confirmation": "APPROVE_EXACT_VERSION",
-                "approver": {"name": "Karen Li", "email": "karen@example.com"},
-            },
+            body,
         )["approval"]
 
     def publish_platform(self, platform):
