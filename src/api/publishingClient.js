@@ -34,6 +34,152 @@ const requestJson = async (path, options = {}) => {
 
 export const loadPublishingWorkflow = () => requestJson("/workflow");
 
+export const loadPhase3Workspace = () => requestJson("/phase3/workspace");
+
+export const loadReviewPackage = (token) => requestJson(`/reviews/${encodeURIComponent(token)}`);
+
+export const createReviewFeedback = (token, payload) =>
+  requestJson(`/reviews/${encodeURIComponent(token)}`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3ContentBatch = (payload) =>
+  requestJson("/phase3/content-batches", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3ContentSource = (payload) =>
+  requestJson("/phase3/content-sources", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3CreatorStyleVideoWorkflow = (payload) =>
+  requestJson("/phase3/creator-style-video-workflows", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const generatePhase3CreatorStyleVideo = (workflowId, payload) =>
+  requestJson(`/phase3/creator-style-video-workflows/${encodeURIComponent(workflowId)}/generate`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3AiAssistantReply = (payload) =>
+  requestJson("/phase3/ai-assistant/replies", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3ContentBatchFromReply = (replyId) =>
+  requestJson(`/phase3/ai-assistant/replies/${encodeURIComponent(replyId)}/content-batch`, {
+    method: "POST",
+  });
+
+export const createPhase3CompetitorSource = (payload) =>
+  requestJson("/phase3/competitor-sources", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3TemplateImport = (payload) =>
+  requestJson("/phase3/template-imports", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3ApprovalFeedback = (payload) =>
+  requestJson("/phase3/approval-feedback", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3ReviewNotification = (payload) =>
+  requestJson("/phase3/review-notifications", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const updatePhase3BrandKit = (payload) =>
+  requestJson("/phase3/brand-kit", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+
+export const recordPhase3ProofEvent = (payload) =>
+  requestJson("/phase3/proof-events", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const updatePhase3Creative = (creativeId, payload) =>
+  requestJson(`/phase3/creatives/${encodeURIComponent(creativeId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3IdeaVariants = (creativeId, payload) =>
+  requestJson(`/phase3/creatives/${encodeURIComponent(creativeId)}/idea-variants`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3LanguageVariants = (creativeId, payload) =>
+  requestJson(`/phase3/creatives/${encodeURIComponent(creativeId)}/language-variants`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3BulkVariations = (creativeId, payload) =>
+  requestJson(`/phase3/creatives/${encodeURIComponent(creativeId)}/bulk-variations`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3UgcVoiceoverPackage = (creativeId, payload) =>
+  requestJson(`/phase3/creatives/${encodeURIComponent(creativeId)}/ugc-voiceover-package`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const applyPhase3IdeaVariant = (variantId) =>
+  requestJson(`/phase3/idea-variants/${encodeURIComponent(variantId)}/apply`, {
+    method: "POST",
+  });
+
+export const updatePhase3CalendarSlot = (slotId, payload) =>
+  requestJson(`/phase3/calendar-slots/${encodeURIComponent(slotId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+
+export const updatePhase3MediaAsset = (assetId, payload) =>
+  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+
+export const createPhase3MediaVariant = (assetId, payload) =>
+  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}/variants`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const updatePhase3MediaLayerLayout = (assetId, payload) =>
+  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}/layer-layout`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const renderPhase3MediaAsset = (assetId, payload) =>
+  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}/render`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
 export const approveDraftVersion = (draftId, approval) =>
   requestJson(`/drafts/${encodeURIComponent(draftId)}/approve`, {
     method: "POST",
@@ -45,6 +191,12 @@ export const queueFakePublish = (approvalId) =>
     method: "POST",
   });
 
+export const publishFacebookPost = (approvalId, payload) =>
+  requestJson(`/approvals/${encodeURIComponent(approvalId)}/publish-facebook`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
 export const loadPublishJob = (jobId) => requestJson(`/publish-jobs/${encodeURIComponent(jobId)}`);
 
 export const retryPublishJob = (jobId) =>
@@ -53,3 +205,20 @@ export const retryPublishJob = (jobId) =>
   });
 
 export const loadDebugPublishJobs = () => requestJson("/debug/publish-jobs");
+
+export const loadFacebookConnection = () => requestJson("/facebook/connection");
+
+export const loadFacebookPages = (connectSession) =>
+  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+
+export const selectFacebookPage = (connectSession, pageId) =>
+  requestJson("/facebook/pages/select", {
+    method: "POST",
+    body: JSON.stringify({ connectSession, pageId }),
+  });
+
+export const switchFacebookPage = (pageId) =>
+  requestJson("/facebook/pages/switch", {
+    method: "POST",
+    body: JSON.stringify({ pageId }),
+  });
