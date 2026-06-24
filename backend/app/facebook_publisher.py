@@ -123,6 +123,81 @@ def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE
     return {"status": "ok", "ctaCopy": CTA_COPY, "job": store.get_serialized_publish_job(conn, job["id"])}
 
 
+def recommended_action_for(error_class):
+    if error_class in ("authentication", "missing_permission", "page_capability"):
+        return "reconnect"
+    if error_class in ("rate_limit", "platform_transient"):
+        return "retry"
+    if error_class == "validation":
+        return "fix_media_or_copy"
+    return "manual_fallback"
+
+
+def retry_facebook_publish(conn, job_id, graph_base=GRAPH_API_BASE, opener=None):
+    from backend.app import facebook_oauth
+
+    job_row = conn.execute("select * from publish_jobs where id = ?", (job_id,)).fetchone()
+    if not job_row:
+        raise store.StoreError(404, "Publish job not found.")
+    if job_row["status"] == "published":
+        return {"status": "ok", "ctaCopy": CTA_COPY, "job": store.get_serialized_publish_job(conn, job_id)}
+
+    approval = store.get_approval(conn, job_row["approval_id"])
+    snapshot = json_loads(approval["snapshot_json"], {})
+    page_id = job_row["page_id"] or (snapshot.get("connectedChannelRef") or {}).get("providerChannelId")
+
+    health = facebook_oauth.active_page_health(conn)
+    if not health["canPublish"]:
+        raise store.StoreError(409, "This Page can't publish yet \u2014 reconnect or grant the publishing permission first.")
+
+    media_info = validate_facebook_media(snapshot, opener=opener)
+    attempt_number = store.next_attempt_number(conn, job_id)
+    store.update_publish_job_status(conn, job_id, "publishing")
+    store.append_publish_event(conn, job_id, "publishing", "Facebook retry attempt started.", "facebook_publisher", attempt_number)
+
+    try:
+        result = publish_approved_snapshot(
+            snapshot,
+            user_token=None,
+            page_id=str(page_id),
+            publish_mode="publish_now",
+            scheduled_publish_time=None,
+            graph_base=graph_base,
+            opener=opener,
+            media_info=media_info,
+        )
+        outcome = {
+            "attemptStatus": "published",
+            "terminalStatus": "published",
+            "retryClassification": "none",
+            "summary": result["summary"],
+            "diagnostics": result["diagnostics"],
+        }
+    except FacebookProviderError as exc:
+        outcome = {
+            "attemptStatus": "failed",
+            "terminalStatus": "retry_needed" if exc.status in {429, 500, 502, 503, 504} else "failed",
+            "retryClassification": "automatic_retry_needed" if exc.status in {429, 500, 502, 503, 504} else "manual_review",
+            "summary": exc.message,
+            "diagnostics": exc.diagnostics,
+        }
+
+    attempt = store.create_publish_attempt(conn, job_id, snapshot, outcome)
+    if outcome["terminalStatus"] == "published":
+        diagnostics = outcome["diagnostics"]
+        provider_ref = diagnostics.get("providerResultRef") or diagnostics.get("postId")
+        store.record_publish_outcome(conn, job_id, attempt["id"], snapshot, provider="facebook", provider_result_ref=provider_ref)
+
+    error_class = (outcome.get("diagnostics") or {}).get("errorClass")
+    if error_class == "authentication":
+        facebook_token_vault.mark_reconnect_required(str(page_id), conn=conn)
+
+    store.update_publish_job_status(conn, job_id, outcome["terminalStatus"])
+    store.append_publish_event(conn, job_id, outcome["attemptStatus"], outcome["summary"], "facebook_publisher", attempt_number)
+    conn.commit()
+    return {"status": "ok", "ctaCopy": CTA_COPY, "job": store.get_serialized_publish_job(conn, job_id)}
+
+
 def _is_private_host(hostname):
     import ipaddress
     hostname = hostname.lower()

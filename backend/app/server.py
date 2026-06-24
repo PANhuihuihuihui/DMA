@@ -254,14 +254,21 @@ class JsonHandler(BaseHTTPRequestHandler):
             if publish_job and method == "POST" and publish_job["action"] == "retry":
                 body = self.read_json()
                 with closing(store.connect(self.db_path)) as conn:
-                    self.send_json(
-                        fake_publisher.retry_fake_publish(
-                            conn,
-                            publish_job["job_id"],
-                            diagnostics_fixture=body.get("diagnosticsFixture"),
-                        ),
-                        status=201,
-                    )
+                    job_row = conn.execute("select platform from publish_jobs where id = ?", (publish_job["job_id"],)).fetchone()
+                    if job_row and job_row["platform"] == "facebook":
+                        self.send_json(
+                            facebook_publisher.retry_facebook_publish(conn, publish_job["job_id"]),
+                            status=201,
+                        )
+                    else:
+                        self.send_json(
+                            fake_publisher.retry_fake_publish(
+                                conn,
+                                publish_job["job_id"],
+                                diagnostics_fixture=body.get("diagnosticsFixture"),
+                            ),
+                            status=201,
+                        )
                 return
             draft_action = self.match_draft_action(path)
             if draft_action and method == "PATCH" and draft_action["action"] is None:
