@@ -21,10 +21,10 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [ ] **ACCT-01**: Merchant can start an official Facebook account connection flow from the LocalPilot app.
 - [ ] **ACCT-02**: Merchant can select one Facebook Page they manage for publishing.
 - [ ] **ACCT-03**: System verifies the selected Facebook Page has the required publishing capability before allowing publish jobs.
-- [ ] **ACCT-04**: Merchant can start an official TikTok account connection flow from the LocalPilot app.
-- [ ] **ACCT-05**: System queries TikTok creator information before TikTok publishing so the UI reflects the creator account's actual privacy and interaction options.
-- [ ] **ACCT-06**: Merchant can view connected-channel health, including connected, missing permission, expired token, review blocked, or reconnect required.
-- [ ] **ACCT-07**: Merchant can disconnect a Facebook or TikTok account and stop new publish jobs from using that connection.
+- [x] **ACCT-04**: Merchant can start an official TikTok account connection flow from the LocalPilot app.
+- [x] **ACCT-05**: System queries TikTok creator information before TikTok publishing so the UI reflects the creator account's actual privacy and interaction options.
+- [x] **ACCT-06**: Merchant can view connected-channel health, including connected, missing permission, expired token, review blocked, or reconnect required.
+- [x] **ACCT-07**: Merchant can disconnect a Facebook or TikTok account and stop new publish jobs from using that connection.
 
 ### Security And Compliance
 
@@ -171,10 +171,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACCT-01 | Phase 4 - Facebook Page Publishing | Pending |
 | ACCT-02 | Phase 4 - Facebook Page Publishing | Pending |
 | ACCT-03 | Phase 4 - Facebook Page Publishing | Pending |
-| ACCT-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| ACCT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| ACCT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| ACCT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| ACCT-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
+| ACCT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
+| ACCT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
+| ACCT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | SEC-01 | Phase 1 - Backend Publishing Foundation | Complete |
 | SEC-02 | Phase 1 - Backend Publishing Foundation | Complete |
 | SEC-03 | Phase 1 - Backend Publishing Foundation | Complete |
