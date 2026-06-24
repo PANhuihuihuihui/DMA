@@ -222,6 +222,32 @@ def update_demo_facebook_channel(conn, page):
     conn.commit()
 
 
+def page_health(page_row):
+    if page_row.get("status") == "reconnect_required":
+        return "reconnect_required"
+    tasks = set(page_row.get("tasks") or [])
+    if not tasks.intersection({"CREATE_CONTENT", "MANAGE"}):
+        return "missing_permission"
+    return "connected"
+
+
+def active_page_health(conn=None, merchant_id=None):
+    merchant_id = merchant_id or store.DEMO_MERCHANT_ID
+    if conn is not None:
+        row = store.get_active_facebook_page_row(conn, merchant_id)
+        if row:
+            health = page_health(dict(row))
+            return {
+                "activePageId": row["page_id"],
+                "health": health,
+                "canPublish": health == "connected",
+            }
+    pages = facebook_token_vault.list_connected_pages(conn=conn)
+    if pages:
+        return {"activePageId": pages[0].get("pageId"), "health": "connected", "canPublish": True}
+    return {"activePageId": None, "health": "reconnect_required", "canPublish": False}
+
+
 def graph_get(url):
     req = request.Request(url, method="GET", headers={"Accept": "application/json"})
     try:
