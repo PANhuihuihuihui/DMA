@@ -206,6 +206,19 @@ export const retryPublishJob = (jobId) =>
 
 export const loadDebugPublishJobs = () => requestJson("/debug/publish-jobs");
 
+export const loadChannelHealth = (platform) =>
+  requestJson(`/channels/health${platform ? `?platform=${encodeURIComponent(platform)}` : ""}`);
+
+export const disconnectChannel = (channelId) =>
+  requestJson(`/channels/${encodeURIComponent(channelId)}/disconnect`, {
+    method: "POST",
+  });
+
+export const reconnectChannel = (channelId) =>
+  requestJson(`/channels/${encodeURIComponent(channelId)}/reconnect`, {
+    method: "POST",
+  });
+
 export const loadFacebookConnection = () => requestJson("/facebook/connection");
 
 export const loadFacebookPages = (connectSession) =>

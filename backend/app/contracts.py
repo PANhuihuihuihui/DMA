@@ -15,6 +15,7 @@ LIFECYCLE_STATUSES = [
     "publishing",
     "published",
     "failed",
+    "cancelled",
     "retry_needed",
     "manual_fallback_required",
 ]
@@ -126,6 +127,19 @@ def serialize_connected_channel(row, token_boundary):
         "tokenBoundaryRef": serialize_token_boundary_ref(token_boundary),
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
+    }
+
+
+def serialize_session(row):
+    return {
+        "userId": row["user_id"],
+        "merchantId": row["merchant_id"],
+        "status": row["status"],
+        "createdAt": row["created_at"],
+        "lastSeenAt": row["last_seen_at"],
+        "expiresAt": row["expires_at"],
+        "userAgent": row["user_agent"],
+        "ipHash": row["ip_hash"],
     }
 
 

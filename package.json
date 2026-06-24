@@ -11,13 +11,17 @@
     "build": "vite build --outDir dist/client --emptyOutDir true && node scripts/prepare-sites-dist.mjs",
     "package:sites": "npm run build && node scripts/package-sites.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "python3 -m unittest discover backend/tests -v && npm run test:approval && npm run test:fake-publish && npm run test:retry-redaction && npm run test:debug && npm run test:storage-boundary && npm run build",
+    "test": "python3 -m unittest discover backend/tests -v && npm run test:approval && npm run test:fake-publish && npm run test:facebook-oauth && npm run test:facebook-publish && npm run test:retry-redaction && npm run test:debug && npm run test:storage-boundary && npm run test:phase3-screens && npm run build",
     "test:approval": "python3 -m unittest backend.tests.test_publish_approval -v && node scripts/smoke-approve-snapshot.mjs",
     "test:fake-publish": "python3 -m unittest backend.tests.test_fake_publish_lifecycle -v && node scripts/smoke-fake-publish.mjs",
+    "test:facebook-publish": "python3 -m unittest backend.tests.test_facebook_publisher -v",
+    "test:facebook-oauth": "python3 -m unittest backend.tests.test_facebook_oauth -v",
+    "test:phase3": "python3 -m unittest backend.tests.test_phase3_workspace -v",
     "test:debug": "python3 -m unittest backend.tests.test_debug_redaction -v && node scripts/smoke-debug-route.mjs",
     "test:retry-redaction": "python3 -m unittest backend.tests.test_retry_redaction_idempotency -v && node scripts/smoke-retry-redaction.mjs",
     "test:token-boundary": "python3 -m unittest backend.tests.test_token_boundary -v",
-    "test:storage-boundary": "node scripts/smoke-no-publish-localstorage.mjs"
+    "test:storage-boundary": "node scripts/smoke-no-publish-localstorage.mjs",
+    "test:phase3-screens": "node scripts/smoke-phase3-screens.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",
@@ -26,5 +30,7 @@
     "react-dom": "^19.2.1",
     "react-router-dom": "^7.10.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "playwright": "^1.61.0"
+  }
 }

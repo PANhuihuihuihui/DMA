@@ -1,115 +1,203 @@
 {
   "version": "1.0",
-  "timestamp": "2026-06-10T19:47:46.010Z",
-  "phase": "01",
-  "phase_name": "Backend Publishing Foundation",
-  "phase_dir": ".planning/phases/01-backend-publishing-foundation",
-  "plan": "post-execution",
-  "task": "phase-level gates",
-  "total_tasks": 9,
-  "status": "paused",
+  "timestamp": "2026-06-19T02:17:23Z",
+  "phase": "03",
+  "phase_name": "Predis Replica Plus Local Proof Loop MVP",
+  "phase_dir": ".planning/phases/03-local-campaign-draft-workbench",
+  "plan": "03-01",
+  "task": "continue Predis replica plus local proof loop MVP parity hardening",
+  "total_tasks": 12,
+  "status": "partial",
   "completed_tasks": [
     {
-      "id": "01-01",
-      "name": "Backend contract and persistence foundation",
+      "id": "quick-facebook-demo-publish-loop",
+      "name": "Wire request-scoped Facebook Page publishing into backend and UI",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-01-SUMMARY.md"
+      "summary": ".planning/quick/20260617-facebook-demo-publish-loop/SUMMARY.md"
     },
     {
-      "id": "01-02",
-      "name": "Frontend backend-backed approval workflow",
+      "id": "quick-facebook-oauth-connect",
+      "name": "Replace token paste with clickable Facebook OAuth connect flow",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-02-SUMMARY.md"
+      "summary": ".planning/quick/20260617-facebook-oauth-connect/SUMMARY.md"
     },
     {
-      "id": "01-03",
-      "name": "Backend fake publish lifecycle",
+      "id": "phase3-predis-demo-surface",
+      "name": "Implement Predis-style customer demo surfaces in the React app",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-03-SUMMARY.md"
+      "summary": ".planning/phases/03-local-campaign-draft-workbench/03-01-SUMMARY.md"
     },
     {
-      "id": "01-04",
-      "name": "React fake publish timeline",
+      "id": "phase3-backend-persistence",
+      "name": "Add backend persistence for brand kits, generated batches, calendar slots, proof links/events, and competitor ideas",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-04-SUMMARY.md"
+      "summary": ".planning/phases/03-local-campaign-draft-workbench/03-01-SUMMARY.md"
     },
     {
-      "id": "01-05",
-      "name": "Retry, idempotency, and redaction backend",
+      "id": "phase3-editor-calendar-persistence",
+      "name": "Persist Creative Editor saves and Content Calendar reschedules through backend APIs",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-05-SUMMARY.md"
+      "summary": ".planning/phases/03-local-campaign-draft-workbench/03-01-SUMMARY.md"
     },
     {
-      "id": "01-06",
-      "name": "Retry publish control and attempt timeline UI",
+      "id": "phase3-screen-smoke-tests",
+      "name": "Add committed frontend smoke tests for the nine Phase 3 Predis-style screens",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-06-SUMMARY.md"
+      "summary": ".planning/phases/03-local-campaign-draft-workbench/03-01-SUMMARY.md"
     },
     {
-      "id": "01-07",
-      "name": "Read-only redacted debug diagnostics API",
+      "id": "phase3-competitor-source-analysis",
+      "name": "Replace static Competitor Ideas form with backend-backed source analysis demo generator",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-07-SUMMARY.md"
+      "summary": ".planning/phases/03-local-campaign-draft-workbench/03-01-SUMMARY.md"
     },
     {
-      "id": "01-08",
-      "name": "Hidden /app/debug route and route extraction",
+      "id": "phase3-media-storyboard-assets",
+      "name": "Add backend-owned generated media and storyboard asset records to Creative Editor",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-08-SUMMARY.md"
+      "summary": ".planning/quick/20260619-phase3-media-storyboard/SUMMARY.md"
     },
     {
-      "id": "01-09",
-      "name": "Storage boundary and final verification scripts",
+      "id": "phase3-media-variants",
+      "name": "Add backend-owned media layer edits and resize variants",
       "status": "done",
-      "summary": ".planning/phases/01-backend-publishing-foundation/01-09-SUMMARY.md"
+      "summary": ".planning/quick/20260619-phase3-media-variants/SUMMARY.md"
+    },
+    {
+      "id": "phase3-rendered-media",
+      "name": "Add backend-owned rendered media preview outputs",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-rendered-media/SUMMARY.md"
+    },
+    {
+      "id": "phase3-layer-controls",
+      "name": "Add backend-owned structured Creative Editor layer controls",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-layer-controls/SUMMARY.md"
+    },
+    {
+      "id": "phase3-template-library",
+      "name": "Add backend-owned template import and premium asset library records",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-template-library/SUMMARY.md"
+    },
+    {
+      "id": "phase3-performance-analytics",
+      "name": "Add backend-owned performance analytics dashboard",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-performance-analytics/SUMMARY.md"
+    },
+    {
+      "id": "phase3-approval-feedback-loop",
+      "name": "Add backend-owned approval review links and feedback loop",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-approval-feedback-loop/SUMMARY.md"
+    },
+    {
+      "id": "phase3-public-review-route",
+      "name": "Add working public review route for approval links",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-public-review-route/SUMMARY.md"
+    },
+        {
+            "id": "phase3-review-notifications",
+            "name": "Add backend-owned review-link notification outbox",
+            "status": "done",
+            "summary": ".planning/quick/20260619-phase3-review-notifications/SUMMARY.md"
+        },
+        {
+            "id": "phase3-source-url-import",
+            "name": "Add backend-owned source URL import for AI Generator",
+            "status": "done",
+            "summary": ".planning/quick/20260619-phase3-source-url-import/SUMMARY.md"
+        },
+        {
+            "id": "phase3-image-source-import",
+            "name": "Add backend-owned source image import for AI Generator",
+            "status": "done",
+            "summary": ".planning/quick/20260619-phase3-image-source-import/SUMMARY.md"
+        },
+        {
+            "id": "phase3-idea-lab-scoring",
+            "name": "Add backend-owned Idea Lab variation scoring",
+            "status": "done",
+            "summary": ".planning/quick/20260619-phase3-idea-lab-scoring/SUMMARY.md"
+        },
+        {
+            "id": "phase3-ai-assistant-replies",
+            "name": "Add backend-owned AI Assistant reply-to-post flow",
+            "status": "done",
+            "summary": ".planning/quick/20260619-phase3-ai-assistant-replies/SUMMARY.md"
+        },
+        {
+            "id": "phase3-multilingual-creative-variants",
+            "name": "Add backend-owned multilingual creative variants",
+            "status": "done",
+            "summary": ".planning/quick/20260619-phase3-multilingual-creative-variants/SUMMARY.md"
+        },
+        {
+            "id": "phase3-layer-layout-controls",
+            "name": "Add backend-owned layer layout controls",
+            "status": "done",
+            "summary": ".planning/quick/20260619-phase3-layer-layout-controls/SUMMARY.md"
+        },
+    {
+      "id": "phase3-bulk-creative-variations",
+      "name": "Add backend-owned bulk creative variations",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-bulk-creative-variations/SUMMARY.md"
+    },
+    {
+      "id": "phase3-ugc-voiceover-packages",
+      "name": "Add backend-owned UGC voiceover packages",
+      "status": "done",
+      "summary": ".planning/quick/20260619-phase3-ugc-voiceover-packages/SUMMARY.md"
     }
   ],
   "remaining_tasks": [
     {
-      "id": "code-review",
-      "name": "Run the required phase code review gate",
-      "status": "not_started"
+      "id": "predis-parity-checklist",
+      "name": "Optionally capture Predis.ai in-app screenshots with user-assisted login and refine parity checklist",
+      "status": "not_started",
+      "plan": ".planning/phases/03-local-campaign-draft-workbench/03-01-PLAN.md"
     },
     {
-      "id": "security",
-      "name": "Run the security enforcement gate for Phase 1",
-      "status": "not_started"
-    },
-    {
-      "id": "verify",
-      "name": "Run phase-level verification / verify-work after review and security",
-      "status": "not_started"
-    },
-    {
-      "id": "closeout",
-      "name": "Update final phase tracking and commit handoff/remnant planning state as appropriate",
-      "status": "not_started"
+      "id": "token-hardening",
+      "name": "Replace local in-memory token vault with encrypted or secret-managed persistence",
+      "status": "deferred_to_phase_4"
     }
   ],
   "blockers": [],
   "human_actions_pending": [
     {
-      "action": "Decide what to do with the untracked .vscode/ directory and uncommitted .planning/config.json model override changes.",
-      "context": "They were present at pause time and were intentionally not staged by the execution agents.",
+      "action": "Optionally provide Predis.ai login during Slice 1 so Codex can capture in-app screenshots and refine the parity checklist.",
+      "context": "The Phase 03 plan can start from public research, but exact UI parity should be verified behind login before final UI implementation.",
+      "blocking": false
+    },
+    {
+      "action": "Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET in the backend environment if live Facebook publish should be included in the local customer demo.",
+      "context": "Facebook OAuth publishing is already wired as a demo adapter and becomes one slice of the broader Predis-style MVP.",
       "blocking": false
     }
   ],
   "decisions": [
     {
-      "decision": "Plan 01-02 committed the pre-existing dirty frontend baseline together with backend-backed approval wiring.",
-      "rationale": "The plan had to modify src/main.jsx and src/styles.css and preserved the existing user/UI edits instead of reverting them.",
-      "phase": "01"
+      "decision": "Phase 02 concluded that native provider adapters are the runtime path, not Postiz-style reuse.",
+      "rationale": "The comparison package found Postiz useful as a reference, but the LocalPilot-owned workflow boundary, redacted diagnostics, and approval gate fit native adapters better.",
+      "phase": "02"
     },
     {
-      "decision": "Execution stopped immediately after Plan 01-09 completed.",
-      "rationale": "User explicitly asked to stop and write a pickup before phase-level review/security/verification gates.",
-      "phase": "01"
+      "decision": "Phase 03 uses clickable Facebook OAuth for the customer demo instead of asking users for access tokens.",
+      "rationale": "Customers should grant access through Meta Login; tokens must remain backend-owned and hidden from browser storage.",
+      "phase": "03"
+    },
+    {
+      "decision": "Phase 03 is reframed as Predis.ai replica plus LocalPilot proof-loop MVP.",
+      "rationale": "The v3 research identifies Predis.ai as the closest US SMB competitor; LocalPilot needs recognizable parity plus owner approval and measurable local response evidence.",
+      "phase": "03"
     }
   ],
-  "uncommitted_files": [
-    ".planning/config.json",
-    ".vscode/"
-  ],
-  "next_action": "Resume with phase-level gates: run code review, security audit, final regression/verification, then close out Phase 1 tracking.",
-  "context_notes": "All 9 execution plans have SUMMARY.md files and task commits. Plan 01-09 reported npm run test:storage-boundary, npm test, npm run build, and npm run package:sites passed. Do not re-run completed execution plans unless a gate finds a concrete defect."
+  "uncommitted_files": [],
+    "next_action": "Continue Phase 03 with logged-in Predis screen audit if credentials are available, then choose the next real parity slice: notification provider delivery/webhooks, real source/page analysis ingestion, official/social API competitor ingestion, production platform analytics ingestion, production media/video renderer integration, live Canva/Figma/Adobe import, drag/drop editor controls, or production token hardening.",
+  "context_notes": "The React demo now exposes Dashboard, Brand Kit, AI Generator, Creative Editor, Content Calendar, Approval Queue, Connected Accounts, Competitor Ideas, Proof Loop, and public /review/:token pages. Phase 3 backend APIs are /api/v1/phase3/workspace, /api/v1/reviews/:token, /api/v1/phase3/brand-kit, /api/v1/phase3/content-batches, /api/v1/phase3/content-sources, /api/v1/phase3/ai-assistant/replies, /api/v1/phase3/ai-assistant/replies/:id/content-batch, /api/v1/phase3/competitor-sources, /api/v1/phase3/template-imports, /api/v1/phase3/approval-feedback, /api/v1/phase3/review-notifications, /api/v1/phase3/proof-events, /api/v1/phase3/creatives/:id, /api/v1/phase3/creatives/:id/idea-variants, /api/v1/phase3/creatives/:id/bulk-variations, /api/v1/phase3/creatives/:id/ugc-voiceover-package, /api/v1/phase3/creatives/:id/language-variants, /api/v1/phase3/idea-variants/:id/apply, /api/v1/phase3/calendar-slots/:id, /api/v1/phase3/media-assets/:id, /api/v1/phase3/media-assets/:id/variants, /api/v1/phase3/media-assets/:id/layer-layout, and /api/v1/phase3/media-assets/:id/render. Generated creatives now include backend-owned mediaAssets from creative_media_assets: static social posts, carousel storyboards, vertical video storyboards, Google Business update images, structured editable layer controls, layer layout metadata, edited media previews, resize variants, rendered SVG preview outputs, nested ideaVariants from creative_idea_variants, nested bulkVariants from creative_bulk_variants, nested ugcVoiceoverPackages from creative_ugc_packages, and nested languageVariants from creative_language_variants. The workspace now also serializes aiAssistantReplies, contentSources, creativeTemplates, importedTemplates, assetLibraryItems, approvalReviewLinks, approvalFeedback, reviewNotifications, performanceSnapshots, analyticsInsights, and analyticsSummary, with deterministic AI Generator assistant reply-to-post conversion, source URL import, source image import, Creative Editor Idea Lab scoring/apply, bulk creative variations, UGC voiceover package generation, multilingual creative variants, layer layout moves, Canva/Figma/Adobe-style template import, premium asset library records, shareable review-link feedback, notification outbox records, public review-route submission, and lower-bound performance analytics. Rendered previews apply edited headline, CTA/body, and brand-color layer controls when present. Committed Playwright smoke in scripts/smoke-phase3-screens.mjs boots isolated API/web servers and verifies dashboard usage/credits, all nine modules, AI Generator backend batch creation, assistant reply-to-post conversion, source URL import, source image import, source-based generation, Creative Editor Idea Lab scoring/apply, bulk variations, UGC voiceover packages, multilingual variants, layer layout moves, template imports, asset library, media/storyboard assets, structured layer controls, resize variants, rendered previews, Creative Editor backend save, Content Calendar backend reschedule, Approval Queue review links, notifications, public review route, feedback loop, Connected Accounts OAuth boundary, backend Competitor Ideas source analysis, Performance analytics dashboard, Proof Loop event recording, and no console/page errors. Facebook OAuth connect remains the first real publishing adapter."
 }

@@ -1,16 +1,17 @@
 import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { AppDemo, LandingPage } from "../main.jsx";
 import { DebugRoute } from "./DebugRoute.jsx";
+import { ReviewRoute } from "./ReviewRoute.jsx";
 
-export function AppRoutes() {
+export function AppRoutes({ appElement, landingElement }) {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/app" element={<AppDemo />} />
+        <Route path="/" element={landingElement} />
+        <Route path="/app" element={appElement} />
         <Route path="/app/debug" element={<DebugRoute />} />
+        <Route path="/review/:token" element={<ReviewRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scribe Contact Sheet Workflow"
+  short_description: "Turn Scribe walkthroughs into UI parity sheets."
+  default_prompt: "Use $scribe-contact-sheet-workflow to extract this Scribe URL into a contact sheet and map it into the LocalPilot creator workflow."

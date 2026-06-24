@@ -35,7 +35,7 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [ ] **SEC-05**: System rejects scraping, cookie-based posting, and browser-session automation for production merchant publishing.
 - [x] **SEC-06**: System preserves a reviewable audit trail showing who approved a draft, which draft version was approved, and when publishing was attempted.
 
-### Campaign Generation
+### Facebook Customer Demo Loop
 
 - [ ] **CAMP-01**: Merchant can enter one local offer, service, product, event, or promotion as the source input for a campaign.
 - [ ] **CAMP-02**: System generates a Facebook-specific post draft with local-business copy, CTA, link or offer context, and optional media guidance.
@@ -181,23 +181,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-04 | Phase 1 - Backend Publishing Foundation | Pending |
 | SEC-05 | Phase 2 - Publishing Engine Reuse Decision | Pending |
 | SEC-06 | Phase 1 - Backend Publishing Foundation | Complete |
-| CAMP-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| CAMP-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| CAMP-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| CAMP-04 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| CAMP-05 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| CAMP-06 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| APPR-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| APPR-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| APPR-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| CAMP-01 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| CAMP-02 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| CAMP-03 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| CAMP-04 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| CAMP-05 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| CAMP-06 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| APPR-01 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| APPR-02 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| APPR-03 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | APPR-04 | Phase 1 - Backend Publishing Foundation | Pending |
 | APPR-05 | Phase 1 - Backend Publishing Foundation | Pending |
 | APPR-06 | Phase 1 - Backend Publishing Foundation | Complete |
-| MEDIA-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| MEDIA-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| MEDIA-01 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| MEDIA-02 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | MEDIA-03 | Phase 4 - Facebook Page Publishing | Pending |
 | MEDIA-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
-| MEDIA-05 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| MEDIA-05 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | ENGINE-01 | Phase 2 - Publishing Engine Reuse Decision | Pending |
 | ENGINE-02 | Phase 2 - Publishing Engine Reuse Decision | Pending |
 | ENGINE-03 | Phase 2 - Publishing Engine Reuse Decision | Pending |
@@ -221,12 +221,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STATUS-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | STATUS-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | STATUS-05 | Phase 6 - Manual Fallback And Pilot Support | Pending |
-| LOCAL-01 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| LOCAL-02 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| LOCAL-03 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| LOCAL-04 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| LOCAL-05 | Phase 3 - Local Campaign Draft Workbench | Pending |
-| LOCAL-06 | Phase 3 - Local Campaign Draft Workbench | Pending |
+| LOCAL-01 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| LOCAL-02 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| LOCAL-03 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| LOCAL-04 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| LOCAL-05 | Phase 3 - Facebook Customer Demo Loop | Pending |
+| LOCAL-06 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | ADMIN-01 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | ADMIN-02 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | ADMIN-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |

@@ -56,7 +56,7 @@ class DebugRedactionTest(ApiCase):
         ]:
             self.assertIn(key, row)
 
-        self.assertEqual("Northstar Local Growth", row["merchant"]["name"])
+        self.assertEqual("Aurora Heating & Cooling", row["merchant"]["name"])
         self.assertEqual("Karen Li", row["approver"]["name"])
         self.assertTrue(row["approver"]["email"].endswith("@example.com"))
         self.assertEqual(1, row["draftVersion"]["versionNumber"])

@@ -30,6 +30,10 @@ def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE
     if snapshot.get("platform") != "facebook":
         raise store.StoreError(409, "Only approved Facebook drafts can use live Facebook publishing.")
 
+    connected_channel_id = (snapshot.get("connectedChannelRef") or {}).get("id")
+    if connected_channel_id:
+        store.assert_channel_publishable(conn, connected_channel_id)
+
     page_id = payload.get("pageId") or (snapshot.get("connectedChannelRef") or {}).get("providerChannelId")
     if not page_id or not str(page_id).isdigit():
         raise store.StoreError(400, "Facebook publishing requires a numeric Page ID.")

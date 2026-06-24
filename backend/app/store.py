@@ -26,6 +26,37 @@ FACEBOOK_DRAFT_ID = "draft_facebook_lunch"
 TIKTOK_DRAFT_ID = "draft_tiktok_lunch"
 FACEBOOK_CHANNEL_ID = "channel-facebook-page"
 TIKTOK_CHANNEL_ID = "channel-tiktok-business"
+INSTAGRAM_CHANNEL_ID = "channel-instagram-assist"
+GOOGLE_BUSINESS_CHANNEL_ID = "channel-google-business-assist"
+DEMO_SESSION_ID = "session_demo_karen"
+
+CHANNEL_HEALTH_STATES = (
+    "connected",
+    "missing_permission",
+    "expired_token",
+    "review_blocked",
+    "reconnect_required",
+    "disconnected",
+)
+
+_CHANNEL_HEALTH_ALIASES = {
+    "active": "connected",
+    "ok": "connected",
+    "healthy": "connected",
+    "enabled": "connected",
+    "inactive": "disconnected",
+    "disabled": "disconnected",
+    "revoked": "reconnect_required",
+    "needs_reconnect": "reconnect_required",
+    "reconnect": "reconnect_required",
+    "expired": "expired_token",
+    "token_expired": "expired_token",
+    "permission_denied": "missing_permission",
+    "missing_scope": "missing_permission",
+    "in_review": "review_blocked",
+    "pending_review": "review_blocked",
+    "app_review": "review_blocked",
+}
 
 
 def review_url_for_token(token):
@@ -57,6 +88,18 @@ def initialize_database(conn):
           created_at text not null
         );
 
+        create table if not exists sessions (
+          id text primary key,
+          user_id text not null references users(id),
+          merchant_id text not null references merchants(id),
+          status text not null,
+          created_at text not null,
+          last_seen_at text not null,
+          expires_at text not null,
+          user_agent text,
+          ip_hash text
+        );
+
         create table if not exists business_profiles (
           id text primary key,
           merchant_id text not null references merchants(id),
@@ -78,6 +121,18 @@ def initialize_database(conn):
           rotation_status text not null,
           rotation_due_at text,
           credential_fingerprint text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists channel_registry (
+          id text primary key,
+          display_name text not null,
+          status text not null,
+          max_caption_length integer,
+          supported_media_json text not null,
+          required_scopes_json text not null,
+          platform_config_json text not null,
           created_at text not null,
           updated_at text not null
         );
@@ -499,6 +554,45 @@ def initialize_database(conn):
           updated_at text not null
         );
 
+        create table if not exists scheduled_posts (
+          id text primary key,
+          merchant_id text not null references merchants(id),
+          connected_channel_id text not null references connected_channels(id),
+          channel text not null references channel_registry(id),
+          creative_id text references generated_creatives(id),
+          campaign_id text references campaigns(id),
+          caption text not null,
+          body text not null,
+          cta text not null,
+          hashtags_json text not null,
+          media_refs_json text not null,
+          channel_config_json text not null,
+          scheduled_for text,
+          timezone text not null default 'UTC',
+          slot_label text not null,
+          status text not null,
+          approval_id text references approvals(id),
+          publish_job_id text references publish_jobs(id),
+          approved_at text,
+          published_at text,
+          failed_reason text,
+          retry_count integer not null default 0,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists publish_dispatch_queue (
+          id text primary key,
+          scheduled_post_id text not null references scheduled_posts(id),
+          dispatch_at text not null,
+          status text not null,
+          attempt_count integer not null default 0,
+          last_attempt_at text,
+          error_json text,
+          created_at text not null,
+          updated_at text not null
+        );
+
         create table if not exists proof_links (
           id text primary key,
           creative_id text not null references generated_creatives(id),
@@ -604,6 +698,14 @@ def column_names(conn, table_name):
 
 
 def migrate_database(conn):
+    connected_channel_columns = column_names(conn, "connected_channels")
+    if "channel_registry_id" not in connected_channel_columns:
+        conn.execute("alter table connected_channels add column channel_registry_id text references channel_registry(id)")
+    if "connected_by_user_id" not in connected_channel_columns:
+        conn.execute("alter table connected_channels add column connected_by_user_id text references users(id)")
+    if "capabilities_json" not in connected_channel_columns:
+        conn.execute("alter table connected_channels add column capabilities_json text not null default '{}'")
+
     brand_columns = column_names(conn, "brand_kits")
     if "website" not in brand_columns:
         conn.execute("alter table brand_kits add column website text not null default ''")
@@ -941,7 +1043,398 @@ def migrate_database(conn):
         )
         """
     )
+    seed_channel_registry(conn)
     migrate_demo_seed_to_aurora(conn)
+
+
+def seed_channel_registry(conn):
+    now = utc_now()
+    rows = [
+        (
+            "facebook",
+            "Facebook",
+            "enabled",
+            63206,
+            ["image", "video", "link", "carousel"],
+            [],
+            {"defaultPublishRoute": "page_feed"},
+        ),
+        (
+            "tiktok",
+            "TikTok",
+            "enabled",
+            2200,
+            ["video"],
+            [],
+            {"defaultPublishRoute": "upload_to_inbox"},
+        ),
+        (
+            "xiaohongshu",
+            "Xiaohongshu",
+            "coming_soon",
+            None,
+            ["image", "video"],
+            [],
+            {"defaultPublishRoute": "manual_fallback"},
+        ),
+        (
+            "instagram",
+            "Instagram",
+            "coming_soon",
+            2200,
+            ["image", "video", "carousel"],
+            [],
+            {"defaultPublishRoute": "manual_fallback"},
+        ),
+        (
+            "google_business",
+            "Google Business Profile",
+            "coming_soon",
+            1500,
+            ["image", "text"],
+            [],
+            {"defaultPublishRoute": "manual_fallback"},
+        ),
+    ]
+    for row in rows:
+        conn.execute(
+            """
+            insert or ignore into channel_registry (
+              id, display_name, status, max_caption_length, supported_media_json,
+              required_scopes_json, platform_config_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                json_dumps(row[4]),
+                json_dumps(row[5]),
+                json_dumps(row[6]),
+                now,
+                now,
+            ),
+        )
+
+
+def ensure_phase5_foundation_seed(conn):
+    seed_channel_registry(conn)
+    conn.execute(
+        """
+        update connected_channels
+        set channel_registry_id = platform
+        where channel_registry_id is null
+          and exists (select 1 from channel_registry where channel_registry.id = connected_channels.platform)
+        """
+    )
+    conn.execute(
+        """
+        update connected_channels
+        set connected_by_user_id = ?
+        where merchant_id = ? and connected_by_user_id is null
+        """,
+        (DEMO_USER_ID, DEMO_MERCHANT_ID),
+    )
+    conn.execute(
+        """
+        update connected_channels
+        set capabilities_json = '{}'
+        where capabilities_json is null or trim(capabilities_json) = ''
+        """
+    )
+    ensure_demo_session(conn)
+    migrate_calendar_slots_to_scheduled_posts(conn)
+
+
+def ensure_demo_session(conn):
+    row = conn.execute("select id from sessions where id = ?", (DEMO_SESSION_ID,)).fetchone()
+    if row is not None:
+        return
+    now = utc_now()
+    conn.execute(
+        """
+        insert into sessions (
+          id, user_id, merchant_id, status, created_at, last_seen_at, expires_at, user_agent, ip_hash
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            DEMO_SESSION_ID,
+            DEMO_USER_ID,
+            DEMO_MERCHANT_ID,
+            "authenticated",
+            now,
+            now,
+            "2099-01-01T00:00:00Z",
+            "LocalPilot demo seed",
+            "sha256:demo-session",
+        ),
+    )
+
+
+def scheduled_post_id_for_slot(slot_id):
+    return f"scheduled_post_{slot_id}"
+
+
+def resolve_connected_channel_id_for_slot(conn, merchant_id, platform):
+    matches = conn.execute(
+        """
+        select id from connected_channels
+        where merchant_id = ? and platform = ?
+        order by created_at, id
+        """,
+        (merchant_id, platform),
+    ).fetchall()
+    if matches:
+        return matches[0]["id"]
+    platform_matches = conn.execute(
+        "select id from connected_channels where platform = ? order by created_at, id",
+        (platform,),
+    ).fetchall()
+    if len(platform_matches) == 1:
+        return platform_matches[0]["id"]
+    return None
+
+
+def campaign_id_for_creative(conn, creative_id):
+    row = conn.execute(
+        """
+        select content_batches.campaign_id
+        from generated_creatives
+        join content_batches on content_batches.id = generated_creatives.batch_id
+        where generated_creatives.id = ?
+        """,
+        (creative_id,),
+    ).fetchone()
+    if row is None:
+        return None
+    return row["campaign_id"]
+
+
+def migrate_calendar_slots_to_scheduled_posts(conn):
+    for row in conn.execute("select * from calendar_slots order by created_at, id").fetchall():
+        scheduled_post_id = scheduled_post_id_for_slot(row["id"])
+        existing = conn.execute("select id from scheduled_posts where id = ?", (scheduled_post_id,)).fetchone()
+        if existing is not None:
+            continue
+        connected_channel_id = resolve_connected_channel_id_for_slot(conn, row["merchant_id"], row["platform"])
+        if connected_channel_id is None:
+            continue
+        creative = conn.execute("select * from generated_creatives where id = ?", (row["creative_id"],)).fetchone()
+        mapped_status = {
+            "scheduled": "queued",
+            "in_review": "draft",
+            "assisted": "draft",
+        }.get(row["status"], "draft")
+        conn.execute(
+            """
+            insert into scheduled_posts (
+              id, merchant_id, connected_channel_id, channel, creative_id, campaign_id,
+              caption, body, cta, hashtags_json, media_refs_json, channel_config_json,
+              scheduled_for, timezone, slot_label, status, approval_id, publish_job_id,
+              approved_at, published_at, failed_reason, retry_count, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                scheduled_post_id,
+                row["merchant_id"],
+                connected_channel_id,
+                row["platform"],
+                row["creative_id"],
+                campaign_id_for_creative(conn, row["creative_id"]),
+                creative["caption"] if creative is not None else "",
+                creative["title"] if creative is not None else "",
+                creative["cta"] if creative is not None else "",
+                creative["hashtags_json"] if creative is not None else "[]",
+                "[]",
+                "{}",
+                row["scheduled_for"],
+                "UTC",
+                row["slot_label"],
+                mapped_status,
+                None,
+                None,
+                None,
+                None,
+                None,
+                0,
+                row["created_at"],
+                row["updated_at"],
+            ),
+        )
+
+
+def serialize_scheduled_post(row):
+    return {
+        "id": row["id"],
+        "merchantId": row["merchant_id"],
+        "connectedChannelId": row["connected_channel_id"],
+        "channel": row["channel"],
+        "creativeId": row["creative_id"],
+        "campaignId": row["campaign_id"],
+        "caption": row["caption"],
+        "body": row["body"],
+        "cta": row["cta"],
+        "hashtags": json_loads(row["hashtags_json"], []),
+        "mediaRefs": json_loads(row["media_refs_json"], []),
+        "channelConfig": json_loads(row["channel_config_json"], {}),
+        "scheduledFor": row["scheduled_for"],
+        "timezone": row["timezone"],
+        "slotLabel": row["slot_label"],
+        "status": row["status"],
+        "approvalId": row["approval_id"],
+        "publishJobId": row["publish_job_id"],
+        "approvedAt": row["approved_at"],
+        "publishedAt": row["published_at"],
+        "failedReason": row["failed_reason"],
+        "retryCount": row["retry_count"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def advance_scheduled_post_status(conn, scheduled_post_id, next_status):
+    row = conn.execute("select * from scheduled_posts where id = ?", (scheduled_post_id,)).fetchone()
+    if row is None:
+        raise StoreError(404, "Scheduled post not found.")
+    if next_status in {"queued", "publishing"}:
+        channel = conn.execute("select * from connected_channels where id = ?", (row["connected_channel_id"],)).fetchone()
+        if channel is None:
+            raise StoreError(400, "Scheduled post has no connected channel.")
+        if channel["status"] != "connected":
+            raise StoreError(409, "Channel must be connected before the scheduled post can advance.")
+
+    now = utc_now()
+    approved_at = row["approved_at"]
+    published_at = row["published_at"]
+    if next_status == "approved" and not approved_at:
+        approved_at = now
+    if next_status == "published" and not published_at:
+        published_at = now
+    conn.execute(
+        """
+        update scheduled_posts
+        set status = ?, approved_at = ?, published_at = ?, updated_at = ?
+        where id = ?
+        """,
+        (next_status, approved_at, published_at, now, scheduled_post_id),
+    )
+    conn.commit()
+    return serialize_scheduled_post(
+        conn.execute("select * from scheduled_posts where id = ?", (scheduled_post_id,)).fetchone()
+    )
+
+
+def normalize_channel_health(value):
+    normalized = str(value or "").strip().lower()
+    if normalized in CHANNEL_HEALTH_STATES:
+        return normalized
+    return _CHANNEL_HEALTH_ALIASES.get(normalized, "disconnected")
+
+
+def _registry_status_for_channel(conn, channel_row):
+    registry_id = channel_row["channel_registry_id"] or channel_row["platform"]
+    registry = conn.execute(
+        "select status from channel_registry where id = ?", (registry_id,)
+    ).fetchone()
+    return registry["status"] if registry else "disabled"
+
+
+def _refine_facebook_health(conn, channel_row, health):
+    if channel_row["platform"] != "facebook" or health != "connected":
+        return health
+    try:
+        from backend.app import facebook_oauth
+
+        page_health = facebook_oauth.active_page_health(conn=conn, merchant_id=channel_row["merchant_id"])
+    except Exception:
+        return health
+    refined = normalize_channel_health(page_health.get("health"))
+    if refined != "connected" and not page_health.get("canPublish", False):
+        return refined
+    return health
+
+
+def serialize_channel_health(conn, channel_row):
+    health = normalize_channel_health(channel_row["status"])
+    health = _refine_facebook_health(conn, channel_row, health)
+    registry_status = _registry_status_for_channel(conn, channel_row)
+    can_publish = health == "connected" and registry_status == "enabled"
+    return safe_diagnostics(
+        {
+            "connectedChannelId": channel_row["id"],
+            "platform": channel_row["platform"],
+            "provider": channel_row["provider"],
+            "displayName": channel_row["display_name"],
+            "providerChannelId": channel_row["provider_channel_id"],
+            "registryStatus": registry_status,
+            "health": health,
+            "canPublish": can_publish,
+            "contentCreationAvailable": True,
+            "updatedAt": channel_row["updated_at"],
+        }
+    )
+
+
+def get_channel_health(conn, merchant_id, platform=None):
+    params = [merchant_id]
+    sql = "select * from connected_channels where merchant_id = ?"
+    if platform:
+        sql += " and platform = ?"
+        params.append(platform)
+    sql += " order by created_at, id"
+    rows = conn.execute(sql, tuple(params)).fetchall()
+    return {
+        "status": "ok",
+        "channels": [serialize_channel_health(conn, row) for row in rows],
+    }
+
+
+def get_connected_channel_for_merchant(conn, merchant_id, channel_id):
+    row = conn.execute(
+        "select * from connected_channels where id = ? and merchant_id = ?",
+        (channel_id, merchant_id),
+    ).fetchone()
+    if row is None:
+        raise StoreError(404, "Connected channel not found for this merchant.")
+    return row
+
+
+def set_channel_health(conn, merchant_id, channel_id, health):
+    normalized = normalize_channel_health(health)
+    channel = get_connected_channel_for_merchant(conn, merchant_id, channel_id)
+    conn.execute(
+        "update connected_channels set status = ?, updated_at = ? where id = ?",
+        (normalized, utc_now(), channel["id"]),
+    )
+    conn.commit()
+    return serialize_channel_health(
+        conn, conn.execute("select * from connected_channels where id = ?", (channel["id"],)).fetchone()
+    )
+
+
+def disconnect_channel(conn, merchant_id, channel_id):
+    # Preserve historical drafts, approvals, and publish jobs; only flip the live
+    # connection status so new schedule/publish progression is blocked immediately.
+    return set_channel_health(conn, merchant_id, channel_id, "disconnected")
+
+
+def assert_channel_publishable(conn, connected_channel_id):
+    channel = conn.execute(
+        "select * from connected_channels where id = ?", (connected_channel_id,)
+    ).fetchone()
+    if channel is None:
+        raise StoreError(404, "Connected channel not found.")
+    # Gate on the stored connection status only. Provider-specific health (e.g.
+    # Facebook Page capability when publishing with a fresh user token) is enforced
+    # by each publisher; this gate is the disconnect / reconnect-required backstop.
+    health = normalize_channel_health(channel["status"])
+    if health != "connected":
+        raise StoreError(
+            409,
+            "This channel can't publish yet \u2014 reconnect or fix its connection health first.",
+        )
+    return channel
 
 
 def migrate_demo_seed_to_aurora(conn):
@@ -1094,6 +1587,8 @@ def insert_boundary(conn, boundary):
 def seed_demo_data(conn):
     existing = conn.execute("select count(*) from merchants").fetchone()[0]
     if existing:
+        ensure_phase5_foundation_seed(conn)
+        conn.commit()
         return
 
     now = utc_now()
@@ -1129,9 +1624,26 @@ def seed_demo_data(conn):
     )
     insert_boundary(conn, facebook_boundary)
     insert_boundary(conn, tiktok_boundary)
+    instagram_boundary = create_token_boundary(
+        "instagram",
+        INSTAGRAM_CHANNEL_ID,
+        "localpilot/provider/instagram/channel-instagram-assist",
+    )
+    google_business_boundary = create_token_boundary(
+        "google_business",
+        GOOGLE_BUSINESS_CHANNEL_ID,
+        "localpilot/provider/google_business/channel-google-business-assist",
+    )
+    insert_boundary(conn, instagram_boundary)
+    insert_boundary(conn, google_business_boundary)
 
     conn.execute(
-        "insert into connected_channels values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        """
+        insert into connected_channels (
+          id, merchant_id, provider, platform, display_name, provider_channel_id,
+          status, token_boundary_id, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
         (
             FACEBOOK_CHANNEL_ID,
             DEMO_MERCHANT_ID,
@@ -1146,7 +1658,52 @@ def seed_demo_data(conn):
         ),
     )
     conn.execute(
-        "insert into connected_channels values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        """
+        insert into connected_channels (
+          id, merchant_id, provider, platform, display_name, provider_channel_id,
+          status, token_boundary_id, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            INSTAGRAM_CHANNEL_ID,
+            DEMO_MERCHANT_ID,
+            "instagram",
+            "instagram",
+            "Aurora Heating & Cooling Instagram",
+            "ig-aurora-assist",
+            "disconnected",
+            instagram_boundary["id"],
+            now,
+            now,
+        ),
+    )
+    conn.execute(
+        """
+        insert into connected_channels (
+          id, merchant_id, provider, platform, display_name, provider_channel_id,
+          status, token_boundary_id, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            GOOGLE_BUSINESS_CHANNEL_ID,
+            DEMO_MERCHANT_ID,
+            "google_business",
+            "google_business",
+            "Aurora Heating & Cooling Google Business Profile",
+            "gbp-aurora-assist",
+            "disconnected",
+            google_business_boundary["id"],
+            now,
+            now,
+        ),
+    )
+    conn.execute(
+        """
+        insert into connected_channels (
+          id, merchant_id, provider, platform, display_name, provider_channel_id,
+          status, token_boundary_id, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
         (
             TIKTOK_CHANNEL_ID,
             DEMO_MERCHANT_ID,
@@ -1230,6 +1787,7 @@ def seed_demo_data(conn):
         },
         now=now,
     )
+    ensure_phase5_foundation_seed(conn)
     conn.commit()
 
 
@@ -1243,6 +1801,8 @@ def seed_phase3_data(conn):
         seed_phase3_review_notifications(conn)
         seed_phase3_content_sources(conn)
         seed_phase3_creator_workflows(conn)
+        ensure_phase5_foundation_seed(conn)
+        conn.commit()
         return
 
     now = utc_now()
@@ -1378,6 +1938,7 @@ def seed_phase3_data(conn):
     seed_phase3_review_notifications(conn, commit=False)
     seed_phase3_content_sources(conn, commit=False)
     seed_phase3_creator_workflows(conn, commit=False)
+    ensure_phase5_foundation_seed(conn)
     conn.commit()
 
 
@@ -1658,6 +2219,38 @@ def creator_style_options():
                 "look": "premium showroom or consultation setting, measured delivery",
                 "badge": "Advisor",
             },
+            {
+                "id": "modern-founder",
+                "name": "Modern founder",
+                "type": "ai_actor",
+                "persona": "design-aware founder explaining premium product decisions",
+                "look": "bright studio or showroom, premium-casual wardrobe, calm delivery",
+                "badge": "Founder",
+            },
+            {
+                "id": "wellness-host",
+                "name": "Wellness host",
+                "type": "ai_actor",
+                "persona": "friendly expert for beauty, wellness, and lifestyle offers",
+                "look": "clean wellness interior, polished camera framing, warm expression",
+                "badge": "Host",
+            },
+            {
+                "id": "retail-specialist",
+                "name": "Retail specialist",
+                "type": "ai_actor",
+                "persona": "in-store product explainer with confident but approachable tone",
+                "look": "boutique or retail floor, product-in-hand posture, clear CTA energy",
+                "badge": "Retail",
+            },
+            {
+                "id": "service-mentor",
+                "name": "Service mentor",
+                "type": "ai_actor",
+                "persona": "seasoned operator who explains what premium service really means",
+                "look": "professional interior, trust-first posture, direct-to-camera framing",
+                "badge": "Mentor",
+            },
         ],
         "templates": [
             {
@@ -1707,6 +2300,46 @@ def creator_style_options():
                 "durationSeconds": 24,
                 "summary": "A founder-style recommendation that feels personal and approval-ready.",
                 "sceneStyle": "direct-to-camera note + local proof overlay + schedule card",
+            },
+            {
+                "id": "caption-flash",
+                "title": "Caption flash",
+                "format": "9:16 fast-caption reel",
+                "durationSeconds": 18,
+                "summary": "Rapid subtitle beats with a quick product or service payoff.",
+                "sceneStyle": "large kinetic captions + short proof flashes + CTA button card",
+            },
+            {
+                "id": "center-punch",
+                "title": "Center punch",
+                "format": "9:16 centered subtitle layout",
+                "durationSeconds": 21,
+                "summary": "Bold centered subtitles with a clean mid-frame actor layout.",
+                "sceneStyle": "centered caption rhythm + actor close-up + branded lower-third",
+            },
+            {
+                "id": "bottom-caption",
+                "title": "Bottom caption",
+                "format": "9:16 creator explainer",
+                "durationSeconds": 23,
+                "summary": "Traditional lower subtitle track with clean readability for spoken copy.",
+                "sceneStyle": "actor explainer + bottom subtitles + proof insert + CTA card",
+            },
+            {
+                "id": "quote-overlay",
+                "title": "Quote overlay",
+                "format": "9:16 testimonial style",
+                "durationSeconds": 20,
+                "summary": "Use quote-style subtitles to turn a recommendation into social proof.",
+                "sceneStyle": "quote captions + actor recommendation + offer highlight",
+            },
+            {
+                "id": "staggered-words",
+                "title": "Staggered words",
+                "format": "9:16 motion subtitle layout",
+                "durationSeconds": 22,
+                "summary": "Stagger words across multiple rows for a more animated subtitle feel.",
+                "sceneStyle": "staggered kinetic subtitles + actor hook + CTA end card",
             },
         ],
     }

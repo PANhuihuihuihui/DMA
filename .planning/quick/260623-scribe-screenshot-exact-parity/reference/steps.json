@@ -1,0 +1,453 @@
+{
+  "source": "/tmp/localpilot-scribe-workflow.html",
+  "steps": [
+    {
+      "number": 1,
+      "instruction": "Navigate to [https://app.predis.ai/app/inspiration_library](https://app.predis.ai/app/inspiration_library)",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/2c49ae19-72c8-4d60-8254-6efda8bb6e4c/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=e21cc69065e2dca5834153ff5afa38947788a6792f32cf69fc4678954e7ac352",
+      "file": "steps/step-01.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 801317
+    },
+    {
+      "number": 2,
+      "instruction": "Click \"Inspirations\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/2c49ae19-72c8-4d60-8254-6efda8bb6e4c/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=e21cc69065e2dca5834153ff5afa38947788a6792f32cf69fc4678954e7ac352",
+      "file": "steps/step-02.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 801317
+    },
+    {
+      "number": 3,
+      "instruction": "Click \"UGC AdsView all\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/8e071013-360c-47f8-94c2-bc1a8675c3b5/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=430832eb11f4b415830284e0ee5cb583655eab37b9e253406b553af4a5814685",
+      "file": "steps/step-03.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 788445
+    },
+    {
+      "number": 4,
+      "instruction": "Click \"Image AdsView all\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/5115f138-dce7-48f5-9dc7-b7049cb7ba5f/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=c8e29cc6abea0a6ac03f8246e8f15ba351514945b5d0cf3fa9e7c73b48748aff",
+      "file": "steps/step-04.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 818633
+    },
+    {
+      "number": 5,
+      "instruction": "Click \"View all trending collection\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/44e08735-098d-4a38-abb9-ddf852c4137f/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=394a287b5b3f858e7ad01d89222e69733c22cc45019973e3c279c4959ccdaed6",
+      "file": "steps/step-05.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 799467
+    },
+    {
+      "number": 6,
+      "instruction": "Click \"Maybe later\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/53fd893e-9940-4a70-87c4-88f502779668/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=bc0a242742c0a95b844240db3a2de81e2f893e6ee849be3240d633f54e2d9a04",
+      "file": "steps/step-06.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 165904
+    },
+    {
+      "number": 7,
+      "instruction": "Click \"< 8 sec\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/a757e876-7354-4929-b837-03542a33e704/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=9a69aa101aac14559e20415b99ad472dfe1f2af8efbf5389c7daab67b81f0a7d",
+      "file": "steps/step-07.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 951951
+    },
+    {
+      "number": 8,
+      "instruction": "Click this icon.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/4623978a-8f73-426a-b85b-f25e0c39318d/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=3b3b5b8e0fb9ec31dfd47d9dcaeb04544638e0e2c10f18e237026cc0d23afc63",
+      "file": "steps/step-08.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 754519
+    },
+    {
+      "number": 9,
+      "instruction": "Click \"Create New\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/cd83ee37-b695-4227-bd64-56d2c2d71f14/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=2eafe9c5e21aaa9f531301924e1fdc53f1e80a70b6a16b8c43020dc691233543",
+      "file": "steps/step-09.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 812365
+    },
+    {
+      "number": 10,
+      "instruction": "Click \"Make creator-style videos using AI-generated actors.\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/bfe58dc4-68cc-45f3-a68c-48a7688db1a2/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=712a49496d40c743c96f0ffd37d4ebed4af52cfc706ee20b6c85cab0b46d6605",
+      "file": "steps/step-10.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 323307
+    },
+    {
+      "number": 11,
+      "instruction": "Click \"Describe what this UGC Video should be about.\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/1a2832ac-5485-4805-9284-7b57748e5836/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=b60784e5b4c8bdab930e6797976aa7f624a8366c7950854c1de0f9084c86b1fe",
+      "file": "steps/step-11.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 235438
+    },
+    {
+      "number": 12,
+      "instruction": "Click \"Generate ideas for me\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/26b7906a-f5fd-4db4-8ead-3f67f4d90839/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=d60e4e54672ff0fd3b2fc913bcc49c1e5d73d0935b3d5b5d6f72a4be44e3080a",
+      "file": "steps/step-12.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 227308
+    },
+    {
+      "number": 13,
+      "instruction": "Click the \"Describe what you want to create...\" field.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/6698f26f-3d8c-4082-ae70-9f7c065927d2/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=0004cdc155c2c6fc97615c82350cfbe94c8cfec96572bae6d337dcb35af38d05",
+      "file": "steps/step-13.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 93852
+    },
+    {
+      "number": 14,
+      "instruction": "Type \"promote products that looks fancy\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/3b8efc2c-d4df-4b6d-99ed-d859e4b94ed8/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=c1a0f89ec1be725d86ba00063e4d0558946d8482ff1c42cd1a56259a71f59d1f",
+      "file": "steps/step-14.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 101558
+    },
+    {
+      "number": 16,
+      "instruction": "Click the \"Describe what you want to create...\" field.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/51340d0b-f80f-47cb-a513-5e348b6b0a29/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=a97d4aaa3a07d865c444f47930d0c850d10a2690a7c5bfbc4c68d5b53763b55b",
+      "file": "steps/step-16.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 124011
+    },
+    {
+      "number": 17,
+      "instruction": "Type \"lead more sales [[Enter]]\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/843192bb-d6ec-4019-b73a-bc4627cff1a1/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=8f00b19840f1cfbb8eadb753f68673076ab0db42f86842d1b44033f7f57db88a",
+      "file": "steps/step-17.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 233873
+    },
+    {
+      "number": 19,
+      "instruction": "Click \"Continue\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/595e3bc8-0b3b-45c6-96f9-6b129c2e3b9b/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=a2550e97e1a2e48270de87ed40c9660af4f4b199732d2a40e9c92ebeaf76d2d2",
+      "file": "steps/step-19.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 221891
+    },
+    {
+      "number": 20,
+      "instruction": "Click \"Motivational\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/9918b8be-efa6-4dce-8cc1-c0e218db44e8/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=4e645a68458001bfb7514b32b5a1cf135ad521dfa5c3ec1a8595822394fe5b69",
+      "file": "steps/step-20.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 204974
+    },
+    {
+      "number": 21,
+      "instruction": "Click \"Continue\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/9588693f-2440-4808-ad2b-87ebe1676029/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=307e08f6999240bf36b383fe656cbbad87e5be9c2f8d157fab7b2e7a76e7fcc8",
+      "file": "steps/step-21.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 204507
+    },
+    {
+      "number": 22,
+      "instruction": "Click this image.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/d40ee437-3719-46d1-a3b1-d036c64fb6c5/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=f0411aa00e1a406a963c5be16b693b3a54a743a7553ad0ce86f2f7424cdd8191",
+      "file": "steps/step-22.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 595789
+    },
+    {
+      "number": 23,
+      "instruction": "Click \"Continue\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/a661a828-f229-4d21-b02c-a9225734bceb/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=065e3de798bd936439068d3cb3551dcc9b12bae4a98a70a3655965079aeed0c5",
+      "file": "steps/step-23.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 598333
+    },
+    {
+      "number": 24,
+      "instruction": "Click this image.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/77b400bf-50e6-46ab-8870-98b0d8a8b0cb/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=c83d0e8f90e8577112ae1b6d8baef3b44b2182df33384614a48c984c6c6d75c1",
+      "file": "steps/step-24.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 366760
+    },
+    {
+      "number": 25,
+      "instruction": "Click \"Continue\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/923855aa-8ca4-4f30-824d-009357f24970/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=ba2a10b731a973a9d864c1b3c0d40f157338669a1d58514b0f8f4fe1196d5930",
+      "file": "steps/step-25.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 358857
+    },
+    {
+      "number": 26,
+      "instruction": "Click \"Continue\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/631d812f-2b02-41fc-bb31-9a3d8d03e32f/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=12c6de7f07c918b9b82f928809e83cace2cbb676e7aeb0cadc9964cfe0922271",
+      "file": "steps/step-26.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 278488
+    },
+    {
+      "number": 27,
+      "instruction": "Click \"Generate\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/3270cda7-3c66-4675-a043-3e138740ed3e/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=889a0f17a29c7b129352389f5dafcb806a874e57206d992e3ec01740c7294828",
+      "file": "steps/step-27.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 199070
+    },
+    {
+      "number": 28,
+      "instruction": "Click here.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/217044ed-6379-48c3-82c4-8eff6f040305/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=d6b261ca578add703755b526e6bd0491fa71d0715b2eee01d73f4cf6a58ea26d",
+      "file": "steps/step-28.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 473510
+    },
+    {
+      "number": 29,
+      "instruction": "Click \"Maybe later\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/03beda6c-14cb-4944-a067-41157e0d68f1/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=dc5b4647c86bea67680b7621b1feaad0eac2b955825284819885ad25f2403259",
+      "file": "steps/step-29.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 131810
+    },
+    {
+      "number": 30,
+      "instruction": "Click \"Publish\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/f609c179-6bdd-48fa-9193-205eea64fcac/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=8dde909fc650705f622a3774beae6a38dd7d6e4dbe442336febe7a8109787e99",
+      "file": "steps/step-30.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 450590
+    },
+    {
+      "number": 31,
+      "instruction": "Click here.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/f2601685-698a-44fa-a9fd-b9e68b3cd0c5/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=d799f49135e9ca2683a973ca9d719a775dccaf68ca01ca43e6d385b1a1606a35",
+      "file": "steps/step-31.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 216513
+    },
+    {
+      "number": 32,
+      "instruction": "Click \"Continue\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/0ab01319-5414-49f1-8d75-eb471887357b/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=c7a619e5a851b0d98242381667720dea42dfe82024888e36bfc3a44db146089c",
+      "file": "steps/step-32.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 215545
+    },
+    {
+      "number": 33,
+      "instruction": "Click \"Schedule Post\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/7997e9bd-c6df-4624-97cf-a6d3e0ceacfc/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=cf24e140027e507c41a646e699efd8fe1d50013910a94f8b255854ebccc31d4b",
+      "file": "steps/step-33.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 213784
+    },
+    {
+      "number": 34,
+      "instruction": "Click \"Content Calendar\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/7e578337-d16d-4482-9437-76a353cf3d51/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=c372c06da362993b2756c64c8ccc33f70d96a956006fa7a625f0b00f0bd37118",
+      "file": "steps/step-34.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 460545
+    },
+    {
+      "number": 35,
+      "instruction": "Click \"Brand & Social Accounts\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/d6e22d94-b5d0-4bc9-b482-122de1cdaa1d/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=f71b5e95519b75fcfd4f8d4de300a864801752d50e983997a9d6bfc903e24253",
+      "file": "steps/step-35.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 283183
+    },
+    {
+      "number": 36,
+      "instruction": "Click \"FAQ\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/6ab7a621-a7e8-4401-b24e-907d0c32ba4e/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=b68175d9c9bb240984ce821ca7c23fbd311adcb3d13546d793687e756270ac83",
+      "file": "steps/step-36.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 281489
+    },
+    {
+      "number": 37,
+      "instruction": "Click this icon.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/d62dc601-ab7d-4213-9dce-d1a24a90890e/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=7447c9407a3d5d97c5cd56a19a19fca5089ece2b114b4ad232f1ad3307d59577",
+      "file": "steps/step-37.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 160531
+    },
+    {
+      "number": 38,
+      "instruction": "Click \"Add\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/89db365c-3a64-44b2-8ea5-2ecbcee210e5/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=c20e3ee7706b1899e8012e093928732a99cff45d2e57e766d6ed5fe280db4c2e",
+      "file": "steps/step-38.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 281193
+    },
+    {
+      "number": 39,
+      "instruction": "Click this icon.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/3e923dbf-225d-48c3-ad90-db0a54e0890f/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=5a8864cff519d09ca821aa5b3e1cfdaa1aad74871f68add61a8eb7a495295905",
+      "file": "steps/step-39.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 108309
+    },
+    {
+      "number": 40,
+      "instruction": "Click \"Add\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/5eb54454-f9ae-4b8a-a7b2-b7651b0d1864/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=6865f77226a1e798f7fed47be980990c209586687a86cd673d2c724ab92e4ba0",
+      "file": "steps/step-40.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 281173
+    },
+    {
+      "number": 41,
+      "instruction": "Click this icon.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/e92c459a-bba1-4da9-ab35-fd34e705e8f7/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=5fe7c00050d7c691fe5b0497ab19376923d4760941280a3c699a478603145760",
+      "file": "steps/step-41.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 112134
+    },
+    {
+      "number": 42,
+      "instruction": "Click \"FAQ\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/cca907dc-cf7d-45a2-b90c-de9715099e6a/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=dc8839676794070abdece564d86b5e7c0b6374e3b4c3f0bf77713b30f04f464a",
+      "file": "steps/step-42.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 281508
+    },
+    {
+      "number": 43,
+      "instruction": "Click \"TikTok FAQ's\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/559da095-46e7-4463-8abb-187e57ff436e/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=c32d2695d196a47e0272c5d47b05ba7c46ddd88278467b67b90290d82b8e6b2b",
+      "file": "steps/step-43.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 88374
+    },
+    {
+      "number": 44,
+      "instruction": "Click this icon.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/0cd71aaa-1a34-4ef0-be56-7bcc526dfbf8/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=33b148c3b9db2cbefb06a7aed34e482072a4b0ede87d3fc465b3caee74e41dec",
+      "file": "steps/step-44.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 88510
+    },
+    {
+      "number": 45,
+      "instruction": "Click \"Competitor Analysis\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/9190fde3-7f1a-4e73-aa25-2296bce4cae9/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=31c0f31e9e96c8b1b89a8c39c648fcebcdae9ac42b3494d5718c4e47bfa8de27",
+      "file": "steps/step-45.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 281962
+    },
+    {
+      "number": 46,
+      "instruction": "Click \"Analytics\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/c471af9d-5c00-4abc-a6cb-453715fbceeb/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=ef749031a9df7ca355e48d8bded71955f21ce1123b6ec5a4b4fd0f907beeca82",
+      "file": "steps/step-46.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 204627
+    },
+    {
+      "number": 47,
+      "instruction": "Click \"Your Posts' Engagement24 May28 May02 Jun06 Jun11 Jun16 Jun20 Jun0\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/e9d9c192-6c4c-4ecf-aee5-418e7b0bcbb9/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=d26eaf528add89a71810ea7d42fb2628d79fb570eacbf542676f063207c88edc",
+      "file": "steps/step-47.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 255825
+    },
+    {
+      "number": 48,
+      "instruction": "Click this icon.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/b2c6917c-8ef1-4d02-8b08-d587c701bb8c/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=15e5a496f1bcb9c27a2d60211e7a1e23b1a6c0bb66e4f195f2ee66eca8ed1aa3",
+      "file": "steps/step-48.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 270545
+    },
+    {
+      "number": 49,
+      "instruction": "Click \"Need help?\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/de6c0cd4-2930-4589-8a7e-f1d716d1b404/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=518fe9a9bb286ea420299f542092383008a357326ca917a925373a26f1558d2b",
+      "file": "steps/step-49.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 265008
+    },
+    {
+      "number": 50,
+      "instruction": "Click here.",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/1e58c80f-7213-4cdd-b7d9-0f65929335d8/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=e5450585ebc863fb4876a8ae599a0fc5d30c5c816f8953aa37bd7752680974b4",
+      "file": "steps/step-50.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 275865
+    },
+    {
+      "number": 51,
+      "instruction": "Click \"Brand & Social Accounts\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/a6fb820a-c655-4154-9b7a-0ca9ab8d4786/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=24fe637c1f0c62c296a03b90762e20896fa3ed9747e50c6b0b6e1a0e4e1c5464",
+      "file": "steps/step-51.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 265206
+    },
+    {
+      "number": 52,
+      "instruction": "Click \"Brand Details\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/f3150181-ef9b-4718-b4ec-fdb0d9cc0790/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=9ebedabf1b9ed55f8097e3145bb7015064336b0c37ab9984792adc589b48cd99",
+      "file": "steps/step-52.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 282468
+    },
+    {
+      "number": 53,
+      "instruction": "Click \"Select Timezone\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/0a60cc1d-3b2a-44b0-82f2-3967fd8ab5fe/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=3330a630e16b7c5d39becd6f7cdd958642334b3adbd22e7d2258cc05fe8a9648",
+      "file": "steps/step-53.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 261626
+    },
+    {
+      "number": 54,
+      "instruction": "Click \"Content settings\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/30245891-7d48-41af-a43f-58f9597424d3/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=2c22a436a8e09bc1e9971885385ae30f78f6ab0bf605ccdab99dda3901d8302c",
+      "file": "steps/step-54.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 262449
+    },
+    {
+      "number": 55,
+      "instruction": "Click \"Exports\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/7b359d77-fad8-4d68-bc73-9ddc1fa35c17/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=336000a6b7488732efd857d1df4b0953ca88669b4744003c306a225b322a32d6",
+      "file": "steps/step-55.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 262932
+    },
+    {
+      "number": 56,
+      "instruction": "Click \"Integrations\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/533195e4-be57-42c2-9b56-7bb80ddfdc57/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=a4cf1ddcfe3dd91f9c975f48b6b8116bedd4a76edcf168846e02979f44bc799d",
+      "file": "steps/step-56.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 227124
+    },
+    {
+      "number": 57,
+      "instruction": "Click \"by over 3000 businesses\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/08229530-99b9-4d27-a5fc-dcd4f346fd7d/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=ee9a9eec2099ce50a44f72269ac1b1abb0dab7d4fc45b5c6a6ccddbc3cfbd444",
+      "file": "steps/step-57.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 265605
+    },
+    {
+      "number": 58,
+      "instruction": "Click \"Used by over 20,000+\"",
+      "src": "https://colony-recorder.s3.amazonaws.com/files/2026-06-22/39f340de-e83f-467e-b584-4d477ff98f96/ascreenshot.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2JDELI43356LVVTC%2F20260623%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20260623T150302Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=eaa062042c0af7c02e6a6eff230680883fa554ba2fb665f7614f0a83f8318e84",
+      "file": "steps/step-58.jpg",
+      "contentType": "image/jpeg",
+      "bytes": 265605
+    }
+  ]
+}

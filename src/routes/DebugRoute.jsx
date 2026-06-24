@@ -8,7 +8,29 @@ const statusClass = (status = "draft") => `debug-jobs-status debug-jobs-status--
 
 const formatPlatform = (platform = "") => (platform ? platform[0].toUpperCase() + platform.slice(1) : "Unknown");
 
-const display = (value, fallback = "Not recorded") => value || fallback;
+const valueToString = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => valueToString(item))
+      .filter(Boolean)
+      .join(", ");
+  }
+  if (typeof value === "object") {
+    return Object.entries(value)
+      .map(([key, nestedValue]) => `${key}: ${valueToString(nestedValue)}`)
+      .filter(Boolean)
+      .join(" | ");
+  }
+  return String(value);
+};
+
+const display = (value, fallback = "Not recorded") => valueToString(value) || fallback;
 
 const eventKey = (event, index) => event.id || `${event.status}-${event.timestamp}-${index}`;
 
@@ -31,7 +53,7 @@ function RedactedDiagnostics({ rows, labelledBy }) {
       {rows.map((row) => (
         <div key={`${row.label}-${row.value}`}>
           <dt>{row.label}</dt>
-          <dd>{row.value}</dd>
+          <dd>{display(row.value, "Not recorded")}</dd>
         </div>
       ))}
     </dl>

@@ -2,7 +2,38 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { createRoot } from "react-dom/client";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./styles.css";
-import { approveDraftVersion, loadPublishJob, loadPublishingWorkflow, queueFakePublish } from "./api/publishingClient.js";
+import {
+  applyPhase3IdeaVariant,
+  approveDraftVersion,
+  createPhase3ApprovalFeedback,
+  createPhase3AiAssistantReply,
+  createPhase3BulkVariations,
+  createPhase3CompetitorSource,
+  createPhase3ContentBatch,
+  createPhase3ContentBatchFromReply,
+  createPhase3ContentSource,
+  createPhase3CreatorStyleVideoWorkflow,
+  createPhase3IdeaVariants,
+  createPhase3LanguageVariants,
+  createPhase3MediaVariant,
+  createPhase3ReviewNotification,
+  createPhase3TemplateImport,
+  createPhase3UgcVoiceoverPackage,
+  generatePhase3CreatorStyleVideo,
+  loadFacebookConnection,
+  loadPhase3Workspace,
+  loadPublishJob,
+  loadPublishingWorkflow,
+  publishFacebookPost,
+  queueFakePublish,
+  recordPhase3ProofEvent,
+  renderPhase3MediaAsset,
+  updatePhase3BrandKit,
+  updatePhase3CalendarSlot,
+  updatePhase3Creative,
+  updatePhase3MediaAsset,
+  updatePhase3MediaLayerLayout,
+} from "./api/publishingClient.js";
 import { ApprovalSnapshot } from "./components/ApprovalSnapshot.jsx";
 import { PublishTimeline } from "./components/PublishTimeline.jsx";
 import { RetryPublishControl } from "./components/RetryPublishControl.jsx";
@@ -22,6 +53,30 @@ import salon from "../assets/salon.png";
 import shop from "../assets/shop.png";
 
 const LANGUAGE_STORAGE_KEY = "localpilot-language";
+const referencePreviewImages = [cafeOwner, restaurant, salon, clinic, shop];
+const referencePreviewStyle = (image) => (image ? { "--reference-preview-image": `url(${image})` } : undefined);
+const creatorAvatarPreviewImages = [cafeOwner, salon, salon, cafeOwner, salon, cafeOwner, salon, cafeOwner, salon, salon, cafeOwner, salon];
+const creatorAvatarPreviewPositions = [
+  "72% 34%",
+  "24% 34%",
+  "74% 38%",
+  "66% 38%",
+  "26% 30%",
+  "70% 42%",
+  "78% 34%",
+  "62% 32%",
+  "18% 36%",
+  "70% 30%",
+  "58% 40%",
+  "82% 36%",
+];
+const creatorAvatarPreviewScales = ["1", "1", "-1", "1", "-1", "1", "1", "-1", "1", "-1", "1", "1"];
+
+const creatorAvatarPreviewStyle = (index) => ({
+  "--reference-preview-image": `url(${creatorAvatarPreviewImages[index % creatorAvatarPreviewImages.length]})`,
+  "--reference-preview-position": creatorAvatarPreviewPositions[index % creatorAvatarPreviewPositions.length],
+  "--reference-preview-scale-x": creatorAvatarPreviewScales[index % creatorAvatarPreviewScales.length],
+});
 
 const zhTranslations = {
   Product: "产品",
@@ -1024,114 +1079,118 @@ const platforms = [
 ];
 
 const modules = [
-  "Home",
-  "AI Studio",
-  "Publish",
-  "Calendar",
-  "Inbox",
-  "Discover",
+  "Create New",
+  "Auto Posting",
+  "Ad Inspirations",
+  "Content Library",
+  "Content Calendar",
+  "Brand & Social Accounts",
+  "Competitor Analysis",
   "Analytics",
-  "Reports",
-  "Media Library",
-  "Approvals",
-  "Clients",
-  "Settings",
+  "Need help",
 ];
+
+const moduleIcons = {
+  "Create New": "+",
+  "Auto Posting": "➤",
+  "Ad Inspirations": "◐",
+  "Content Library": "▰",
+  "Content Calendar": "▦",
+  "Brand & Social Accounts": "▣",
+  "Competitor Analysis": "▥",
+  Analytics: "▤",
+  "Need help": "?",
+};
 
 const moduleSlug = (module) => module.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-const moduleFromSlug = (slug) =>
-  modules.find((module) => moduleSlug(module) === slug || module.toLowerCase() === String(slug || "").toLowerCase());
+const moduleAliases = {
+  home: "Content Library",
+  dashboard: "Content Library",
+  "brand-kit": "Brand & Social Accounts",
+  "brand-and-social-accounts": "Brand & Social Accounts",
+  "ai-generator": "Create New",
+  "ai-studio": "Create New",
+  "creative-editor": "Content Library",
+  "content-library": "Content Library",
+  publish: "Content Library",
+  calendar: "Content Calendar",
+  "content-calendar": "Content Calendar",
+  analytics: "Analytics",
+  "proof-loop": "Analytics",
+  discover: "Competitor Analysis",
+  "competitor-ideas": "Competitor Analysis",
+  "competitor-analysis": "Competitor Analysis",
+  approvals: "Content Library",
+  "approval-queue": "Content Library",
+  settings: "Brand & Social Accounts",
+  "connected-accounts": "Brand & Social Accounts",
+  "need-help": "Need help",
+  help: "Need help",
+};
+
+const moduleFromSlug = (slug) => {
+  const normalized = String(slug || "").toLowerCase();
+  const normalizedSlug = moduleSlug(normalized);
+  return (
+    modules.find((module) => moduleSlug(module) === normalizedSlug || module.toLowerCase() === normalized) ||
+    moduleAliases[normalized] ||
+    moduleAliases[normalizedSlug]
+  );
+};
 
 const moduleDetails = {
-  Home: {
-    kicker: "Local growth workbench",
-    title: "One input, channel-native growth plan",
-    view: "workbench",
+  "Create New": {
+    kicker: "Create your next post",
+    title: "Create Your Next Post",
+    view: "create",
   },
-  "AI Studio": {
-    kicker: "Create, refine, schedule",
-    title: "AI campaign generator",
-    view: "ai",
+  "Auto Posting": {
+    kicker: "Owner-approved autoplan",
+    title: "Weekly local autoplan after approval",
+    summary: "Schedule a week of content without autonomous publishing.",
+    view: "autopost",
   },
-  Publish: {
-    kicker: "Network-tailored posts",
-    title: "Publishing pipeline",
-    cards: [
-      ["Composer", "Turn one offer into channel-specific posts with captions, hashtags, and cover copy."],
-      ["Bulk schedule", "Queue weeks of posts from AI-generated campaign plans or CSV-style batches."],
-      ["Assisted publishing", "Package ready-to-post assets for channels with limited publishing APIs."],
-    ],
+  "Ad Inspirations": {
+    kicker: "Inspirations",
+    title: "Inspirations",
+    view: "inspirations",
   },
-  Calendar: {
-    kicker: "Client-visible planning",
-    title: "Weekly publishing plan",
+  "Content Library": {
+    kicker: "Library",
+    title: "Content Library",
+    view: "library",
+  },
+  "Content Calendar": {
+    kicker: "Scheduler",
+    title: "Content Calendar",
     summary: "Pick the next slot, review the copy, and keep the week moving.",
     view: "calendar",
   },
-  Inbox: {
-    kicker: "Engage",
-    title: "Unified comments and DMs",
-    view: "inbox",
+  "Approval Queue": {
+    kicker: "Owner approval",
+    title: "Review and sign-off",
+    view: "approvals",
   },
-  Discover: {
-    kicker: "Trend-to-action",
-    title: "Local discovery feed",
-    cards: [
-      ["Trending topics", "Score platform trends as useful, risky, or irrelevant for each local business."],
-      ["Competitor watcher", "Track nearby businesses, offers, posting rhythm, and engagement spikes."],
-      ["Content sources", "Organize RSS, local news, newsletters, and inspiration by client workspace."],
-    ],
+  "Brand & Social Accounts": {
+    kicker: "Brand and social accounts",
+    title: "Brand & Social Accounts",
+    view: "accounts",
+  },
+  "Competitor Analysis": {
+    kicker: "Idea labs",
+    title: "Competitor analysis",
+    view: "ideas",
   },
   Analytics: {
-    kicker: "Social + business outcomes",
-    title: "Performance intelligence",
+    kicker: "Measurable response",
+    title: "Analytics",
     view: "analytics",
   },
-  Reports: {
-    kicker: "Agency proof",
-    title: "Branded client reporting",
-    cards: [
-      ["Scheduled reports", "Send presentation-ready summaries for social results and Local ROI."],
-      ["Client notes", "Explain what changed, what worked, and what to approve next."],
-      ["Export package", "Bundle top posts, analytics, comments, and next-week recommendations."],
-    ],
-  },
-  "Media Library": {
-    kicker: "Assets",
-    title: "Reusable content library",
-    cards: [
-      ["Brand folders", "Store approved images, videos, logos, offers, and campaign references per client."],
-      ["AI variants", "Generate captions, image prompts, thumbnails, and first-comment ideas from assets."],
-      ["Usage history", "See where every asset has been published and how it performed."],
-    ],
-  },
-  Approvals: {
-    kicker: "Client collaboration",
-    title: "Review and sign-off",
-    cards: [
-      ["No-login review", "Share client approval links without exposing the full workspace."],
-      ["Revision notes", "Keep client comments, internal notes, and final approvals attached to each post."],
-      ["Compliance checklist", "Flag risky claims, missing disclaimers, and platform limits."],
-    ],
-  },
-  Clients: {
-    kicker: "Agency workspace",
-    title: "Client management",
-    cards: [
-      ["Workspace separation", "Keep accounts, calendars, media, reports, and roles separate per client."],
-      ["Onboarding profile", "Capture business type, location, offers, audience, voice, and competitors."],
-      ["Service tiers", "Track pilot, growth, and multi-location clients from one command center."],
-    ],
-  },
-  Settings: {
-    kicker: "Controls",
-    title: "Workspace configuration",
-    cards: [
-      ["Social accounts", "Mock TikTok, Instagram, Facebook, Xiaohongshu, and Google Business workflows."],
-      ["Brand knowledge", "Save voice, services, offers, customer profile, and approved phrases."],
-      ["Team roles", "Assign creators, reviewers, approvers, and report recipients."],
-    ],
+  "Need help": {
+    kicker: "Support",
+    title: "Need help?",
+    view: "help",
   },
 };
 
@@ -1208,6 +1267,377 @@ const moduleWorkflows = {
   },
 };
 
+const createFormatCards = [
+  {
+    id: "image",
+    title: "Image",
+    format: "Static post",
+    summary: "A branded square or portrait social image for offers, tips, and proof snippets.",
+    preview: restaurant,
+  },
+  {
+    id: "ugc",
+    title: "Creator Style Video",
+    format: "AI actor UGC",
+    summary: "Predis-style UGC idea, tone, actor, scene, generate, publish, and schedule flow.",
+    preview: cafeOwner,
+  },
+  {
+    id: "short-ad-video",
+    title: "Short Ad Video",
+    format: "15 second vertical",
+    summary: "A short-video concept for Facebook Reels, TikTok assisted packages, or Stories.",
+    preview: salon,
+  },
+  {
+    id: "carousel",
+    title: "Carousel",
+    format: "Multi-slide explainer",
+    summary: "A style preset, aspect ratio, and brand confirmation before generation.",
+    preview: shop,
+  },
+  {
+    id: "faceless-video",
+    title: "Faceless Video",
+    format: "Narrated service clip",
+    summary: "A script-first video with no owner filming requirement for busy local teams.",
+    preview: clinic,
+  },
+  {
+    id: "product-photo-shoot",
+    title: "Product Photo Shoot",
+    format: "Product/service image set",
+    summary: "Turn a product, storefront, or job-site photo into branded content variants.",
+    preview: restaurant,
+  },
+];
+
+const createMethods = [
+  ["write-idea", "Write Your Idea", "Describe the offer, service, product, or community angle."],
+  ["store-csv", "Link store/upload CSV", "Use website, store, menu, catalog, or CSV details as source context."],
+  ["product-url", "Enter Product URL", "Analyze a product/service page into a local social brief."],
+  ["product-image", "Upload product image", "Start from a product, job-site, or before/after photo."],
+];
+
+const carouselStylePresets = [
+  ["storytelling", "Storytelling", "Problem, local context, fix, proof, CTA."],
+  ["promotional", "Promotional", "Offer-first carousel with deadline and owner approval."],
+  ["motivational", "Motivational", "Helpful reminder with local seasonal urgency."],
+  ["exploratory", "Exploratory", "Educational carousel that explains options without hard claims."],
+];
+
+const aspectRatioOptions = ["1:1", "9:16", "4:5", "2:3"];
+const inspirationFilterChips = [
+  "All",
+  "< 8 sec",
+  ">= 8 sec",
+  "Beauty",
+  "Fashion",
+  "Health and Wellness",
+  "Home and Living",
+  "Food and Beverage",
+  "Consumer Electronic",
+];
+
+const inspirationSections = [
+  {
+    title: "Trending collection",
+    tone: "trending",
+    viewAllLabel: "View all trending collection",
+    categories: inspirationFilterChips,
+    items: [
+      {
+        title: "Compact service hook",
+        badge: "7s",
+        format: "9:16",
+        prompt: "Create a fast local service hook with a visual product reveal and owner-safe CTA.",
+        preview: shop,
+      },
+      {
+        title: "Beauty testimonial prompt",
+        badge: "8s",
+        format: "9:16",
+        prompt: "Turn a testimonial-style beauty clip into a local proof post with approval language.",
+        preview: salon,
+      },
+      {
+        title: "Health expert explainer",
+        badge: "9s",
+        format: "9:16",
+        prompt: "Create a short expert-style explainer that stays compliant and avoids medical claims.",
+        preview: clinic,
+      },
+      {
+        title: "Home service reveal",
+        badge: "7s",
+        format: "9:16",
+        prompt: "Create a home service reveal with a simple before/after structure and local CTA.",
+        preview: restaurant,
+      },
+      {
+        title: "Founder product walk-up",
+        badge: "16s",
+        format: "9:16",
+        prompt: "Create a founder-led product walk-up for a small business promotion.",
+        preview: cafeOwner,
+      },
+      {
+        title: "Consumer electronic demo",
+        badge: "9s",
+        format: "9:16",
+        prompt: "Create a consumer electronic demo with clear benefit framing and no fake claims.",
+        preview: shop,
+      },
+    ],
+  },
+  {
+    title: "UGC Ads",
+    tone: "ugc",
+    viewAllLabel: "View all ugc ads",
+    categories: inspirationFilterChips,
+    items: [
+      {
+        title: "Owner explains the seasonal problem",
+        badge: "18s",
+        format: "UGC video",
+        prompt: "Turn an owner explainer into a same-week appointment post with a proof-safe CTA.",
+        preview: cafeOwner,
+      },
+      {
+        title: "Customer myth vs local reality",
+        badge: "9:16",
+        format: "Voiceover",
+        prompt: "Create a myth-busting local service video with an owner approval step.",
+        preview: salon,
+      },
+      {
+        title: "Before the next weather swing",
+        badge: "15s",
+        format: "Reel/TikTok",
+        prompt: "Create a short vertical video for urgent but claim-safe seasonal service demand.",
+        preview: clinic,
+      },
+      {
+        title: "Technician shows one quick fix",
+        badge: "23s",
+        format: "How-to",
+        prompt: "Create a practical service explainer that earns trust without overpromising results.",
+        preview: shop,
+      },
+      {
+        title: "Owner asks a customer question",
+        badge: "19s",
+        format: "Interview",
+        prompt: "Turn a common customer question into a founder-led short video with a safe CTA.",
+        preview: restaurant,
+      },
+      {
+        title: "Day-in-the-life service visit",
+        badge: "27s",
+        format: "Behind scenes",
+        prompt: "Create a behind-the-scenes local trust clip with an owner review checkpoint.",
+        preview: cafeOwner,
+      },
+    ],
+  },
+  {
+    title: "Image Ads",
+    tone: "image",
+    viewAllLabel: "View all image ads",
+    categories: ["All", "Beauty", "Health and Wellness", "Food and Beverage", "Fashion", "Pet Care and Pet Products", "Fitness", "Real Estate", "Travel"],
+    items: [
+      {
+        title: "Local checklist card",
+        badge: "1:1",
+        format: "Image",
+        prompt: "Create a checklist-style Facebook image post for homeowners comparing service options.",
+        preview: shop,
+      },
+      {
+        title: "Proof-backed offer",
+        badge: "4:5",
+        format: "Image",
+        prompt: "Create an offer card that mentions observable proof signals but avoids exact ROI claims.",
+        preview: restaurant,
+      },
+      {
+        title: "Neighborhood service map",
+        badge: "2:3",
+        format: "Carousel",
+        prompt: "Create a local service-area carousel with map-click and call-tap proof hooks.",
+        preview: cafeOwner,
+      },
+      {
+        title: "Seasonal reminder card",
+        badge: "1:1",
+        format: "Image",
+        prompt: "Create a seasonal reminder image that drives calls without using fake urgency.",
+        preview: clinic,
+      },
+      {
+        title: "Review-safe proof card",
+        badge: "4:5",
+        format: "Image",
+        prompt: "Create a review-inspired proof card that stays inside approved claims.",
+        preview: salon,
+      },
+      {
+        title: "Owner tip carousel",
+        badge: "1:1",
+        format: "Carousel",
+        prompt: "Create a short educational carousel with owner voice and a local service CTA.",
+        preview: shop,
+      },
+    ],
+  },
+];
+
+const contentTypeFilters = ["All", "Image", "Video", "Carousel"];
+const libraryCreatedFromOptions = ["All sources", "AI Generator", "Inspirations", "Source URL", "Image upload"];
+const publishPlatformOptions = ["Facebook", "Facebook Reel", "TikTok", "Google Business Profile", "Assisted Package"];
+const publishPostTypeOptions = ["Feed post", "Reel/Short", "Carousel", "Assisted handoff"];
+const calendarViews = ["Weekly", "Monthly"];
+const calendarLegend = ["Published", "Scheduled", "Failed", "Rejected", "In Review"];
+const calendarWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const brandAccountTabs = ["Social Platforms", "Brand Details", "Integrations", "Exports"];
+const brandDetailSections = ["Business identity", "Style", "Content settings"];
+
+const socialPlatformRows = [
+  { provider: "Instagram", accountType: "Business or Creator accounts", icon: "◎", tone: "instagram", watch: true },
+  { provider: "Facebook", accountType: "Page", icon: "f", tone: "facebook", watch: true },
+  { provider: "Linkedin", accountType: "Page or Profile", icon: "in", tone: "linkedin", watch: true },
+  { provider: "Google Business Profile", accountType: "Profile", icon: "G", tone: "google", watch: false },
+  { provider: "TikTok", accountType: "Profile", icon: "♪", tone: "tiktok", watch: false },
+  { provider: "Pinterest", accountType: "Boards", icon: "P", tone: "pinterest", watch: false },
+  { provider: "Twitter", accountType: "Profile", icon: "𝕏", tone: "twitter", watch: true },
+  { provider: "Youtube", accountType: "Channel", icon: "▶", tone: "youtube", watch: false },
+];
+
+const socialPlatformFaqs = {
+  Instagram: [
+    "I am trying to Link Instagram but a Facebook Popup Opens up?",
+    "I don't have a Facebook page. How can I link Instagram?",
+    "I can't see my Instagram Account inside the Facebook Popup.",
+    "I have an Instagram creator account. Will it work?",
+    "After I link, the loader keeps spinning. What can I do?",
+  ],
+  TikTok: ["Will my video get published automatically to TikTok?"],
+  Facebook: [
+    "Which Page permissions does LocalPilot request?",
+    "Can I choose a different Page after connecting?",
+    "Will LocalPilot publish without owner approval?",
+  ],
+};
+
+const defaultSocialFaqs = [
+  "What permissions are required to connect this account?",
+  "Can I schedule posts after this account is connected?",
+  "Will LocalPilot publish automatically?",
+];
+
+const socialConnectionChoices = {
+  Instagram: [
+    {
+      title: "Professional",
+      subtitle: "(via Facebook)",
+      badge: "HARD",
+      badgeTone: "hard",
+      icon: "◎",
+      companion: "f",
+    },
+    {
+      title: "Professional",
+      subtitle: "(via Instagram)",
+      badge: "EASY",
+      badgeTone: "easy",
+      note: "NEW",
+      icon: "◎",
+    },
+  ],
+  TikTok: [
+    {
+      title: "Profile",
+      subtitle: "(via TikTok OAuth)",
+      badge: "EASY",
+      badgeTone: "easy",
+      icon: "♪",
+    },
+  ],
+};
+
+const integrationTrustCards = [
+  {
+    icon: "✽",
+    title: "Used by over 20,000+",
+    detail: "Shopify / Woocommerce store owners",
+  },
+  {
+    icon: "★",
+    title: "Rated 4.8",
+    detail: "by over 3000 businesses",
+  },
+  {
+    icon: "✓",
+    title: "Verified by",
+    detail: "Shopify, WooCommerce and SquareSpace",
+  },
+];
+
+const ecommerceConnectors = [
+  { name: "Shopify", icon: "S", tone: "shopify" },
+  { name: "Wix", icon: "WIX", tone: "wix" },
+  { name: "Squarespace", icon: "SQ", tone: "squarespace" },
+  { name: "WooComm...", icon: "W", tone: "woocommerce" },
+];
+
+const brandExportRows = [
+  {
+    id: "founder-ugc-export",
+    title: "Create a UGC video for an on-camera founder exp...",
+    dimension: "Portrait (720×1264)",
+    status: "Processing complete",
+    preview: cafeOwner,
+  },
+  {
+    id: "mini-split-export",
+    title: "Midea 9,000 BTU Mini Split AC/Heating System",
+    dimension: "Portrait (720×1264)",
+    status: "Processing complete",
+    preview: shop,
+  },
+];
+
+const analyticsEmptyStates = [
+  ["Posting activity", "No live provider feed yet", "Connect official accounts to ingest post activity."],
+  ["Post engagement", "Waiting for published posts", "Comments, saves, shares, and reactions will appear here."],
+  ["Follower growth", "Early-state account", "Growth charts unlock after provider analytics ingestion."],
+];
+
+const analyticsAccountTabs = [
+  { label: "Instagram", icon: "◎", active: false },
+  { label: "Aurora Heating & Cooling", icon: "f", active: true },
+  { label: "LinkedIn", icon: "in", active: false },
+];
+
+const analyticsMetricCards = [
+  { label: "New posts", value: "2", dateRange: "21 May - 21 Jun", icon: "◒", tone: "blue" },
+  { label: "Followers", value: "0", dateRange: "21 May - 21 Jun", icon: "●●", tone: "green" },
+  { label: "Engagement", value: "0", dateRange: "21 May - 21 Jun", icon: "♥", tone: "orange" },
+];
+
+const analyticsChartDates = ["21 May", "26 May", "30 May", "04 Jun", "09 Jun", "13 Jun", "18 Jun"];
+
+const helpActions = [
+  ["Get help", "Open a non-sending support checklist for setup questions."],
+  ["Send a message", "Draft a message locally; nothing is sent until the owner confirms."],
+  ["FAQs", "Explain OAuth, assisted channels, proof hooks, and owner approval."],
+  ["Brand Elements", "Show where logos, fonts, colors, and approved phrases live."],
+  ["Service status", "Demo status only; production status page comes later."],
+  ["Chat support", "Placeholder for field-sales walkthrough support."],
+  ["Book demo", "Local callback CTA for sales follow-up."],
+];
+
 const schedule = [
   ["Mon 9:00", "TikTok hook", "Lunch special trend angle", "Approved", "green"],
   ["Tue 12:30", "Instagram Reel", "Visual story + offer CTA", "Needs review", "coral"],
@@ -1217,10 +1647,10 @@ const schedule = [
 ];
 
 const aiStudioTasks = [
-  ["Generate", "Weekly channel plan", "Create five channel-native outputs from one offer."],
-  ["Rewrite", "Xiaohongshu note", "Convert the offer into Chinese save-first discovery copy."],
-  ["Prepare", "Owner approval note", "Explain what the owner needs to approve before publishing."],
-  ["Map", "Local ROI events", "Attach calls, DMs, coupon scans, saves, and map clicks."],
+  ["Generate", "Weekly post batch", "Create posts, carousels, and reels from one local offer."],
+  ["Brand", "Apply brand kit", "Use local voice, colors, approved phrases, and audience rules."],
+  ["Schedule", "Fill calendar", "Place the week across Facebook, Instagram, TikTok, and Google."],
+  ["Measure", "Attach proof hooks", "Add QR, short link, call tap, DM keyword, and coupon events."],
 ];
 
 const inboxThreads = [
@@ -1259,40 +1689,462 @@ const localRoiSignals = [
   ["76", "Map clicks", "Google Local captured nearby searchers."],
 ];
 
+const brandKitCards = [
+  ["Business", "Aurora Heating & Cooling", "Home services in Washtenaw County, MI"],
+  ["Tone", "Trusted, prompt, local", "Helpful expert, never pushy or generic"],
+  ["Colors", "Deep navy, service blue, warm amber", "Applied to cards, carousels, and proof reports"],
+  ["Approved words", "same-week, local team, honest recommendations", "Used by the generator before every draft"],
+  ["Avoid", "guaranteed savings, miracle fixes, scare tactics", "Risk guardrails before owner approval"],
+  ["Examples", "5 past posts + 3 customer reviews", "Used as the brand voice calibration seed"],
+];
+
+const creativeFormats = [
+  {
+    format: "Static post",
+    description: "Predis parity: generated branded post with caption, hashtags, CTA, and scheduling slot.",
+  },
+  {
+    format: "Carousel",
+    description: "Five-slide outline with cover, problem, proof, offer, and action slide.",
+  },
+  {
+    format: "Reel / TikTok script",
+    description: "Hook, shot list, voiceover, caption, disclosure note, and proof hook.",
+  },
+  {
+    format: "Story reminder",
+    description: "Short follow-up with DM keyword and coupon/QR action.",
+  },
+];
+
+const competitorIdeas = [
+  {
+    source: "Nearby HVAC Page",
+    theme: "Heat-wave readiness",
+    hook: "Before the first 85 degree day, check this one thing.",
+    timing: "Monday 7:30 AM",
+    hashtags: "#annarborhomes #hvactips #michiganweather",
+  },
+  {
+    source: "Local restaurant pattern",
+    theme: "Owner-led specials",
+    hook: "The owner explains why this week's special sells out early.",
+    timing: "Wednesday 11:00 AM",
+    hashtags: "#localbusiness #lunchspecial #mainstreet",
+  },
+  {
+    source: "Predis parity demo",
+    theme: "Best-performing format",
+    hook: "Carousel checklist beats generic captions for service education.",
+    timing: "Thursday 6:00 PM",
+    hashtags: "#smallbusinessmarketing #localproof #servicebusiness",
+  },
+];
+
+const proofEvents = [
+  ["Short link clicks", "44", "People opened the post-specific offer link."],
+  ["QR scans", "19", "In-store or printed assets were scanned."],
+  ["Call taps", "28", "Mobile visitors tapped to call from Facebook or Google."],
+  ["Direction taps", "31", "High-intent local visitors requested directions."],
+  ["DM keywords", "17", "Instagram/TikTok replies used the tracked keyword."],
+  ["Owner-confirmed mentions", "6", "The owner heard customers mention the post."],
+];
+
+const predisParityChannels = [
+  ["Facebook", "Live OAuth adapter", "Approved Page posts can publish live when Meta credentials are configured."],
+  ["TikTok", "Assisted short-video package", "Script, caption, disclosure, and upload-ready notes are generated."],
+  ["Instagram", "Assisted Reel/carousel package", "DM keyword, carousel outline, and caption are ready for owner posting."],
+  ["Google Business Profile", "Assisted local update", "Call and direction proof hooks are attached before publishing."],
+  ["LinkedIn / X / Pinterest", "Parity placeholder", "Shown in the product map so the Predis-style surface is recognizable without diluting MVP adapters."],
+];
+
+const emptyPhase3Workspace = {
+  brandKit: {},
+  contentBatches: [],
+  contentSources: [],
+  aiAssistantReplies: [],
+  generatedCreatives: [],
+  calendarSlots: [],
+  competitorSources: [],
+  competitorIdeas: [],
+  proofEvents: [],
+  creativeTemplates: [],
+  importedTemplates: [],
+  approvalReviewLinks: [],
+  approvalFeedback: [],
+  reviewNotifications: [],
+  assetLibraryItems: [],
+  performanceSnapshots: [],
+  analyticsInsights: [],
+  creatorStyleWorkflows: [],
+  creatorStyleOptions: {
+    styles: [],
+    actors: [],
+    templates: [],
+  },
+  analyticsSummary: {},
+};
+
+const defaultCreatorStyleForm = {
+  prompt:
+    "Create an avatar video explaining how Aurora Heating & Cooling helps Southeast Michigan homeowners save money with energy-efficient Midea systems and expert rebate assistance. Authentic, friendly.",
+  goal: "save money with energy-efficient HVAC systems",
+  selectedIdeaId: "",
+  styleId: "motivational",
+  actorId: "",
+  templateId: "",
+  aspectRatio: "9:16",
+};
+
+const creatorAspectRatioOptions = ["9:16", "16:9"];
+
+const creatorWorkflowSteps = [
+  { id: "prompt", label: "Idea", title: "Create UGC Video", subtitle: "Describe the UGC Video you want to create." },
+  { id: "idea", label: "Idea", title: "Select an idea", subtitle: "Choose the generated angle you want to turn into a creator-style video." },
+  { id: "style", label: "Style", title: "Configure your UGC Video", subtitle: "Customize your UGC Video settings to match your brand style." },
+  { id: "actor", label: "Avatar", title: "Choose your favorite avatar", subtitle: "Pick your favorite AI actor." },
+  { id: "template", label: "Subtitle", title: "Pick Subtitle style", subtitle: "Choose how subtitles will show in the UGC Video." },
+  { id: "review", label: "Review", title: "Review your script", subtitle: "This is what your creator will say. Edit via prompt below." },
+  { id: "confirm", label: "Confirm", title: "Review and confirm your details", subtitle: "Make sure everything looks right before generating your UGC Video." },
+  { id: "generated", label: "Publish", title: "Generated creative", subtitle: "Review the creative, media asset, UGC package, and calendar handoff." },
+];
+
+const creatorTemplatePreviewSamples = [
+  { lead: "A PERSON WALKED", accent: "SLOWLY DOWN THE" },
+  { lead: "A PERSON WALKED", accent: "PERSON WALKED" },
+  { lead: "A PERSON WALKED", accent: "EMPTY STREET" },
+  { lead: "A PERSON WALKED", accent: "SLOWLY DOWN THE" },
+  { lead: "EMPTY STREET", accent: "PERSON WALKED" },
+  { lead: "A PERSON WALKED", accent: "EMPTY STREET" },
+  { lead: "A PERSON", accent: "WALKED SLOWLY" },
+  { lead: "EMPTY", accent: "STREET" },
+  { lead: "SLOWLY DOWN", accent: "THE STREET" },
+  { lead: "A PERSON WALKED", accent: "EMPTY STREET" },
+];
+
+const fallbackCreatorActorChoices = [
+  {
+    id: "local-owner",
+    name: "Local owner",
+    persona: "approachable small-business owner",
+    badge: "Owner voice",
+  },
+  {
+    id: "field-expert",
+    name: "Field expert",
+    persona: "hands-on technician or service specialist",
+    badge: "Expert",
+  },
+  {
+    id: "community-guide",
+    name: "Community guide",
+    persona: "local neighbor recommending a practical next step",
+    badge: "Community",
+  },
+  {
+    id: "studio-host",
+    name: "Studio host",
+    persona: "polished host for premium product/service offers",
+    badge: "Studio",
+  },
+  {
+    id: "service-coach",
+    name: "Service coach",
+    persona: "calm explainer who helps customers choose the next step",
+    badge: "Coach",
+  },
+  {
+    id: "neighborhood-pro",
+    name: "Neighborhood pro",
+    persona: "local professional with neighborly credibility",
+    badge: "Local pro",
+  },
+  {
+    id: "front-desk-guide",
+    name: "Front desk guide",
+    persona: "helpful scheduler who makes booking feel easy",
+    badge: "Scheduler",
+  },
+  {
+    id: "premium-advisor",
+    name: "Premium advisor",
+    persona: "trust-first advisor for higher-value purchases",
+    badge: "Advisor",
+  },
+  {
+    id: "modern-founder",
+    name: "Modern founder",
+    persona: "design-aware founder explaining premium product decisions",
+    badge: "Founder",
+  },
+  {
+    id: "wellness-host",
+    name: "Wellness host",
+    persona: "friendly expert for beauty, wellness, and lifestyle offers",
+    badge: "Host",
+  },
+  {
+    id: "retail-specialist",
+    name: "Retail specialist",
+    persona: "in-store product explainer with confident but approachable tone",
+    badge: "Retail",
+  },
+  {
+    id: "service-mentor",
+    name: "Service mentor",
+    persona: "seasoned operator who explains what premium service really means",
+    badge: "Mentor",
+  },
+];
+
+const fallbackCreatorTemplateChoices = [
+  {
+    id: "hook-proof-cta",
+    title: "Hook / proof / CTA",
+    format: "9:16 creator video",
+    summary: "Hook in 3 seconds, one proof moment, one direct CTA.",
+  },
+  {
+    id: "problem-solution",
+    title: "Problem / solution",
+    format: "9:16 explainer",
+    summary: "Show the pain, explain the fix, then invite a call or booking.",
+  },
+  {
+    id: "offer-walkthrough",
+    title: "Offer walkthrough",
+    format: "9:16 short ad",
+    summary: "A compact promo format for fancy product or premium service offers.",
+  },
+  {
+    id: "subtitle-punch",
+    title: "Subtitle punch",
+    format: "9:16 caption-led video",
+    summary: "Large kinetic subtitles, short beats, and a bold closing CTA.",
+  },
+  {
+    id: "premium-comparison",
+    title: "Premium comparison",
+    format: "9:16 comparison explainer",
+    summary: "Compare cheap vs premium choices without unsupported claims.",
+  },
+  {
+    id: "owner-note",
+    title: "Owner note",
+    format: "9:16 founder-style clip",
+    summary: "A founder-style recommendation that feels personal and approval-ready.",
+  },
+  {
+    id: "caption-flash",
+    title: "Caption flash",
+    format: "9:16 fast-caption reel",
+    summary: "Rapid subtitle beats with a quick product or service payoff.",
+  },
+  {
+    id: "center-punch",
+    title: "Center punch",
+    format: "9:16 centered subtitle layout",
+    summary: "Bold centered subtitles with a clean mid-frame actor layout.",
+  },
+  {
+    id: "bottom-caption",
+    title: "Bottom caption",
+    format: "9:16 creator explainer",
+    summary: "Traditional lower subtitle track with clean readability.",
+  },
+  {
+    id: "quote-overlay",
+    title: "Quote overlay",
+    format: "9:16 testimonial style",
+    summary: "Use quote-style subtitles to turn a recommendation into social proof.",
+  },
+  {
+    id: "staggered-words",
+    title: "Staggered words",
+    format: "9:16 motion subtitle layout",
+    summary: "Stagger words across rows for a more animated subtitle feel.",
+  },
+];
+
+const creatorScriptDurationOptions = [
+  { id: "8s", label: "$ Rewrite for 8s", estimate: "7.2 seconds" },
+  { id: "16s", label: "$$ Rewrite for 16s", estimate: "15.6 seconds" },
+  { id: "24s", label: "$$$ Rewrite for 24s", estimate: "23.8 seconds" },
+];
+
+const describeDisplayItem = (item) => {
+  if (typeof item === "string") {
+    return item;
+  }
+  if (typeof item === "number" || typeof item === "boolean") {
+    return String(item);
+  }
+  if (!item || typeof item !== "object") {
+    return "";
+  }
+  if (item.secondRange || item.shot || item.caption) {
+    return [item.secondRange, item.shot || item.caption].filter(Boolean).join(": ");
+  }
+  if (item.title || item.label || item.name || item.text) {
+    return item.title || item.label || item.name || item.text;
+  }
+  return Object.entries(item)
+    .slice(0, 3)
+    .map(([key, value]) => `${key}: ${describeDisplayItem(value) || "set"}`)
+    .join(" · ");
+};
+
+const displayItemKey = (prefix, item, index) => `${prefix}-${index}-${describeDisplayItem(item) || "item"}`;
+
+const textFromUnknown = (value, fallback = "") => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => textFromUnknown(item, ""))
+      .filter(Boolean)
+      .join(" ");
+  }
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (typeof value === "object") {
+    return describeDisplayItem(value) || fallback;
+  }
+  return String(value);
+};
+
+const safeText = (value, fallback = "") => textFromUnknown(value, fallback);
+
+const safeChecklistText = (value, fallback = "Pending") => safeText(value, fallback);
+
+const stableNodeKey = (value, fallback = "item", index = 0) => {
+  if (value === undefined || value === null || value === "") {
+    return `${fallback}-${index}`;
+  }
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return `${value}`;
+  }
+  if (typeof value === "object") {
+    if (typeof value.id === "string" || typeof value.id === "number" || typeof value.id === "boolean") {
+      return `${value.id}`;
+    }
+    return `${fallback}-${index}`;
+  }
+  return `${value}-${index}`;
+};
+
+const mediaAssetHighlights = (asset) => {
+  const metadata = asset?.metadata || {};
+  if (Array.isArray(metadata.scenes)) {
+    return metadata.scenes.map(describeDisplayItem).filter(Boolean);
+  }
+  if (Array.isArray(metadata.slides)) {
+    return metadata.slides.map(describeDisplayItem).filter(Boolean);
+  }
+  if (Array.isArray(metadata.placements)) {
+    return metadata.placements.map(describeDisplayItem).filter(Boolean);
+  }
+  if (Array.isArray(metadata.editableLayers)) {
+    return metadata.editableLayers.map((layer) => `Editable ${describeDisplayItem(layer).replace(/_/g, " ")}`);
+  }
+  return [];
+};
+
+const layerControlEditForAsset = (asset, control, creative) => {
+  const layerId = control?.id || "layer";
+  const title = safeText(creative?.title, "Same-week service opening");
+  const caption = safeText(creative?.caption || asset?.prompt, "Local service reminder");
+  const cta = safeText(creative?.cta, "Book now");
+  if (layerId.includes("brand_color")) {
+    return {
+      value: "#f97316",
+      placement: "brand system",
+      style: "high_contrast_accent",
+    };
+  }
+  if (layerId.includes("cta") || layerId.includes("phone")) {
+    return {
+      value: `${cta} · tracked proof link`,
+      placement: "bottom safe zone",
+      style: "primary_button",
+    };
+  }
+  if (layerId.includes("headline") || layerId.includes("hook")) {
+    return {
+      value: `${title} this week`,
+      placement: "top safe zone",
+      style: "bold_hook",
+    };
+  }
+  if (layerId.includes("caption") || layerId.includes("body") || layerId.includes("checklist")) {
+    return {
+      value: safeText(caption).slice(0, 120),
+      placement: "middle content stack",
+      style: "readable_body",
+    };
+  }
+  if (layerId.includes("service") || layerId.includes("area")) {
+    return {
+      value: "Washtenaw County homeowners",
+      placement: "local trust footer",
+      style: "local_badge",
+    };
+  }
+  return {
+    value: `Owner-approved ${String(control?.label || layerId).toLowerCase()} edit`,
+    placement: "canvas",
+    style: "brand_safe",
+  };
+};
+
+const formatCompactNumber = (value) => {
+  const number = Number(value || 0);
+  if (number >= 1000000) {
+    return `${(number / 1000000).toFixed(1)}M`;
+  }
+  if (number >= 1000) {
+    return `${(number / 1000).toFixed(1)}K`;
+  }
+  return String(number);
+};
+
+const formatCents = (value) => `$${Math.round(Number(value || 0) / 100).toLocaleString()}`;
+
 const walkthroughSteps = [
   {
-    title: "Start with the offer",
-    module: "Home",
-    note: "Show how one business input creates a weekly plan.",
+    title: "Start with Create New",
+    module: "Create New",
+    note: "Show format cards and source methods before generation.",
     channel: 0,
   },
   {
-    title: "Inspect Xiaohongshu",
-    module: "Home",
-    note: "Highlight native Chinese copy, keywords, cover text, and save-first structure.",
-    channel: 3,
+    title: "Review inspirations",
+    module: "Ad Inspirations",
+    note: "Recreate reference ideas as LocalPilot owner-approved campaigns.",
   },
   {
-    title: "Generate with AI",
-    module: "AI Studio",
-    note: "Show task buttons and the per-channel AI output list.",
+    title: "Open content library",
+    module: "Content Library",
+    note: "Show filters, cards, editor, publish gating, and approval controls.",
   },
   {
     title: "Review the calendar",
-    module: "Calendar",
+    module: "Content Calendar",
     note: "Approve or request edits from the scheduled post plan.",
     post: 1,
   },
   {
-    title: "Reply to customers",
-    module: "Inbox",
-    note: "Show intent, suggested reply, and local visit context.",
-    inbox: 2,
+    title: "Check accounts",
+    module: "Brand & Social Accounts",
+    note: "Show brand details, social platforms, OAuth boundaries, and page picker.",
+    post: 0,
   },
   {
-    title: "Explain local ROI",
+    title: "Explain analytics",
     module: "Analytics",
-    note: "Connect posts to calls, bookings, DMs, saves, coupon scans, and map clicks.",
+    note: "Connect posts to lower-bound evidence, not exact offline ROI.",
   },
 ];
 
@@ -1358,7 +2210,7 @@ const businessTemplates = {
   },
   hvac: {
     label: "HVAC service",
-    business: "Northline HVAC",
+    business: "Aurora Heating & Cooling",
     offer: "Spring AC tune-up",
     goal: "book high-intent service calls before peak season",
     audience: "homeowners within 12 miles",
@@ -1423,6 +2275,11 @@ const businessOptions = Object.entries(businessTemplates).map(([value, template]
   label: template.label,
   business: template.business,
 }));
+
+const businessTypeAliases = {
+  home_services: "hvac",
+  hvac_service: "hvac",
+};
 
 const localpilotDifferentiators = [
   {
@@ -1569,12 +2426,20 @@ const channelPlans = [
 
 const inferBusinessType = (businessName) => {
   const match = businessOptions.find((option) => option.business === businessName);
-  return match?.value || defaultCampaignInput.businessType;
+  if (match?.value) {
+    return match.value;
+  }
+  const normalizedName = String(businessName || "").toLowerCase();
+  if (normalizedName.includes("hvac") || normalizedName.includes("heating") || normalizedName.includes("cooling")) {
+    return "hvac";
+  }
+  return defaultCampaignInput.businessType;
 };
 
 const normalizeCampaignInput = (input = defaultCampaignInput) => {
-  const inferredType = input?.businessType && businessTemplates[input.businessType]
-    ? input.businessType
+  const aliasedType = businessTypeAliases[input?.businessType] || input?.businessType;
+  const inferredType = aliasedType && businessTemplates[aliasedType]
+    ? aliasedType
     : inferBusinessType(input?.business);
   const template = businessTemplates[inferredType] || businessTemplates[defaultCampaignInput.businessType];
 
@@ -1633,7 +2498,9 @@ const createInitialPlans = (input = defaultCampaignInput) =>
     ...plan,
     status: "Needs review",
     checklist: plan.checklist.map((item) =>
-      typeof item === "string" ? { text: item, done: false } : { ...item, done: false },
+      typeof item === "string"
+        ? { text: safeChecklistText(item, "Checklist item"), done: false }
+        : { ...item, text: safeChecklistText(item?.text, "Checklist item"), done: false },
     ),
   }));
 
@@ -1649,10 +2516,14 @@ const normalizePlan = (plan, index, input = defaultCampaignInput) => {
     status: plan?.status || "Needs review",
     checklist: Array.isArray(plan?.checklist)
       ? plan.checklist.map((item) =>
-          typeof item === "string" ? { text: item, done: false } : { text: item.text, done: Boolean(item.done) },
+          typeof item === "string"
+            ? { text: safeChecklistText(item, "Checklist item"), done: false }
+            : { ...item, text: safeChecklistText(item?.text, "Checklist item"), done: Boolean(item.done) },
         )
       : base.checklist.map((item) =>
-          typeof item === "string" ? { text: item, done: false } : { text: item.text, done: Boolean(item.done) },
+          typeof item === "string"
+            ? { text: safeChecklistText(item, "Checklist item"), done: false }
+            : { ...item, text: safeChecklistText(item?.text, "Checklist item"), done: Boolean(item.done) },
         ),
   };
 };
@@ -1732,10 +2603,10 @@ const workflowDraftToPlan = (draft, index, workflow) => {
       status,
       nativeCreative: {
         ...base.nativeCreative,
-        hook: currentVersion.caption || base.nativeCreative.hook,
-        caption: currentVersion.body || base.nativeCreative.caption,
-        cover: currentVersion.caption || base.nativeCreative.cover,
-        cta: currentVersion.cta || base.nativeCreative.cta,
+        hook: safeText(currentVersion?.caption, base.nativeCreative.hook),
+        caption: safeText(currentVersion?.body, base.nativeCreative.caption),
+        cover: safeText(currentVersion?.caption, base.nativeCreative.cover),
+        cta: safeText(currentVersion?.cta, base.nativeCreative.cta),
       },
       role: connectedChannel?.displayName || base.role,
       format: `${displayName} draft v${currentVersion.versionNumber || 1}`,
@@ -1782,9 +2653,9 @@ const clampIndex = (index, collection) => Math.min(Math.max(index, 0), Math.max(
 
 const loadStoredModule = () => {
   try {
-    return moduleFromSlug(readPreference("localpilot-demo-active-module")) || "Home";
+    return moduleFromSlug(readPreference("localpilot-demo-active-module")) || "Content Library";
   } catch {
-    return "Home";
+    return "Content Library";
   }
 };
 
@@ -2234,14 +3105,307 @@ export function AppDemo() {
   const [workflow, setWorkflow] = useState(() => normalizeWorkflow());
   const [workflowStatus, setWorkflowStatus] = useState("loading");
   const [workflowError, setWorkflowError] = useState("");
+  const [phase3Workspace, setPhase3Workspace] = useState(emptyPhase3Workspace);
+  const [phase3Status, setPhase3Status] = useState("loading");
+  const [phase3Error, setPhase3Error] = useState("");
   const [approvalPending, setApprovalPending] = useState("");
+  const [approvalFeedbackPending, setApprovalFeedbackPending] = useState("");
+  const [reviewNotificationPending, setReviewNotificationPending] = useState("");
   const [publishPending, setPublishPending] = useState("");
+  const [facebookConnection, setFacebookConnection] = useState({
+    configured: false,
+    connectedPages: [],
+    scopes: [],
+    redirectUri: "",
+  });
+  const [facebookConnectionStatus, setFacebookConnectionStatus] = useState("loading");
+  const [facebookPublishForm, setFacebookPublishForm] = useState({
+    pageId: "1243605852158721",
+    publishMode: "publish_now",
+    scheduledPublishTime: "",
+  });
+  const [competitorSourceForm, setCompetitorSourceForm] = useState({
+    label: "Local competitor page",
+    url: "",
+  });
+  const [contentSourceForm, setContentSourceForm] = useState({
+    label: "Aurora tune-up offer page",
+    url: "https://auroraheatcool.example/ac-tune-up",
+  });
+  const [contentImageForm, setContentImageForm] = useState({
+    label: "Aurora service photo",
+    fileName: "",
+    mimeType: "",
+    imageDataUrl: "",
+  });
+  const [contentSourcePending, setContentSourcePending] = useState(false);
+  const [contentImagePending, setContentImagePending] = useState(false);
+  const [sourceGenerationPending, setSourceGenerationPending] = useState("");
+  const [assistantPrompt, setAssistantPrompt] = useState("Give me a 3-post content calendar for same-week AC tune-ups");
+  const [assistantReplyPending, setAssistantReplyPending] = useState("");
+  const [competitorAnalysisPending, setCompetitorAnalysisPending] = useState(false);
+  const [mediaAssetPending, setMediaAssetPending] = useState("");
+  const [ideaVariantPending, setIdeaVariantPending] = useState("");
+  const [bulkVariationPending, setBulkVariationPending] = useState(false);
+  const [languageVariantPending, setLanguageVariantPending] = useState(false);
+  const [ugcPackagePending, setUgcPackagePending] = useState(false);
+  const [activeCreateFormat, setActiveCreateFormat] = useState("");
+  const [calendarDrawerOpen, setCalendarDrawerOpen] = useState(false);
+  const [activeCreateMethod, setActiveCreateMethod] = useState("write-idea");
+  const [creatorStyleForm, setCreatorStyleForm] = useState(defaultCreatorStyleForm);
+  const [creatorStylePending, setCreatorStylePending] = useState("");
+  const [creatorWorkflowOpen, setCreatorWorkflowOpen] = useState(false);
+  const [creatorWorkflowStep, setCreatorWorkflowStep] = useState("prompt");
+  const [creatorIdeaChatOpen, setCreatorIdeaChatOpen] = useState(false);
+  const [creatorIdeaChatInput, setCreatorIdeaChatInput] = useState(defaultCreatorStyleForm.goal);
+  const [creatorIdeaChatResults, setCreatorIdeaChatResults] = useState([]);
+  const [creatorScriptDuration, setCreatorScriptDuration] = useState("8s");
+  const [creatorScriptRewritePrompt, setCreatorScriptRewritePrompt] = useState("");
+  const [carouselStyle, setCarouselStyle] = useState("storytelling");
+  const [carouselAspectRatio, setCarouselAspectRatio] = useState("1:1");
+  const [activeInspirationCategory, setActiveInspirationCategory] = useState("All");
+  const [activeInspirationCollection, setActiveInspirationCollection] = useState("");
+  const [pendingInspirationCollection, setPendingInspirationCollection] = useState("");
+  const [waitNudgeOpen, setWaitNudgeOpen] = useState(false);
+  const [libraryFilters, setLibraryFilters] = useState({
+    type: "All",
+    search: "",
+    date: "This month",
+    tags: "",
+    users: "All users",
+    createdFrom: "All sources",
+    archived: false,
+  });
+  const [libraryDetailCreativeId, setLibraryDetailCreativeId] = useState("");
+  const [publishDraft, setPublishDraft] = useState({
+    creativeId: "",
+    platform: "Facebook",
+    postType: "Feed post",
+    step: "platform",
+    scheduleDay: 22,
+    scheduleHour: "05",
+    scheduleMinute: "15",
+    scheduleMeridiem: "PM",
+    aiSuggestedTime: false,
+    approvalMember: false,
+    confirmed: false,
+  });
+  const [calendarView, setCalendarView] = useState("Monthly");
+  const [selectedTimezone, setSelectedTimezone] = useState("America/Detroit");
+  const [selectedCalendarSlotId, setSelectedCalendarSlotId] = useState("");
+  const [activeBrandAccountTab, setActiveBrandAccountTab] = useState("Social Platforms");
+  const [activeBrandDetailSection, setActiveBrandDetailSection] = useState("Content settings");
+  const [socialActionDialog, setSocialActionDialog] = useState(null);
+  const [helpFlyoutOpen, setHelpFlyoutOpen] = useState(false);
+  const [selectedFacebookPageId, setSelectedFacebookPageId] = useState("");
+  const [helpDraft, setHelpDraft] = useState("");
+  const [activeHelpAction, setActiveHelpAction] = useState(helpActions[0]?.[0] || "FAQs");
+  const [cookingCreativeId, setCookingCreativeId] = useState("");
   const [queuedPublishJobs, setQueuedPublishJobs] = useState({});
   const [aiResponse, setAiResponse] = useState(
     "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
   );
   const [appToast, setAppToast] = useState("");
   const campaignInput = workflowCampaignInput(workflow);
+  const phase3Creatives = Array.isArray(phase3Workspace.generatedCreatives)
+    ? phase3Workspace.generatedCreatives
+    : [];
+  const phase3BrandKit = phase3Workspace.brandKit || {};
+  const phase3ContentSources = Array.isArray(phase3Workspace.contentSources)
+    ? phase3Workspace.contentSources
+    : [];
+  const phase3AssistantReplies = Array.isArray(phase3Workspace.aiAssistantReplies)
+    ? phase3Workspace.aiAssistantReplies
+    : [];
+  const phase3Ideas = Array.isArray(phase3Workspace.competitorIdeas)
+    ? phase3Workspace.competitorIdeas
+    : [];
+  const phase3CompetitorSources = Array.isArray(phase3Workspace.competitorSources)
+    ? phase3Workspace.competitorSources
+    : [];
+  const phase3ProofEvents = Array.isArray(phase3Workspace.proofEvents)
+    ? phase3Workspace.proofEvents
+    : [];
+  const phase3CalendarSlots = Array.isArray(phase3Workspace.calendarSlots)
+    ? phase3Workspace.calendarSlots
+    : [];
+  const phase3CreativeTemplates = Array.isArray(phase3Workspace.creativeTemplates)
+    ? phase3Workspace.creativeTemplates
+    : [];
+  const phase3ImportedTemplates = Array.isArray(phase3Workspace.importedTemplates)
+    ? phase3Workspace.importedTemplates
+    : [];
+  const phase3ApprovalReviewLinks = Array.isArray(phase3Workspace.approvalReviewLinks)
+    ? phase3Workspace.approvalReviewLinks
+    : [];
+  const phase3ApprovalFeedback = Array.isArray(phase3Workspace.approvalFeedback)
+    ? phase3Workspace.approvalFeedback
+    : [];
+  const phase3ReviewNotifications = Array.isArray(phase3Workspace.reviewNotifications)
+    ? phase3Workspace.reviewNotifications
+    : [];
+  const phase3AssetLibraryItems = Array.isArray(phase3Workspace.assetLibraryItems)
+    ? phase3Workspace.assetLibraryItems
+    : [];
+  const phase3PerformanceSnapshots = Array.isArray(phase3Workspace.performanceSnapshots)
+    ? phase3Workspace.performanceSnapshots
+    : [];
+  const phase3AnalyticsInsights = Array.isArray(phase3Workspace.analyticsInsights)
+    ? phase3Workspace.analyticsInsights
+    : [];
+  const phase3AnalyticsSummary = phase3Workspace.analyticsSummary || {};
+  const phase3Usage = phase3Workspace.usage || {};
+  const creatorStyleWorkflows = Array.isArray(phase3Workspace.creatorStyleWorkflows)
+    ? phase3Workspace.creatorStyleWorkflows
+    : [];
+  const creatorStyleOptions = phase3Workspace.creatorStyleOptions || {};
+  const creatorStyleStyles = Array.isArray(creatorStyleOptions.styles) ? creatorStyleOptions.styles : [];
+  const creatorStyleActors = Array.isArray(creatorStyleOptions.actors) ? creatorStyleOptions.actors : [];
+  const creatorStyleTemplates = Array.isArray(creatorStyleOptions.templates) ? creatorStyleOptions.templates : [];
+  const mergeCreatorOptions = (preferredOptions, fallbackOptions) => {
+    const byId = new Map();
+    fallbackOptions.forEach((option) => byId.set(option.id, option));
+    preferredOptions.forEach((option) => byId.set(option.id, { ...(byId.get(option.id) || {}), ...option }));
+    return Array.from(byId.values());
+  };
+  const creatorStyleStyleChoices = creatorStyleStyles.length
+    ? creatorStyleStyles
+    : [
+        {
+          id: "motivational",
+          label: "Motivational",
+          summary: "Direct-to-camera encouragement with a clear reason to act now.",
+        },
+      ];
+  const creatorStyleActorChoices = mergeCreatorOptions(creatorStyleActors, fallbackCreatorActorChoices);
+  const creatorStyleTemplateChoices = mergeCreatorOptions(creatorStyleTemplates, fallbackCreatorTemplateChoices);
+  const selectedCreatorWorkflow =
+    creatorStyleWorkflows.find(
+      (workflow) =>
+        workflow.prompt === creatorStyleForm.prompt &&
+        workflow.goal === creatorStyleForm.goal &&
+        workflow.status !== "archived",
+    ) ||
+    creatorStyleWorkflows[0] ||
+    null;
+  const selectedCreatorIdeas = selectedCreatorWorkflow?.ideas || [];
+  const selectedCreatorIdea =
+    selectedCreatorIdeas.find((idea) => idea.id === creatorStyleForm.selectedIdeaId) ||
+    selectedCreatorIdeas.find((idea) => idea.id === selectedCreatorWorkflow?.selectedIdeaId) ||
+    selectedCreatorIdeas[0] ||
+    null;
+  const selectedCreatorCreative = selectedCreatorWorkflow?.creativeId
+    ? phase3Creatives.find((creative) => creative.id === selectedCreatorWorkflow.creativeId)
+    : null;
+  const selectedCreatorCalendarSlot = selectedCreatorCreative
+    ? phase3CalendarSlots.find((slot) => slot.creativeId === selectedCreatorCreative.id)
+    : null;
+  const selectedCreatorMediaAsset =
+    selectedCreatorCreative?.mediaAssets?.find((asset) => asset.assetType === "creator_style_video_storyboard") ||
+    selectedCreatorCreative?.mediaAssets?.[0] ||
+    null;
+  const selectedCreatorPackage = selectedCreatorCreative?.ugcVoiceoverPackages?.[0] || null;
+  const selectedCreatorStyle =
+    creatorStyleStyleChoices.find((style) => style.id === creatorStyleForm.styleId) ||
+    creatorStyleStyleChoices[0] ||
+    null;
+  const selectedCreatorActor =
+    creatorStyleActorChoices.find((actor) => actor.id === creatorStyleForm.actorId) || null;
+  const selectedCreatorTemplate =
+    creatorStyleTemplateChoices.find((template) => template.id === creatorStyleForm.templateId) || null;
+  const selectedCreatorScriptDuration =
+    creatorScriptDurationOptions.find((duration) => duration.id === creatorScriptDuration) ||
+    creatorScriptDurationOptions[0];
+  const creatorReviewScript = [
+    selectedCreatorIdea?.hook || creatorStyleForm.prompt,
+    selectedCreatorIdea?.angle,
+    "Book your expert consultation today.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const creatorVisibleWorkflowSteps = creatorWorkflowSteps.filter((step) => step.id !== "generated");
+  const rawCreatorWorkflowStepIndex = Math.max(
+    0,
+    creatorWorkflowSteps.findIndex((step) => step.id === creatorWorkflowStep),
+  );
+  const creatorWorkflowStepIndex =
+    creatorWorkflowStep === "generated"
+      ? creatorVisibleWorkflowSteps.length - 1
+      : Math.max(0, creatorVisibleWorkflowSteps.findIndex((step) => step.id === creatorWorkflowStep));
+  const activeCreatorWorkflowStep = creatorWorkflowSteps[rawCreatorWorkflowStepIndex] || creatorWorkflowSteps[0];
+  const creatorCanContinue =
+    creatorWorkflowStep === "prompt"
+      ? Boolean(creatorStyleForm.prompt.trim() && creatorStyleForm.goal.trim())
+      : creatorWorkflowStep === "idea"
+      ? Boolean(selectedCreatorIdea)
+      : creatorWorkflowStep === "style"
+      ? Boolean(selectedCreatorStyle && creatorStyleForm.aspectRatio)
+      : creatorWorkflowStep === "actor"
+      ? Boolean(selectedCreatorActor)
+      : creatorWorkflowStep === "template"
+      ? Boolean(selectedCreatorTemplate)
+      : creatorWorkflowStep === "review"
+      ? Boolean(selectedCreatorIdea && selectedCreatorStyle && selectedCreatorActor && selectedCreatorTemplate)
+      : creatorWorkflowStep === "confirm"
+      ? Boolean(selectedCreatorIdea && selectedCreatorStyle && selectedCreatorActor && selectedCreatorTemplate)
+      : true;
+  const selectedHelpAction =
+    helpActions.find(([title]) => title === activeHelpAction) ||
+    helpActions[0] || ["FAQs", "Find answers about generation, publishing, and account setup."];
+  const phase3CreativesByPlatform = useMemo(
+    () =>
+      phase3Creatives.reduce((byPlatform, creative) => {
+        byPlatform[creative.platform] = creative;
+        return byPlatform;
+      }, {}),
+    [phase3Creatives],
+  );
+  const approvalReviewLinksByCreativeId = useMemo(
+    () =>
+      phase3ApprovalReviewLinks.reduce((byCreative, link) => {
+        byCreative[link.creativeId] = link;
+        return byCreative;
+      }, {}),
+    [phase3ApprovalReviewLinks],
+  );
+  const approvalFeedbackByCreativeId = useMemo(
+    () =>
+      phase3ApprovalFeedback.reduce((byCreative, feedback) => {
+        byCreative[feedback.creativeId] = [...(byCreative[feedback.creativeId] || []), feedback];
+        return byCreative;
+      }, {}),
+    [phase3ApprovalFeedback],
+  );
+  const reviewNotificationsByCreativeId = useMemo(
+    () =>
+      phase3ReviewNotifications.reduce((byCreative, notification) => {
+        byCreative[notification.creativeId] = [
+          ...(byCreative[notification.creativeId] || []),
+          notification,
+        ];
+        return byCreative;
+      }, {}),
+    [phase3ReviewNotifications],
+  );
+  const phase3CreativeForPlan = (plan, index) =>
+    phase3CreativesByPlatform[plan?.platform] || phase3Creatives[index] || null;
+  const brandKitDisplayCards = phase3BrandKit.id
+    ? [
+        ["Business", campaignInput.business, phase3BrandKit.voice?.audience || campaignInput.audience],
+        ["Tone", phase3BrandKit.voice?.tone || "trusted, prompt, local", phase3BrandKit.voice?.promise || "Helpful local expert"],
+        ["Colors", (phase3BrandKit.colors || []).join(", "), "Applied to cards, carousels, and proof reports"],
+        ["Approved words", (phase3BrandKit.approvedTerms || []).join(", "), "Used by the generator before every draft"],
+        ["Avoid", (phase3BrandKit.avoidTerms || []).join(", "), "Risk guardrails before owner approval"],
+        ["Examples", `${(phase3BrandKit.examples || []).length} saved examples`, "Used as the brand voice calibration seed"],
+      ]
+    : brandKitCards;
+  const proofEventDisplayCards = proofEvents.map(([label, fallbackValue, body]) => {
+    const normalized = label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    const value = phase3ProofEvents
+      .filter((event) => event.eventType === normalized || event.label === label)
+      .reduce((total, event) => total + Number(event.value || 0), 0);
+    return [label, String(Number(fallbackValue) + value), body, normalized];
+  });
   const publishJobsByApprovalId = useMemo(() => {
     const jobs = {};
     workflow.publishJobs.forEach((job) => {
@@ -2265,7 +3429,157 @@ export function AppDemo() {
   const safeSelectedChannel = clampIndex(selectedChannel, plans);
   const safeSelectedPost = clampIndex(selectedPost, plans);
   const safeSelectedInbox = clampIndex(selectedInbox, inboxThreads);
-  const config = moduleDetails[activeModule] || moduleDetails.Home;
+  const selectedPhase3Creative = phase3Creatives[clampIndex(safeSelectedPost, phase3Creatives)] || phase3Creatives[0];
+  const selectedPhase3Slot = selectedPhase3Creative
+    ? phase3CalendarSlots.find((slot) => slot.creativeId === selectedPhase3Creative.id)
+    : null;
+  const activeCalendarSlot =
+    phase3CalendarSlots.find((slot) => slot.id === selectedCalendarSlotId) ||
+    selectedPhase3Slot ||
+    phase3CalendarSlots[0] ||
+    null;
+  const selectedPhase3MediaAssets = Array.isArray(selectedPhase3Creative?.mediaAssets)
+    ? selectedPhase3Creative.mediaAssets
+    : [];
+  const selectedPhase3LanguageVariants = Array.isArray(selectedPhase3Creative?.languageVariants)
+    ? selectedPhase3Creative.languageVariants
+    : [];
+  const selectedPhase3BulkVariants = Array.isArray(selectedPhase3Creative?.bulkVariants)
+    ? selectedPhase3Creative.bulkVariants
+    : [];
+  const selectedPhase3UgcPackages = Array.isArray(selectedPhase3Creative?.ugcVoiceoverPackages)
+    ? selectedPhase3Creative.ugcVoiceoverPackages
+    : [];
+  const creativePreviewImage = (creative, index = 0) => {
+    const mediaAsset = creative?.mediaAssets?.[0];
+    return (
+      creative?.previewDataUrl ||
+      mediaAsset?.previewDataUrl ||
+      mediaAsset?.renderedOutputs?.[0]?.previewDataUrl ||
+      referencePreviewImages[index % referencePreviewImages.length]
+    );
+  };
+  const filteredLibraryCreatives = useMemo(() => {
+    const search = libraryFilters.search.trim().toLowerCase();
+    const tagSearch = libraryFilters.tags.trim().toLowerCase();
+    return phase3Creatives.filter((creative) => {
+      const blob = [
+        creative.title,
+        creative.caption,
+        creative.platform,
+        creative.format,
+        creative.status,
+        ...(creative.hashtags || []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const mediaBlob = (creative.mediaAssets || [])
+        .map((asset) => `${asset.assetType || ""} ${asset.format || ""} ${asset.aspectRatio || ""}`)
+        .join(" ")
+        .toLowerCase();
+      const typeBlob = `${blob} ${mediaBlob}`;
+      const matchesType =
+        libraryFilters.type === "All" ||
+        (libraryFilters.type === "Image" && /image|static|square|post/.test(typeBlob)) ||
+        (libraryFilters.type === "Video" && /video|reel|storyboard|ugc|tiktok/.test(typeBlob)) ||
+        (libraryFilters.type === "Carousel" && /carousel/.test(typeBlob));
+      const matchesSearch = !search || blob.includes(search);
+      const matchesTags = !tagSearch || blob.includes(tagSearch);
+      const matchesArchive = libraryFilters.archived || creative.status !== "archived";
+      return matchesType && matchesSearch && matchesTags && matchesArchive;
+    });
+  }, [libraryFilters, phase3Creatives]);
+  const libraryDetailCreative =
+    phase3Creatives.find((creative) => creative.id === libraryDetailCreativeId) || null;
+  const libraryDetailIndex = libraryDetailCreative
+    ? Math.max(0, phase3Creatives.findIndex((creative) => creative.id === libraryDetailCreative.id))
+    : 0;
+  const libraryDetailMediaAsset = libraryDetailCreative?.mediaAssets?.[0] || null;
+  const libraryDetailPreviewImage = creativePreviewImage(libraryDetailCreative, libraryDetailIndex);
+  const libraryDetailPrompt =
+    libraryDetailMediaAsset?.metadata?.prompt ||
+    libraryDetailMediaAsset?.metadata?.inputPrompt ||
+    libraryDetailCreative?.sourcePrompt ||
+    creatorStyleForm.prompt ||
+    campaignInput.offer;
+  const publishCreative =
+    phase3Creatives.find((creative) => creative.id === publishDraft.creativeId) ||
+    selectedPhase3Creative ||
+    phase3Creatives[0] ||
+    null;
+  const publishMediaBlob = [
+    publishCreative?.format,
+    ...(publishCreative?.mediaAssets || []).map((asset) => `${asset.assetType} ${asset.format}`),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const publishIsVideo = /video|reel|storyboard|ugc|tiktok/.test(publishMediaBlob);
+  const publishUnsupported =
+    publishDraft.platform === "Facebook" && publishDraft.postType === "Feed post" && publishIsVideo;
+  const publishMissingAccount =
+    publishDraft.platform.startsWith("Facebook") && facebookConnection.connectedPages.length === 0;
+  const publishAssisted =
+    publishDraft.platform === "Assisted Package" ||
+    publishDraft.platform === "TikTok" ||
+    publishDraft.platform === "Google Business Profile";
+  const publishCanContinue = Boolean(publishCreative) && !publishUnsupported;
+  const selectedFacebookPage =
+    facebookConnection.connectedPages.find((page) => page.pageId === selectedFacebookPageId) ||
+    facebookConnection.connectedPages[0] ||
+    null;
+  const pagePickerPages = facebookConnection.connectedPages.length
+    ? facebookConnection.connectedPages
+    : [
+        {
+          pageId: "demo-page-aurora",
+          name: "Aurora Heating & Cooling",
+          category: "Local service",
+          tasks: ["CREATE_CONTENT", "MANAGE", "ANALYZE"],
+        },
+        {
+          pageId: "demo-page-maintenance",
+          name: "Aurora Maintenance Tips",
+          category: "Community page",
+          tasks: ["CREATE_CONTENT", "ANALYZE"],
+        },
+      ];
+  const activeSocialPlatform =
+    socialPlatformRows.find((platform) => platform.provider === socialActionDialog?.provider) || null;
+  const activeSocialFaqs =
+    activeSocialPlatform ? socialPlatformFaqs[activeSocialPlatform.provider] || defaultSocialFaqs : [];
+  const activeSocialConnectionChoices =
+    activeSocialPlatform
+      ? socialConnectionChoices[activeSocialPlatform.provider] || [
+          {
+            title: activeSocialPlatform.accountType,
+            subtitle: "(official OAuth)",
+            badge: "SAFE",
+            badgeTone: "safe",
+            icon: activeSocialPlatform.icon,
+          },
+        ]
+      : [];
+  const config = moduleDetails[activeModule] || moduleDetails["Content Library"];
+  const createFlowTitle =
+    {
+      image: "Create Image",
+      ugc: "Create Creator Style Video",
+      "short-ad-video": "Create Short Ad Video",
+      carousel: "Configure your Carousel",
+      "faceless-video": "Create Faceless Video",
+      "product-photo-shoot": "Create Product Photo Shoot",
+    }[activeCreateFormat] || config.title;
+  const pageTitle = config.view === "create" && activeCreateFormat ? createFlowTitle : config.title;
+  const pageSubtitle =
+    config.view === "create"
+      ? activeCreateFormat === "ugc"
+        ? "Describe the video, generate ideas, choose style, actor, template, then generate and schedule."
+        : activeCreateFormat
+        ? "Choose the content source and confirm the setup before generation."
+        : "Choose a media type to get started."
+      : "";
   const channel = plans[safeSelectedChannel];
   const selectedPlan = plans[safeSelectedPost];
   const pendingPlans = plans.filter((plan) => plan.status !== "Approved");
@@ -2276,25 +3590,25 @@ export function AppDemo() {
   const approvalPercent = plans.length ? Math.round((approvedCount / plans.length) * 100) : 0;
   const packageReadiness = Math.round((approvalPercent + checklistPercent) / 2);
   const topbarPrimaryAction =
-    activeModule === "Calendar"
+    activeModule === "Content Calendar"
       ? { label: "Approve exact draft", handler: () => approvePlan(safeSelectedPost) }
-      : { label: "Create with AI", handler: () => selectModule("AI Studio") };
+      : { label: "Create New", handler: () => selectModule("Create New") };
   const topbarSecondaryAction =
-    activeModule === "Calendar"
+    activeModule === "Content Calendar"
       ? { label: "Save package", handler: () => exportPackage() }
-      : { label: "Review calendar", handler: () => selectModule("Calendar") };
+      : { label: "Review calendar", handler: () => selectModule("Content Calendar") };
   const workspaceMetrics =
-    activeModule === "Calendar"
+    activeModule === "Content Calendar"
       ? [
           ["Pending approvals", String(pendingPlans.length), "Need a decision before publishing"],
           ["Selected slot", selectedPlan?.name || "—", selectedPlan?.scheduleSlot || "Choose a slot"],
           ["Package readiness", `${packageReadiness}%`, `${approvedCount}/${plans.length || 0} approved`],
-          ["Local ROI", "6 events", "Calls, bookings, DMs, saves, map clicks"],
+          ["Proof events", "6 types", "Calls, bookings, DMs, coupons, maps"],
         ]
       : [
           ["Business input", "1", campaignInput.offer],
           ["Native outputs", String(plans.length), plans.length ? "Facebook and TikTok backend drafts" : "Loading workflow"],
-          ["Local ROI intent", "6", "Calls, bookings, DMs, scans, saves, maps"],
+          ["Proof hooks", "6", "Calls, bookings, DMs, scans, coupons, maps"],
           ["Package ready", `${packageReadiness}%`, `${pendingPlans.length} channels pending`],
         ];
 
@@ -2313,8 +3627,49 @@ export function AppDemo() {
     }
   };
 
+  const reloadPhase3Workspace = async ({ silent = false } = {}) => {
+    if (!silent) {
+      setPhase3Status("loading");
+    }
+    setPhase3Error("");
+    try {
+      const workspace = await loadPhase3Workspace();
+      setPhase3Workspace({
+        ...emptyPhase3Workspace,
+        ...workspace,
+      });
+      setPhase3Status("ready");
+    } catch (error) {
+      setPhase3Status("error");
+      setPhase3Error(error instanceof Error ? error.message : "Phase 3 workspace could not load.");
+    }
+  };
+
+  const reloadFacebookConnection = async () => {
+    setFacebookConnectionStatus("loading");
+    try {
+      const payload = await loadFacebookConnection();
+      const connectedPages = Array.isArray(payload?.connectedPages) ? payload.connectedPages : [];
+      setFacebookConnection({
+        configured: Boolean(payload?.configured),
+        connectedPages,
+        scopes: Array.isArray(payload?.scopes) ? payload.scopes : [],
+        redirectUri: payload?.redirectUri || "",
+      });
+      if (connectedPages[0]?.pageId) {
+        updateFacebookPublishForm("pageId", connectedPages[0].pageId);
+        setSelectedFacebookPageId(connectedPages[0].pageId);
+      }
+      setFacebookConnectionStatus("ready");
+    } catch {
+      setFacebookConnectionStatus("error");
+    }
+  };
+
   useEffect(() => {
     reloadWorkflow();
+    reloadPhase3Workspace();
+    reloadFacebookConnection();
   }, []);
 
   useEffect(() => {
@@ -2322,7 +3677,19 @@ export function AppDemo() {
     if (queryModule && queryModule !== activeModule) {
       setActiveModule(queryModule);
     }
+    const params = new URLSearchParams(location.search);
+    if (params.get("facebookConnected") === "1") {
+      reloadWorkflow({ silent: true });
+      reloadFacebookConnection();
+      setAppToast("Facebook Page connected. You can publish approved Facebook drafts live.");
+    }
   }, [activeModule, location.search]);
+
+  useEffect(() => {
+    if (!brandAccountTabs.includes(activeBrandAccountTab)) {
+      setActiveBrandAccountTab("Brand Details");
+    }
+  }, [activeBrandAccountTab]);
 
   useEffect(() => {
     writePreference("localpilot-demo-active-module", moduleSlug(activeModule));
@@ -2349,14 +3716,462 @@ export function AppDemo() {
     window.setTimeout(() => setAppToast(""), 2200);
   };
 
+  const startCooking = (creativeId = "pending") => {
+    setCookingCreativeId(creativeId);
+    window.setTimeout(() => {
+      setCookingCreativeId((current) => (current === creativeId ? "" : current));
+    }, 1800);
+  };
+
+  const updateLibraryFilter = (field, value) => {
+    setLibraryFilters((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const applyCreatorStylePayload = (payload) => {
+    if (payload?.workspace) {
+      setPhase3Workspace({
+        ...emptyPhase3Workspace,
+        ...payload.workspace,
+      });
+    }
+    if (payload?.workflow) {
+      setCreatorStyleForm((current) => ({
+        ...current,
+        prompt: payload.workflow.prompt || current.prompt,
+        goal: payload.workflow.goal || current.goal,
+        selectedIdeaId: payload.workflow.selectedIdeaId || payload.workflow.ideas?.[0]?.id || current.selectedIdeaId,
+        styleId: payload.workflow.styleId || current.styleId,
+        actorId: payload.workflow.status === "generated_ready" ? payload.workflow.actor?.id || current.actorId : current.actorId,
+        templateId:
+          payload.workflow.status === "generated_ready" ? payload.workflow.template?.id || current.templateId : current.templateId,
+      }));
+    }
+  };
+
+  const generateCreatorStyleIdeas = async (overrides = {}) => {
+    const nextForm = {
+      ...creatorStyleForm,
+      ...overrides,
+    };
+    setCreatorStylePending("ideas");
+    try {
+      const payload = await createPhase3CreatorStyleVideoWorkflow({
+        prompt: nextForm.prompt,
+        goal: nextForm.goal,
+        styleId: nextForm.styleId,
+        actorId: nextForm.actorId,
+        templateId: nextForm.templateId,
+        aspectRatio: nextForm.aspectRatio,
+      });
+      applyCreatorStylePayload(payload);
+      if (payload?.workflow?.ideas?.length) {
+        setCreatorWorkflowStep("idea");
+      }
+      showAppToast(`${payload?.workflow?.ideas?.length || 0} creator-style ideas generated.`);
+      return payload?.workflow || null;
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Creator-style ideas could not be generated.");
+      return null;
+    } finally {
+      setCreatorStylePending("");
+    }
+  };
+
+  const generateCreatorStyleVideo = async () => {
+    setCreatorStylePending("generate");
+    startCooking("creator-style-video");
+    try {
+      let workflow =
+        creatorStyleWorkflows.find(
+          (item) => item.prompt === creatorStyleForm.prompt && item.goal === creatorStyleForm.goal,
+        ) || selectedCreatorWorkflow;
+    if (!workflow?.id) {
+        const ideasPayload = await createPhase3CreatorStyleVideoWorkflow({
+          prompt: creatorStyleForm.prompt,
+          goal: creatorStyleForm.goal,
+          styleId: creatorStyleForm.styleId,
+          actorId: creatorStyleForm.actorId,
+          templateId: creatorStyleForm.templateId,
+          aspectRatio: creatorStyleForm.aspectRatio,
+        });
+        applyCreatorStylePayload(ideasPayload);
+        workflow = ideasPayload?.workflow;
+      }
+      if (!workflow?.id) {
+        showAppToast("Generate ideas before creating the creator-style video.");
+        return;
+      }
+      const payload = await generatePhase3CreatorStyleVideo(workflow.id, {
+        prompt: creatorStyleForm.prompt,
+        goal: creatorStyleForm.goal,
+        selectedIdeaId: creatorStyleForm.selectedIdeaId || workflow.selectedIdeaId || workflow.ideas?.[0]?.id,
+        styleId: creatorStyleForm.styleId,
+        actorId: creatorStyleForm.actorId,
+        templateId: creatorStyleForm.templateId,
+        aspectRatio: creatorStyleForm.aspectRatio,
+      });
+      applyCreatorStylePayload(payload);
+      setCreatorWorkflowStep("generated");
+      setAiResponse(
+        `${payload?.creative?.title || "Creator-style video"} is storyboard-ready with actor, scenes, UGC package, and calendar slot.`,
+      );
+      showAppToast("Creator-style video generated into backend workspace.");
+      return payload;
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Creator-style video generation failed.");
+      return null;
+    } finally {
+      setCreatorStylePending("");
+    }
+  };
+
+  const openCreatorSchedule = () => {
+    if (!selectedCreatorCreative?.id) {
+      showAppToast("Generate the creator-style video before scheduling it.");
+      return;
+    }
+    if (selectedCreatorCalendarSlot?.id) {
+      setSelectedCalendarSlotId(selectedCreatorCalendarSlot.id);
+    }
+    setCreatorWorkflowOpen(false);
+    selectModule("Content Calendar");
+    setCalendarDrawerOpen(true);
+    showAppToast("Creator-style video schedule opened in Content Calendar.");
+  };
+
+  const applyCreatorWorkflowOption = (value, options, fallback) =>
+    options.some((option) => option.id === value) ? value : fallback;
+
+  const openCreatorWorkflow = (step = "prompt") => {
+    setCreatorStyleForm((current) => ({
+      ...current,
+      prompt: safeText(current.prompt, defaultCreatorStyleForm.prompt),
+      goal: safeText(current.goal, defaultCreatorStyleForm.goal),
+      selectedIdeaId: "",
+      styleId: applyCreatorWorkflowOption(current.styleId, creatorStyleStyleChoices, defaultCreatorStyleForm.styleId),
+      actorId: applyCreatorWorkflowOption(current.actorId, creatorStyleActorChoices, ""),
+      templateId: applyCreatorWorkflowOption(current.templateId, creatorStyleTemplateChoices, ""),
+      aspectRatio: creatorAspectRatioOptions.includes(current.aspectRatio) ? current.aspectRatio : defaultCreatorStyleForm.aspectRatio,
+    }));
+    setCreatorIdeaChatResults([]);
+    setCreatorIdeaChatInput("");
+    setCreatorIdeaChatOpen(false);
+    setCreatorScriptRewritePrompt("");
+    setCreatorStylePending("");
+    setCreatorWorkflowStep(step);
+    setCreatorWorkflowOpen(true);
+  };
+
+  const openCreatorIdeaChat = () => {
+    setCreatorIdeaChatInput("");
+    setCreatorIdeaChatResults([]);
+    setCreatorIdeaChatOpen(true);
+  };
+
+  const closeCreatorIdeaChat = () => {
+    if (creatorStylePending !== "ideas") {
+      setCreatorIdeaChatOpen(false);
+    }
+  };
+
+  const submitCreatorIdeaChat = async (event) => {
+    event.preventDefault();
+    const nextGoal = creatorIdeaChatInput.trim() || creatorStyleForm.goal || "lead more sales";
+    setCreatorStyleForm((current) => ({
+      ...current,
+      goal: nextGoal,
+    }));
+    const workflow = await generateCreatorStyleIdeas({ goal: nextGoal });
+    if (workflow?.ideas?.length) {
+      setCreatorIdeaChatResults(workflow.ideas.slice(0, 2));
+    }
+  };
+
+  const useCreatorIdeaPrompt = (idea) => {
+    const prompt = [idea?.hook, idea?.angle].filter(Boolean).join(" ");
+    setCreatorStyleForm((current) => ({
+      ...current,
+      prompt: prompt || current.prompt,
+      selectedIdeaId: idea?.id || current.selectedIdeaId,
+    }));
+    setCreatorIdeaChatOpen(false);
+    setCreatorWorkflowStep("style");
+  };
+
+  const applyCreatorScriptRewrite = () => {
+    const rewritePrompt = creatorScriptRewritePrompt.trim();
+    if (!rewritePrompt) {
+      showAppToast("Describe the script change before applying a rewrite.");
+      return;
+    }
+    setCreatorStyleForm((current) => ({
+      ...current,
+      prompt: `${current.prompt}\nRewrite request: ${rewritePrompt}`,
+    }));
+    setCreatorScriptRewritePrompt("");
+    showAppToast("Script rewrite request added to the generation prompt.");
+  };
+
+  const stepCreatorWorkflowBack = () => {
+    if (rawCreatorWorkflowStepIndex <= 0) {
+      closeCreatorWorkflow();
+      return;
+    }
+    const previousStep = creatorWorkflowSteps[rawCreatorWorkflowStepIndex - 1];
+    setCreatorWorkflowStep(previousStep?.id || "prompt");
+  };
+
+  const continueCreatorWorkflow = async () => {
+    if (!creatorCanContinue) {
+      if (creatorWorkflowStep === "prompt") {
+        showAppToast("Write a video idea and goal before continuing.");
+      } else if (creatorWorkflowStep === "actor") {
+        showAppToast("Select an AI actor before continuing.");
+      } else if (creatorWorkflowStep === "template") {
+        showAppToast("Select a scene/template before continuing.");
+      } else {
+        showAppToast("Complete this creator workflow step before continuing.");
+      }
+      return;
+    }
+
+    if (creatorWorkflowStep === "prompt") {
+      if (!selectedCreatorIdeas.length) {
+        const workflow = await generateCreatorStyleIdeas();
+        if (!workflow?.ideas?.length) {
+          return;
+        }
+      } else {
+        setCreatorWorkflowStep("idea");
+      }
+      return;
+    }
+
+    if (creatorWorkflowStep === "confirm") {
+      await generateCreatorStyleVideo();
+      return;
+    }
+
+    const nextStep = creatorWorkflowSteps[rawCreatorWorkflowStepIndex + 1];
+    if (nextStep?.id) {
+      setCreatorWorkflowStep(nextStep.id);
+    }
+  };
+
+  const submitCreateFlow = async () => {
+    if (!activeCreateFormat) {
+      showAppToast("Choose a format before generating.");
+      return;
+    }
+    if (activeCreateFormat === "ugc") {
+      openCreatorWorkflow("prompt");
+      return;
+    }
+    const format = createFormatCards.find((item) => item.id === activeCreateFormat) || createFormatCards[0];
+    const method = createMethods.find(([id]) => id === activeCreateMethod) || createMethods[0];
+    const promptParts = [
+      `${format.title} ${format.format}`,
+      `Source method: ${method[1]}`,
+      activeCreateFormat === "carousel" ? `Carousel: ${carouselStyle}, ${carouselAspectRatio}` : "",
+      `Offer: ${campaignInput.offer}`,
+      `Goal: ${campaignInput.goal}`,
+    ].filter(Boolean);
+    startCooking("create-flow");
+    try {
+      const result = await createPhase3ContentBatch({
+        sourcePrompt: promptParts.join(" | "),
+        objective: campaignInput.goal,
+      });
+      await reloadPhase3Workspace({ silent: true });
+      setAiResponse(
+        `Created ${format.title} setup from ${method[1]}. Backend batch ${result?.batch?.id || ""} owns the generated records.`,
+      );
+      selectModule("Content Library");
+      showAppToast(`${format.title} setup generated into Content Library.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Create flow generation failed.");
+    }
+  };
+
+  const seedFromInspiration = async (item, sectionTitle) => {
+    if (/UGC/i.test(sectionTitle) || /UGC|Voiceover/i.test(item.format || "")) {
+      setCreatorStyleForm((current) => ({
+        ...current,
+        prompt: item.prompt,
+        goal: campaignInput.goal,
+        selectedIdeaId: "",
+        styleId: "motivational",
+        actorId: "",
+        templateId: "",
+        aspectRatio: "9:16",
+      }));
+      setActiveCreateFormat("ugc");
+      selectModule("Create New");
+      openCreatorWorkflow("prompt");
+      showAppToast("Inspiration loaded into the creator-style video wizard.");
+      return;
+    }
+    startCooking(`inspiration:${item.title}`);
+    try {
+      const result = await createPhase3ContentBatch({
+        sourcePrompt: `${sectionTitle} inspiration: ${item.prompt}`,
+        objective: campaignInput.goal,
+      });
+      await reloadPhase3Workspace({ silent: true });
+      setAiResponse(
+        `Recreated "${item.title}" as a LocalPilot local-business campaign. Backend batch ${result?.batch?.id || ""} keeps approval and proof hooks attached.`,
+      );
+      selectModule("Content Library");
+      showAppToast("Inspiration recreated as a LocalPilot campaign.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Could not recreate inspiration.");
+    }
+  };
+
+  const openLibraryDetail = (creative, index = 0) => {
+    if (!creative?.id) {
+      showAppToast("Choose a generated creative before previewing.");
+      return;
+    }
+    setSelectedPost(index);
+    setLibraryDetailCreativeId(creative.id);
+  };
+
+  const closeLibraryDetail = () => {
+    setLibraryDetailCreativeId("");
+  };
+
+  const openPublishModal = (creative) => {
+    if (!creative?.id) {
+      showAppToast("Choose a generated creative before publishing.");
+      return;
+    }
+    setLibraryDetailCreativeId("");
+    setPublishDraft({
+      creativeId: creative.id,
+      platform: creative.platform === "facebook" ? "Facebook" : "Assisted Package",
+      postType: /carousel/i.test(creative.format || "") ? "Carousel" : "Feed post",
+      step: "platform",
+      scheduleDay: 22,
+      scheduleHour: "05",
+      scheduleMinute: "15",
+      scheduleMeridiem: "PM",
+      aiSuggestedTime: false,
+      approvalMember: false,
+      confirmed: false,
+    });
+  };
+
+  const updatePublishDraft = (field, value) => {
+    setPublishDraft((current) => ({
+      ...current,
+      [field]: value,
+      confirmed: false,
+    }));
+  };
+
+  const closePublishModal = () => {
+    setPublishDraft((current) => ({
+      ...current,
+      creativeId: "",
+      step: "platform",
+      confirmed: false,
+    }));
+  };
+
+  const continuePublishSchedule = () => {
+    if (!publishCanContinue) {
+      showAppToast("Resolve the account or media compatibility warning before continuing.");
+      return;
+    }
+    setPublishDraft((current) => ({
+      ...current,
+      step: "schedule",
+      confirmed: false,
+    }));
+  };
+
+  const schedulePublishPost = () => {
+    setPublishDraft((current) => ({
+      ...current,
+      confirmed: true,
+      step: "platform",
+    }));
+    showAppToast("Schedule confirmation saved as owner-approved weekly autoplan intent.");
+    window.setTimeout(() => {
+      closePublishModal();
+      selectModule("Content Calendar");
+    }, 650);
+  };
+
+  const saveSelectedFacebookPage = () => {
+    const page =
+      selectedFacebookPage ||
+      pagePickerPages.find((item) => item.pageId === selectedFacebookPageId) ||
+      pagePickerPages[0];
+    if (!page) {
+      showAppToast("Connect Facebook before saving a Page selection.");
+      return;
+    }
+    updateFacebookPublishForm("pageId", page.pageId);
+    showAppToast(`${page.name || "Facebook Page"} selected. Official publish still requires OAuth connection.`);
+  };
+
+  const submitHelpDraft = (event) => {
+    event.preventDefault();
+    const draft = helpDraft.trim();
+    if (!draft) {
+      showAppToast("Write a support message draft first.");
+      return;
+    }
+    showAppToast("Message drafted locally. Nothing was sent.");
+    setHelpDraft("");
+  };
+
   const logout = () => {
     writePreference("localpilot-demo-session", null);
     navigate("/");
   };
 
   const selectModule = (module) => {
-    setActiveModule(module);
-    navigate(`/app?module=${moduleSlug(module)}`, { replace: true });
+    const nextModule = moduleFromSlug(module) || module;
+    setCalendarDrawerOpen(false);
+    setHelpFlyoutOpen(false);
+    setActiveModule(nextModule);
+    navigate(`/app?module=${moduleSlug(nextModule)}`, { replace: true });
+  };
+
+  const openInspirationCollectionNudge = (sectionTitle) => {
+    setPendingInspirationCollection(sectionTitle);
+    setWaitNudgeOpen(true);
+  };
+
+  const continueInspirationAfterNudge = () => {
+    const nextCollection = pendingInspirationCollection || "Trending collection";
+    setActiveInspirationCollection(nextCollection);
+    setActiveInspirationCategory("All");
+    setPendingInspirationCollection("");
+    setWaitNudgeOpen(false);
+  };
+
+  const closeInspirationNudge = () => {
+    setPendingInspirationCollection("");
+    setWaitNudgeOpen(false);
+  };
+
+  const downloadPostFromInspirationNudge = () => {
+    setPendingInspirationCollection("");
+    setWaitNudgeOpen(false);
+    selectModule("Content Library");
+    showAppToast("Content Library opened for download-ready posts.");
+  };
+
+  const toggleHelpFlyout = () => {
+    setCalendarDrawerOpen(false);
+    setHelpFlyoutOpen((current) => !current);
   };
 
   const applyWalkthroughStep = (step, index) => {
@@ -2383,13 +4198,14 @@ export function AppDemo() {
     }
 
     clearDemoWorkspacePreferences();
-    selectModule("Home");
+    selectModule("Create New");
     setSelectedPost(0);
     setSelectedChannel(0);
     setSelectedInbox(0);
     setSelectedWalkthrough(0);
     setQueuedPublishJobs({});
     await reloadWorkflow();
+    await reloadPhase3Workspace();
     setAiResponse(
       "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
     );
@@ -2434,6 +4250,37 @@ export function AppDemo() {
     }
   };
 
+  const approveSafeDrafts = async () => {
+    const approvablePlans = plans.filter(
+      (plan) => plan?.id && plan.currentVersion?.id && plan.status !== "Approved",
+    );
+    if (!approvablePlans.length) {
+      showAppToast("All available drafts are already approved.");
+      return;
+    }
+
+    setApprovalPending("batch");
+    try {
+      for (const plan of approvablePlans) {
+        await approveDraftVersion(plan.id, {
+          draftVersionId: plan.currentVersion.id,
+          confirmation: "APPROVE_EXACT_VERSION",
+          approver: {
+            name: session?.name || "Karen Li",
+            email: session?.email || "karen@example.com",
+          },
+          mediaRefs: plan.mediaRefs.map((media) => media.mediaAssetId),
+        });
+      }
+      await reloadWorkflow({ silent: true });
+      showAppToast(`${approvablePlans.length} exact draft versions approved for owner sign-off.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Approve-all failed.");
+    } finally {
+      setApprovalPending("");
+    }
+  };
+
   const queuePublishJob = async (index) => {
     const plan = plans[index];
     if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
@@ -2466,6 +4313,290 @@ export function AppDemo() {
     }
   };
 
+  const updateFacebookPublishForm = (field, value) => {
+    setFacebookPublishForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const updateCompetitorSourceForm = (field, value) => {
+    setCompetitorSourceForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const updateContentSourceForm = (field, value) => {
+    setContentSourceForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const updateContentImageForm = (field, value) => {
+    setContentImageForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const updateCreatorStyleForm = (field, value) => {
+    setCreatorStyleForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const selectCreateFormat = (formatId) => {
+    setActiveCreateFormat(formatId);
+    if (formatId === "ugc") {
+      openCreatorWorkflow("prompt");
+    } else {
+      setCreatorWorkflowOpen(false);
+    }
+  };
+
+  const closeCreatorWorkflow = () => {
+    setCreatorWorkflowOpen(false);
+  };
+
+  const openHelpAction = (title, body) => {
+    setActiveHelpAction(title);
+    setHelpDraft((current) => current || `Question about ${title}: ${body}`);
+    showAppToast(`${title} loaded in the support panel.`);
+  };
+
+  const readContentImageFile = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      showAppToast("Choose an image file for the source image import.");
+      return;
+    }
+    if (file.size > 900_000) {
+      showAppToast("Choose an image under 900 KB for this local demo import.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setContentImageForm((current) => ({
+        ...current,
+        fileName: file.name,
+        mimeType: file.type,
+        imageDataUrl: String(reader.result || ""),
+      }));
+    };
+    reader.onerror = () => {
+      showAppToast("Could not read that image file.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const importContentSource = async (event) => {
+    event.preventDefault();
+    setContentSourcePending(true);
+    try {
+      const payload = await createPhase3ContentSource(contentSourceForm);
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      setContentSourceForm((current) => ({
+        ...current,
+        url: "",
+      }));
+      setAiResponse(
+        `Imported source URL "${payload?.source?.label || "source page"}". I extracted a local offer brief, audience, proof point, and post angles for generation.`,
+      );
+      showAppToast("Source URL imported into the AI Generator.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Source URL import failed.");
+    } finally {
+      setContentSourcePending(false);
+    }
+  };
+
+  const importContentImage = async (event) => {
+    event.preventDefault();
+    if (!contentImageForm.imageDataUrl) {
+      showAppToast("Choose a source image before importing.");
+      return;
+    }
+    setContentImagePending(true);
+    try {
+      const payload = await createPhase3ContentSource({
+        sourceType: "image",
+        ...contentImageForm,
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      setContentImageForm((current) => ({
+        ...current,
+        fileName: "",
+        mimeType: "",
+        imageDataUrl: "",
+      }));
+      event.currentTarget.reset();
+      setAiResponse(
+        `Imported source image "${payload?.source?.label || "source image"}". I extracted a visual brief, local proof point, and post angles for generation.`,
+      );
+      showAppToast("Source image imported into the AI Generator.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Source image import failed.");
+    } finally {
+      setContentImagePending(false);
+    }
+  };
+
+  const generateFromContentSource = async (source) => {
+    setSourceGenerationPending(source.id);
+    startCooking(source.id);
+    try {
+      const brief = source.brief || {};
+      const sourcePrompt = [
+        brief.summary,
+        brief.offer ? `Offer: ${brief.offer}` : "",
+        brief.proofPoint ? `Proof: ${brief.proofPoint}` : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const result = await createPhase3ContentBatch({
+        sourcePrompt: sourcePrompt || source.label,
+        objective: campaignInput.goal,
+      });
+      await reloadPhase3Workspace({ silent: true });
+      const sourceKind = source.sourceType === "image" ? "source image" : "source URL";
+      setAiResponse(
+        `Generated backend batch ${result?.batch?.id || ""} from ${sourceKind} "${source.label}". The calendar now has platform-native posts seeded from the imported brief.`,
+      );
+      showAppToast(`Generated a weekly batch from the imported ${sourceKind}.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Source-based generation failed.");
+    } finally {
+      setSourceGenerationPending("");
+    }
+  };
+
+  const analyzeCompetitorSource = async (event) => {
+    event.preventDefault();
+    setCompetitorAnalysisPending(true);
+    try {
+      const payload = await createPhase3CompetitorSource(competitorSourceForm);
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      setCompetitorSourceForm((current) => ({
+        ...current,
+        url: "",
+      }));
+      showAppToast(`${payload?.ideas?.length || 0} competitor ideas generated from saved source.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Competitor analysis failed.");
+    } finally {
+      setCompetitorAnalysisPending(false);
+    }
+  };
+
+  const connectFacebook = () => {
+    if (!facebookConnection.configured) {
+      showAppToast("Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET on the backend.");
+      return;
+    }
+    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+  };
+
+  const openSocialDialog = (provider, mode) => {
+    setSocialActionDialog({ provider, mode });
+  };
+
+  const closeSocialDialog = () => {
+    setSocialActionDialog(null);
+  };
+
+  const handleSocialAdd = (platform) => {
+    if (platform.provider === "Facebook") {
+      connectFacebook();
+      return;
+    }
+    openSocialDialog(platform.provider, "add");
+  };
+
+  const handleSocialConnectionChoice = (choice) => {
+    showAppToast(`${socialActionDialog?.provider || "Account"} ${choice.title} connection path selected for demo setup.`);
+    closeSocialDialog();
+  };
+
+  const publishFacebookLive = async (index) => {
+    const plan = plans[index];
+    if (plan?.platform !== "facebook") {
+      showAppToast("Live publishing is available for Facebook drafts first.");
+      return;
+    }
+    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+      showAppToast("Approve this exact Facebook draft before publishing live.");
+      return;
+    }
+    if (plan.publishJob?.id) {
+      showAppToast(`${plan.name} publish timeline is already loaded.`);
+      return;
+    }
+
+    const pageId = facebookPublishForm.pageId.trim();
+    if (!facebookConnection.connectedPages.length) {
+      showAppToast("Connect Facebook before publishing live.");
+      return;
+    }
+    if (!pageId) {
+      showAppToast("Choose a connected Facebook Page before publishing.");
+      return;
+    }
+
+    const payload = {
+      pageId,
+      publishMode: facebookPublishForm.publishMode,
+    };
+    if (facebookPublishForm.publishMode === "schedule") {
+      const scheduledAt = Math.floor(new Date(facebookPublishForm.scheduledPublishTime).getTime() / 1000);
+      if (!Number.isFinite(scheduledAt)) {
+        showAppToast("Choose a valid scheduled publish time.");
+        return;
+      }
+      payload.scheduledPublishTime = String(scheduledAt);
+    }
+
+    setPublishPending(plan.id);
+    try {
+      const queued = await publishFacebookPost(plan.approvalId, payload);
+      const queuedJob = normalizePublishJob(queued?.job);
+      const loaded = queuedJob.id ? await loadPublishJob(queuedJob.id) : null;
+      const nextJob = normalizePublishJob(loaded?.job || queuedJob);
+      if (nextJob.approvalId) {
+        setQueuedPublishJobs((currentJobs) => ({
+          ...currentJobs,
+          [nextJob.approvalId]: nextJob,
+        }));
+      }
+      await reloadWorkflow({ silent: true });
+      showAppToast("Facebook live publish completed. Post result is in the timeline.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Facebook live publish failed.");
+    } finally {
+      setPublishPending("");
+    }
+  };
+
   const acceptRetriedJob = async (job, platform = "Publish job") => {
     const nextJob = normalizePublishJob(job);
     if (nextJob.approvalId) {
@@ -2478,9 +4609,75 @@ export function AppDemo() {
     showAppToast(`${platform} retry accepted. Attempt history updated.`);
   };
 
-  const requestChanges = (index) => {
+  const addApprovalFeedback = async (index, feedbackType = "approval_note") => {
     const plan = plans[index];
-    showAppToast(`${plan?.name || "Draft"} remains in backend review until a new version is created.`);
+    const creative = phase3CreativeForPlan(plan, index);
+    if (!creative?.id) {
+      showAppToast("Approval feedback needs a Phase 3 generated creative first.");
+      return;
+    }
+    const isChangeRequest = feedbackType === "change_request";
+    const pendingKey = `${creative.id}:${feedbackType}`;
+    setApprovalFeedbackPending(pendingKey);
+    try {
+      const payload = await createPhase3ApprovalFeedback({
+        creativeId: creative.id,
+        feedbackType,
+        authorName: isChangeRequest ? "Karen Li" : "LocalPilot reviewer",
+        authorRole: isChangeRequest ? "owner" : "internal",
+        body: isChangeRequest
+          ? `${plan?.name || creative.platform} change request: revise the copy before final approval and keep claim-safe language.`
+          : `${plan?.name || creative.platform} approval note: owner confirmed the CTA, proof hook, and schedule are ready for review.`,
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(
+        isChangeRequest
+          ? `${plan?.name || "Draft"} change request saved to the review link.`
+          : `${plan?.name || "Draft"} approval note saved to the review link.`,
+      );
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Approval feedback could not be saved.");
+    } finally {
+      setApprovalFeedbackPending("");
+    }
+  };
+
+  const requestChanges = async (index) => {
+    await addApprovalFeedback(index, "change_request");
+  };
+
+  const sendReviewNotification = async (index) => {
+    const plan = plans[index];
+    const creative = phase3CreativeForPlan(plan, index);
+    if (!creative?.id) {
+      showAppToast("Review notification needs a Phase 3 generated creative first.");
+      return;
+    }
+    setReviewNotificationPending(creative.id);
+    try {
+      const payload = await createPhase3ReviewNotification({
+        creativeId: creative.id,
+        recipientName: "Karen Li",
+        recipientContact: "karen@example.com",
+        channel: "email",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`Review link sent to ${payload?.notification?.recipientContact || "client"}.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Review notification could not be sent.");
+    } finally {
+      setReviewNotificationPending("");
+    }
   };
 
   const toggleChecklist = (planIndex, itemIndex) => {
@@ -2506,24 +4703,480 @@ export function AppDemo() {
     showAppToast(`${template.label} selection noted. Backend workflow records remain the source of truth.`);
   };
 
-  const submitPrompt = (event) => {
+  const submitPrompt = async (event) => {
     event.preventDefault();
     const prompt = new FormData(event.currentTarget).get("prompt")?.trim();
-    setAiResponse(
-      prompt
-        ? `Drafted a local campaign from "${prompt}". I added platform-specific captions, a Xiaohongshu angle, approval notes, and ROI events to track.`
-        : "Drafted a local campaign with platform-specific captions, approval notes, and ROI events to track.",
-    );
-    event.currentTarget.reset();
-    showAppToast("AI Studio generated a demo response.");
+    startCooking("prompt");
+    try {
+      const result = await createPhase3ContentBatch({
+        sourcePrompt: prompt || campaignInput.offer,
+        objective: campaignInput.goal,
+      });
+      await reloadPhase3Workspace({ silent: true });
+      setAiResponse(
+        `Generated backend batch ${result?.batch?.id || ""} from "${prompt || campaignInput.offer}". I added branded post, carousel, reel script, schedule slots, approval notes, and proof hooks.`,
+      );
+      event.currentTarget.reset();
+      showAppToast("AI Generator saved a backend weekly batch.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "AI batch generation failed.");
+    }
   };
 
-  const runAiTask = (task) => {
-    setAiResponse(
-      `${task} completed for ${campaignInput.business}. I updated channel copy, approval notes, and local ROI tracking in the demo plan.`,
-    );
-    showAppToast(`${task} completed.`);
+  const askAiAssistant = async (prompt) => {
+    const normalizedPrompt = (prompt || assistantPrompt || "").trim();
+    if (!normalizedPrompt) {
+      showAppToast("Ask the AI Assistant for post ideas or a calendar outline first.");
+      return;
+    }
+    setAssistantReplyPending("reply");
+    try {
+      const payload = await createPhase3AiAssistantReply({ prompt: normalizedPrompt });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      setAiResponse(payload?.reply?.replyText || "AI Assistant reply saved.");
+      showAppToast("AI Assistant reply saved to backend.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "AI Assistant reply failed.");
+    } finally {
+      setAssistantReplyPending("");
+    }
   };
+
+  const submitAssistantPrompt = async (event) => {
+    event.preventDefault();
+    await askAiAssistant(assistantPrompt);
+  };
+
+  const createPostsFromAssistantReply = async (reply) => {
+    if (!reply?.id) {
+      showAppToast("Choose a saved AI Assistant reply first.");
+      return;
+    }
+    setAssistantReplyPending(reply.id);
+    startCooking(reply.id);
+    try {
+      const payload = await createPhase3ContentBatchFromReply(reply.id);
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      setAiResponse(
+        `Created backend batch ${payload?.batch?.id || ""} from AI Assistant reply "${reply.prompt}".`,
+      );
+      showAppToast("Created posts from the AI Assistant reply.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Could not create posts from assistant reply.");
+    } finally {
+      setAssistantReplyPending("");
+    }
+  };
+
+  const saveBrandKitCalibration = async () => {
+    try {
+      const nextVoice = {
+        ...(phase3BrandKit.voice || {}),
+        lastCalibration: "Applied to latest Predis-style weekly batch",
+      };
+      const payload = await updatePhase3BrandKit({
+        voice: nextVoice,
+        website: phase3BrandKit.website || "https://auroraheatcool.example",
+        socialHandle: phase3BrandKit.socialHandle || "@auroraheatcool",
+        hashtags: phase3BrandKit.hashtags || ["#AnnArbor", "#HVAC", "#LocalService"],
+        typography: {
+          ...(phase3BrandKit.typography || {}),
+          title: phase3BrandKit.typography?.title || "Fraunces-style bold service headline",
+          subtitle: phase3BrandKit.typography?.subtitle || "Readable sans caption for local offers",
+        },
+        logos: {
+          ...(phase3BrandKit.logos || {}),
+          light: phase3BrandKit.logos?.light || phase3BrandKit.logoRef || "localpilot-brand/aurora/logo.svg",
+          dark: phase3BrandKit.logos?.dark || "localpilot-brand/aurora/logo-dark.svg",
+        },
+        integrations: phase3BrandKit.integrations || [
+          { name: "Website URL", status: "available_demo" },
+          { name: "CSV upload", status: "available_demo" },
+          { name: "Odoo", status: "planned_localpilot_priority" },
+        ],
+        approvedTerms: phase3BrandKit.approvedTerms || ["same-week", "local team"],
+      });
+      setPhase3Workspace((current) => ({
+        ...current,
+        brandKit: payload?.brandKit || current.brandKit,
+      }));
+      showAppToast("Brand kit calibration saved to backend.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Brand kit save failed.");
+    }
+  };
+
+  const generateIdeaLabVariants = async () => {
+    if (!selectedPhase3Creative?.id) {
+      showAppToast("Generate a backend creative before running Idea Lab scoring.");
+      return;
+    }
+    setIdeaVariantPending("generate");
+    try {
+      const payload = await createPhase3IdeaVariants(selectedPhase3Creative.id, {
+        objective: campaignInput.goal,
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${payload?.variants?.length || 0} AI-scored Idea Lab variants generated.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Idea Lab scoring failed.");
+    } finally {
+      setIdeaVariantPending("");
+    }
+  };
+
+  const applyIdeaLabVariant = async (variant) => {
+    if (!variant?.id) {
+      showAppToast("Choose an Idea Lab variant before applying it.");
+      return;
+    }
+    setIdeaVariantPending(variant.id);
+    try {
+      const payload = await applyPhase3IdeaVariant(variant.id);
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${variant.variantLabel || "Idea Lab variant"} applied to the backend creative.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Idea Lab variant apply failed.");
+    } finally {
+      setIdeaVariantPending("");
+    }
+  };
+
+  const generateBulkVariations = async () => {
+    if (!selectedPhase3Creative?.id) {
+      showAppToast("Generate a backend creative before creating bulk variations.");
+      return;
+    }
+    setBulkVariationPending(true);
+    try {
+      const payload = await createPhase3BulkVariations(selectedPhase3Creative.id, {
+        objective: campaignInput.goal,
+        count: 5,
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${payload?.variants?.length || 0} bulk creative variations generated.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Bulk creative variation generation failed.");
+    } finally {
+      setBulkVariationPending(false);
+    }
+  };
+
+  const generateUgcVoiceoverPackage = async () => {
+    if (!selectedPhase3Creative?.id) {
+      showAppToast("Generate a backend creative before creating a UGC voiceover package.");
+      return;
+    }
+    setUgcPackagePending(true);
+    try {
+      const payload = await createPhase3UgcVoiceoverPackage(selectedPhase3Creative.id, {
+        packageLabel: "Owner explainer UGC package",
+        language: "English",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${payload?.package?.packageLabel || "UGC voiceover package"} is storyboard-ready.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "UGC voiceover package generation failed.");
+    } finally {
+      setUgcPackagePending(false);
+    }
+  };
+
+  const generateLanguageVariants = async () => {
+    if (!selectedPhase3Creative?.id) {
+      showAppToast("Generate a backend creative before creating multilingual variants.");
+      return;
+    }
+    setLanguageVariantPending(true);
+    try {
+      const payload = await createPhase3LanguageVariants(selectedPhase3Creative.id, {
+        targetLanguages: ["English", "Spanish", "Chinese"],
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${payload?.variants?.length || 0} multilingual creative variants generated.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Multilingual variant generation failed.");
+    } finally {
+      setLanguageVariantPending(false);
+    }
+  };
+
+  const saveCreativeEdit = async () => {
+    if (!selectedPhase3Creative?.id) {
+      showAppToast("Generate a backend creative before saving editor changes.");
+      return;
+    }
+    try {
+      const payload = await updatePhase3Creative(selectedPhase3Creative.id, {
+        title: `${safeText(selectedPhase3Creative?.title)} · edited`,
+        caption: `${safeText(selectedPhase3Creative?.caption)} Owner-approved edit saved from Creative Editor.`,
+        hashtags: [...(selectedPhase3Creative.hashtags || []), "#ownerapproved"],
+        cta: safeText(selectedPhase3Creative?.cta),
+        proofHook: safeText(selectedPhase3Creative?.proofHook),
+        scheduleSlot: safeText(selectedPhase3Creative?.scheduleSlot, "Connected"),
+        status: "needs_review",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast("Creative edit saved to backend.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Creative edit failed.");
+    }
+  };
+
+  const saveMediaLayerEdit = async (asset) => {
+    if (!asset?.id) {
+      showAppToast("Select a generated media asset before saving a layer edit.");
+      return;
+    }
+    setMediaAssetPending(asset.id);
+    try {
+      const payload = await updatePhase3MediaAsset(asset.id, {
+        layerEdit: "Owner moved CTA above the proof hook and tightened safe-zone crop.",
+        status: "edited_preview",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast("Media layer edit saved to backend.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Media layer edit failed.");
+    } finally {
+      setMediaAssetPending("");
+    }
+  };
+
+  const applyMediaLayerControl = async (asset, control) => {
+    if (!asset?.id || !control?.id) {
+      showAppToast("Select a generated media layer before applying a control edit.");
+      return;
+    }
+    const pendingKey = `${asset.id}:layer:${control.id}`;
+    const nextControl = layerControlEditForAsset(asset, control, selectedPhase3Creative);
+    setMediaAssetPending(pendingKey);
+    try {
+      const payload = await updatePhase3MediaAsset(asset.id, {
+        layerEdit: `${control.label || control.id} updated from layer controls.`,
+        layerControl: {
+          id: control.id,
+          label: control.label || control.id,
+          ...nextControl,
+        },
+        status: "edited_preview",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${control.label || "Layer"} control saved to backend.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Layer control edit failed.");
+    } finally {
+      setMediaAssetPending("");
+    }
+  };
+
+  const moveMediaLayer = async (asset, control, action = "move-down") => {
+    if (!asset?.id || !control?.id) {
+      showAppToast("Select a generated media layer before moving it.");
+      return;
+    }
+    const pendingKey = `${asset.id}:layout:${control.id}`;
+    const nextPlacement = action === "move-up" ? "top-center" : "bottom-center";
+    setMediaAssetPending(pendingKey);
+    try {
+      const payload = await updatePhase3MediaLayerLayout(asset.id, {
+        layerId: control.id,
+        action,
+        placement: nextPlacement,
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${control.label || "Layer"} layout moved in the backend editor.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Layer layout move failed.");
+    } finally {
+      setMediaAssetPending("");
+    }
+  };
+
+  const createMediaResizeVariant = async (asset) => {
+    if (!asset?.id) {
+      showAppToast("Select a generated media asset before creating a resize variant.");
+      return;
+    }
+    setMediaAssetPending(`${asset.id}:variant`);
+    try {
+      const nextRatio = asset.aspectRatio === "9:16" ? "1:1" : "9:16";
+      const payload = await createPhase3MediaVariant(asset.id, {
+        aspectRatio: nextRatio,
+        label: nextRatio === "9:16" ? "Story/Reel resize" : "Square feed resize",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`Resize variant created for ${nextRatio}.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Resize variant failed.");
+    } finally {
+      setMediaAssetPending("");
+    }
+  };
+
+  const renderMediaPreview = async (asset) => {
+    if (!asset?.id) {
+      showAppToast("Select a generated media asset before rendering a preview.");
+      return;
+    }
+    setMediaAssetPending(`${asset.id}:render`);
+    try {
+      const payload = await renderPhase3MediaAsset(asset.id, {
+        outputKind: "preview_svg",
+        format: `${asset.format} customer preview`,
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast("Rendered preview artifact saved to backend.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Render preview failed.");
+    } finally {
+      setMediaAssetPending("");
+    }
+  };
+
+  const applyTemplateImport = async (template, assetLibraryItem = null) => {
+    if (!selectedPhase3Creative?.id) {
+      showAppToast("Select a backend creative before importing a template.");
+      return;
+    }
+    if (!template?.id) {
+      showAppToast("Select a template before importing.");
+      return;
+    }
+    setMediaAssetPending(`template:${template.id}`);
+    try {
+      const payload = await createPhase3TemplateImport({
+        creativeId: selectedPhase3Creative.id,
+        templateId: template.id,
+        assetLibraryItemId: assetLibraryItem?.id || "",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`${template.sourceProvider} template imported into Creative Editor.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Template import failed.");
+    } finally {
+      setMediaAssetPending("");
+    }
+  };
+
+  const rescheduleSelectedCreative = async () => {
+    if (!selectedPhase3Slot?.id) {
+      showAppToast("Select a backend calendar slot before rescheduling.");
+      return;
+    }
+    const nextSlot = selectedPhase3Slot.slotLabel === "Thursday 4:30 PM" ? "Saturday 10:00 AM" : "Thursday 4:30 PM";
+    try {
+      const payload = await updatePhase3CalendarSlot(selectedPhase3Slot.id, {
+        slotLabel: nextSlot,
+        status: "scheduled",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast(`Calendar slot moved to ${nextSlot}.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Calendar reschedule failed.");
+    }
+  };
+
+  const recordProofEvent = async (label, creativeId = "") => {
+    try {
+      const payload = await recordPhase3ProofEvent({
+        creativeId: creativeId || phase3Creatives[0]?.id,
+        eventType: label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "manual_evidence",
+        label,
+        value: 1,
+        source: "local_demo",
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      } else {
+        await reloadPhase3Workspace({ silent: true });
+      }
+      showAppToast(`${label} recorded as lower-bound proof evidence.`);
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Proof event failed.");
+    }
+  };
+
+  const activeInspirationSection =
+    inspirationSections.find((section) => section.title === activeInspirationCollection) || null;
 
   return (
     <div className="app-shell">
@@ -2533,32 +5186,72 @@ export function AppDemo() {
         </Link>
         <div className="workspace-switcher">
           <span>Workspace</span>
-          <strong>{session?.workspace || "Northstar Local Growth"}</strong>
-          <small>8 client locations</small>
+          <strong>{session?.workspace || "Aurora demo brand"}</strong>
+          <small>Logged-in reference clone</small>
         </div>
+        <button className="sidebar-create-button" type="button" onClick={() => selectModule("Create New")}>
+          <span>+</span>
+          Create New
+        </button>
         <nav className="app-nav" aria-label="Demo sections">
           {modules.map((module) => (
             <button
-              className={`app-nav-item ${activeModule === module ? "active" : ""}`}
+              className={`app-nav-item ${activeModule === module || (module === "Need help" && helpFlyoutOpen) ? "active" : ""}`}
               type="button"
               key={module}
-              onClick={() => selectModule(module)}
+              onClick={() => (module === "Need help" ? toggleHelpFlyout() : selectModule(module))}
             >
+              <span aria-hidden="true">{moduleIcons[module] || "•"}</span>
               {module}
             </button>
           ))}
         </nav>
+        {helpFlyoutOpen && (
+          <section className="sidebar-help-flyout" aria-label="Need a hand quick help">
+            <p>Need a hand?</p>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveHelpAction("Chat support");
+                showAppToast("Chat support selected. Main workspace stays open.");
+              }}
+            >
+              <span aria-hidden="true">?</span>
+              Chat Support
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveHelpAction("Book demo");
+                showAppToast("Book a demo selected. No external send from this demo.");
+              }}
+            >
+              <span aria-hidden="true">⌕</span>
+              Book a Demo
+            </button>
+          </section>
+        )}
         <div className="sidebar-card">
-          <span>LocalPilot edge</span>
-          <strong>Xiaohongshu + local ROI</strong>
-          <p>Native RED content, booking signals, calls, map clicks, and guided posting in one workflow.</p>
+          <span>Trial account</span>
+          <strong>{phase3Usage.planName || "Growth Demo"}</strong>
+          <p>{phase3Usage.creditsUsed || 0}/{phase3Usage.monthlyCredits || 3200} credits used. Owner approval stays required before live publishing.</p>
+          <button type="button" onClick={toggleHelpFlyout}>
+            Need help
+          </button>
+        </div>
+        <div className="sidebar-account">
+          <span aria-hidden="true">H</span>
+          <div>
+            <strong>{campaignInput.business}</strong>
+            <small>{session?.email || "huijiepan69@gmail.com"}</small>
+          </div>
         </div>
       </aside>
 
-      <main className="app-main">
+      <main className={`app-main reference-workspace reference-${moduleSlug(activeModule)}`}>
         <header className="app-topbar">
           <div>
-            <p className="app-kicker">Agency demo workspace</p>
+            <p className="app-kicker">Customer demo workspace</p>
             <h1>{config.title}</h1>
             {config.summary && <p className="topbar-summary">{config.summary}</p>}
           </div>
@@ -2605,18 +5298,267 @@ export function AppDemo() {
             <div className="panel-head">
               <div>
                 <p className="app-kicker">{config.kicker}</p>
-                <h2>{config.title}</h2>
+                <h2>{pageTitle}</h2>
+                {pageSubtitle && <p className="panel-subtitle">{pageSubtitle}</p>}
               </div>
+              {config.view === "library" && (
+                <button
+                  className="watermark-action"
+                  type="button"
+                  onClick={() => showAppToast("Remove Watermark is a LocalPilot usage-plan badge in this demo.")}
+                >
+                  Remove Watermark
+                </button>
+              )}
               {config.view === "calendar" && (
                 <div className="segmented-control" aria-label="Calendar view">
-                  <button className="active" type="button">
-                    Week
+                  <button type="button" onClick={() => showAppToast("Jumped to today's demo week.")}>
+                    Today
                   </button>
-                  <button type="button">Grid</button>
-                  <button type="button">List</button>
+                  {calendarViews.map((view) => (
+                    <button
+                      className={calendarView === view ? "active" : ""}
+                      type="button"
+                      key={view}
+                      onClick={() => setCalendarView(view)}
+                    >
+                      {view}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
+
+            {config.view === "create" && (
+              <div className="create-workspace">
+                <section className="create-hero">
+                  <div>
+                    <p className="app-kicker">Create Your Next Post</p>
+                    <h2>Pick the format first, then choose the source method.</h2>
+                    <p>
+                      LocalPilot mirrors the logged-in Predis flow with six creation paths, then keeps
+                      the result tied to owner approval, official account boundaries, and proof hooks.
+                    </p>
+                  </div>
+                  <button className="primary-action" type="button" onClick={submitCreateFlow}>
+                    {activeCreateFormat === "ugc" ? "Open creator workflow" : "Generate selected setup"}
+                  </button>
+                </section>
+                {!activeCreateFormat && (
+                  <section className="create-format-grid" aria-label="Create New format choices">
+                    {createFormatCards.map((format) => (
+                      <button
+                        className={activeCreateFormat === format.id ? "active" : ""}
+                        type="button"
+                        key={format.id}
+                        style={referencePreviewStyle(format.preview)}
+                        onClick={() => selectCreateFormat(format.id)}
+                      >
+                        <span>{format.format}</span>
+                        <strong>{format.title}</strong>
+                        <small>{format.summary}</small>
+                      </button>
+                    ))}
+                  </section>
+                )}
+                {activeCreateFormat === "image" && (
+                  <section className="method-chooser" aria-label="Image and UGC creation methods">
+                    <div>
+                      <span>Creation method</span>
+                      <h3>Create Image from a local source</h3>
+                      <p>
+                        These method choices map to safe source import flows. No login scraping, cookies,
+                        or customer-pasted access tokens are used.
+                      </p>
+                    </div>
+                    <div className="method-grid">
+                      {createMethods.map(([id, title, body]) => (
+                        <button
+                          className={activeCreateMethod === id ? "active" : ""}
+                          type="button"
+                          key={id}
+                          onClick={() => setActiveCreateMethod(id)}
+                        >
+                          <strong>{title}</strong>
+                          <small>{body}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {activeCreateFormat === "ugc" && (
+                  <section className="creator-workflow-launch" aria-label="Creator Style Video workflow launcher">
+                    <span>Popup workflow</span>
+                    <h3>Creator-style video opens in a focused modal.</h3>
+                    <p>
+                      Generate ideas, choose the script angle, style, AI actor, and subtitle style,
+                      then create backend artifacts and hand off to Publish or Schedule Post.
+                    </p>
+                    <div className="creator-launch-steps">
+                      {["Generate ideas", "Select idea", "Motivational style", "AI actor", "Subtitle style", "Generate", "Publish/Schedule"].map((step) => (
+                        <span key={step}>{step}</span>
+                      ))}
+                    </div>
+                    <button className="primary-action" type="button" onClick={() => openCreatorWorkflow("prompt")}>
+                      Open workflow popup
+                    </button>
+                  </section>
+                )}
+                {activeCreateFormat === "carousel" && (
+                  <section className="carousel-config-panel" aria-label="Carousel configuration">
+                    <div>
+                      <span>Carousel setup</span>
+                      <h3>Confirm style, aspect ratio, and brand settings before generation.</h3>
+                      <p>
+                        Carousel generation uses the backend brand kit and stores approval-ready cards
+                        as LocalPilot creative records.
+                      </p>
+                    </div>
+                    <div className="carousel-style-grid">
+                      {carouselStylePresets.map(([id, title, body]) => (
+                        <button
+                          className={carouselStyle === id ? "active" : ""}
+                          type="button"
+                          key={id}
+                          onClick={() => setCarouselStyle(id)}
+                        >
+                          <strong>{title}</strong>
+                          <small>{body}</small>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="ratio-picker" aria-label="Carousel aspect ratios">
+                      {aspectRatioOptions.map((ratio) => (
+                        <button
+                          className={carouselAspectRatio === ratio ? "active" : ""}
+                          type="button"
+                          key={ratio}
+                          onClick={() => setCarouselAspectRatio(ratio)}
+                        >
+                          {ratio}
+                        </button>
+                      ))}
+                    </div>
+                    <article className="brand-confirmation-card">
+                      <span>Brand linked</span>
+                      <strong>{phase3BrandKit.voice?.tone || "trusted, prompt, local"}</strong>
+                      <p>{(phase3BrandKit.approvedTerms || ["same-week", "local team"]).join(" · ")}</p>
+                    </article>
+                  </section>
+                )}
+                {activeCreateFormat && (
+                  <div className="create-flow-footer">
+                    <button className="secondary-action" type="button" onClick={() => setActiveCreateFormat("")}>
+                      Back
+                    </button>
+                    <button className="primary-action" type="button" onClick={submitCreateFlow}>
+                      {activeCreateFormat === "ugc" ? "Open workflow popup" : "Generate selected setup"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {config.view === "inspirations" && (
+              <div className="inspiration-workspace">
+                {!activeInspirationSection && (
+                  <>
+                    <section className="inspiration-page-head">
+                      <h2>Inspirations</h2>
+                    </section>
+                    {inspirationSections.map((section) => (
+                      <section className={`inspiration-section inspiration-${section.tone}`} key={section.title}>
+                        <div className="inspiration-section-top">
+                          <h3>{section.title}</h3>
+                          <button
+                            type="button"
+                            onClick={() => openInspirationCollectionNudge(section.title)}
+                          >
+                            View all →
+                          </button>
+                        </div>
+                        <div className="chip-row inspiration-chip-row" aria-label={`${section.title} categories`}>
+                          {section.categories.map((category) => (
+                            <button
+                              className={activeInspirationCategory === category ? "active" : ""}
+                              type="button"
+                              key={category}
+                              onClick={() => setActiveInspirationCategory(category)}
+                            >
+                              {category}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="inspiration-grid">
+                          {section.items.map((item) => (
+                            <article key={`${section.title}-${item.title}`}>
+                              <div className="inspiration-preview" style={referencePreviewStyle(item.preview)}>
+                                <span>{item.format}</span>
+                                <span>{item.badge}</span>
+                              </div>
+                              <button type="button" onClick={() => seedFromInspiration(item, section.title)}>
+                                Recreate
+                              </button>
+                            </article>
+                          ))}
+                          <button
+                            className="inspiration-view-all-overlay"
+                            type="button"
+                            onClick={() => openInspirationCollectionNudge(section.title)}
+                          >
+                            {section.viewAllLabel}
+                          </button>
+                        </div>
+                      </section>
+                    ))}
+                  </>
+                )}
+
+                {activeInspirationSection && (
+                  <section className="inspiration-collection-view">
+                    <div className="inspiration-collection-head">
+                      <button type="button" aria-label="Back to Inspirations" onClick={() => setActiveInspirationCollection("")}>
+                        ←
+                      </button>
+                      <h2>{activeInspirationSection.title}</h2>
+                      <label>
+                        <span>⌕</span>
+                        <input readOnly value={activeInspirationCategory === "All" ? "Travel inspirations" : `${activeInspirationCategory} inspirations`} />
+                      </label>
+                    </div>
+                    <div className="chip-row inspiration-chip-row" aria-label={`${activeInspirationSection.title} filters`}>
+                      {activeInspirationSection.categories.map((category) => (
+                        <button
+                          className={activeInspirationCategory === category ? "active" : ""}
+                          type="button"
+                          key={category}
+                          onClick={() => setActiveInspirationCategory(category)}
+                        >
+                          {category}
+                          {activeInspirationCategory === category && category !== "All" ? " ×" : ""}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="inspiration-masonry">
+                      {[...activeInspirationSection.items, ...inspirationSections.flatMap((section) => section.items).slice(0, 12)].map((item, index) => (
+                        <article
+                          className={index % 5 === 0 ? "tall" : index % 4 === 0 ? "short" : ""}
+                          key={`${activeInspirationSection.title}-${item.title}-${index}`}
+                        >
+                          <div className="inspiration-preview" style={referencePreviewStyle(item.preview)}>
+                            <span>{item.format}</span>
+                            <span>{item.badge}</span>
+                          </div>
+                          <button type="button" onClick={() => seedFromInspiration(item, activeInspirationSection.title)}>
+                            Recreate
+                          </button>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
 
             {config.view === "workbench" && (
               <div className="growth-workbench">
@@ -2636,6 +5578,39 @@ export function AppDemo() {
                       Xiaohongshu creates searchable Chinese discovery, and Google Local captures high-intent visits.
                     </p>
                   </div>
+                </section>
+
+                <section className="usage-credit-strip" aria-label="Predis-style usage summary">
+                  <article>
+                    <span>Plan</span>
+                    <strong>{phase3Usage.planName || "Growth Demo"}</strong>
+                    <p>{phase3Usage.creditsUsed || 0}/{phase3Usage.monthlyCredits || 3200} credits used</p>
+                  </article>
+                  <article>
+                    <span>Brands</span>
+                    <strong>{phase3Usage.brandsUsed || 1}/{phase3Usage.brandsLimit || 5}</strong>
+                    <p>Brand kits for generation and publishing</p>
+                  </article>
+                  <article>
+                    <span>Social accounts</span>
+                    <strong>{phase3Usage.socialAccountsUsed || 0}/{phase3Usage.socialAccountsLimit || 10}</strong>
+                    <p>Connected or assisted publishing channels</p>
+                  </article>
+                  <article>
+                    <span>Competitor runs</span>
+                    <strong>{phase3Usage.competitorRunsUsed || 0}/{phase3Usage.competitorRunsLimit || 60}</strong>
+                    <p>Metered idea-lab analyses</p>
+                  </article>
+                </section>
+
+                <section className="parity-channel-strip" aria-label="Predis parity channel map">
+                  {predisParityChannels.map(([name, status, note]) => (
+                    <article key={name}>
+                      <span>{name}</span>
+                      <strong>{status}</strong>
+                      <p>{note}</p>
+                    </article>
+                  ))}
                 </section>
 
                 <form className="campaign-builder" onSubmit={regeneratePlan}>
@@ -2706,9 +5681,9 @@ export function AppDemo() {
                       <img src={channel.asset} alt={`${channel.name} generated campaign preview`} />
                       <div className="phone-frame">
                         <span>{channel.name}</span>
-                        <strong>{channel.nativeCreative.cover}</strong>
-                        <p>{channel.nativeCreative.hook}</p>
-                        <small>{channel.nativeCreative.cta}</small>
+                        <strong>{safeText(channel.nativeCreative?.cover)}</strong>
+                        <p>{safeText(channel.nativeCreative?.hook)}</p>
+                        <small>{safeText(channel.nativeCreative?.cta)}</small>
                       </div>
                     </div>
 
@@ -2716,7 +5691,9 @@ export function AppDemo() {
                       <div className="channel-heading">
                         <div>
                           <span>{channel.format}</span>
-                          <h3>{channel.name}: {channel.role}</h3>
+                        <h3>
+                          {safeText(channel.name)}: {safeText(channel.role)}
+                        </h3>
                         </div>
                         <button
                           className="primary-action"
@@ -2736,6 +5713,58 @@ export function AppDemo() {
                             Queue fake publish
                           </button>
                         )}
+                        {channel.platform === "facebook" && channel.approvalSnapshot?.draftVersionId && !channel.publishJob?.id && (
+                          <div className="facebook-live-publish" aria-label="Facebook live publish controls">
+                            <label>
+                              Connected Page
+                              <select
+                                value={facebookPublishForm.pageId}
+                                onChange={(event) => updateFacebookPublishForm("pageId", event.target.value)}
+                              >
+                                {facebookConnection.connectedPages.length ? (
+                                  facebookConnection.connectedPages.map((page) => (
+                                    <option value={page.pageId} key={page.pageId}>
+                                      {page.name || page.pageId}
+                                    </option>
+                                  ))
+                                ) : (
+                                  <option value={facebookPublishForm.pageId}>No Page connected</option>
+                                )}
+                              </select>
+                            </label>
+                            <label>
+                              Mode
+                              <select
+                                value={facebookPublishForm.publishMode}
+                                onChange={(event) => updateFacebookPublishForm("publishMode", event.target.value)}
+                              >
+                                <option value="publish_now">Publish now</option>
+                                <option value="schedule">Schedule</option>
+                              </select>
+                            </label>
+                            {facebookPublishForm.publishMode === "schedule" && (
+                              <label>
+                                Publish time
+                                <input
+                                  type="datetime-local"
+                                  value={facebookPublishForm.scheduledPublishTime}
+                                  onChange={(event) => updateFacebookPublishForm("scheduledPublishTime", event.target.value)}
+                                />
+                              </label>
+                            )}
+                            <button className="secondary-action" type="button" onClick={connectFacebook}>
+                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+                            </button>
+                            <button
+                              className="primary-action"
+                              type="button"
+                              disabled={publishPending === channel.id || !facebookConnection.connectedPages.length}
+                              onClick={() => publishFacebookLive(safeSelectedChannel)}
+                            >
+                              Publish live
+                            </button>
+                          </div>
+                        )}
                         <button className="secondary-action" type="button" onClick={() => requestChanges(safeSelectedChannel)}>
                           Request changes
                         </button>
@@ -2746,23 +5775,23 @@ export function AppDemo() {
                     <dl className="creative-spec">
                       <div>
                         <dt>Post angle</dt>
-                        <dd>{channel.postAngle}</dd>
+                        <dd>{safeText(channel.postAngle)}</dd>
                       </div>
                       <div>
                         <dt>Hook</dt>
-                        <dd>{channel.nativeCreative.hook}</dd>
+                        <dd>{safeText(channel.nativeCreative?.hook)}</dd>
                       </div>
                       <div>
                         <dt>Caption</dt>
-                        <dd>{channel.nativeCreative.caption}</dd>
+                        <dd>{safeText(channel.nativeCreative?.caption)}</dd>
                       </div>
                       <div>
                         <dt>CTA</dt>
-                        <dd>{channel.nativeCreative.cta}</dd>
+                        <dd>{safeText(channel.nativeCreative?.cta)}</dd>
                       </div>
                       <div>
                         <dt>KPI</dt>
-                        <dd>{channel.kpi}</dd>
+                        <dd>{safeText(channel.kpi)}</dd>
                       </div>
                     </dl>
 
@@ -2775,16 +5804,20 @@ export function AppDemo() {
                       <article>
                         <span>Assets included</span>
                         <ul>
-                          {channel.assets.map((asset) => (
-                            <li key={asset}>{asset}</li>
+                          {channel.assets.map((asset, assetIndex) => (
+                            <li key={displayItemKey(`${channel.id || channel.name}-asset`, asset, assetIndex)}>
+                              {describeDisplayItem(asset)}
+                            </li>
                           ))}
                         </ul>
                       </article>
                       <article>
                         <span>Tracking events</span>
                         <ul>
-                          {channel.trackingEvents.map((eventName) => (
-                            <li key={eventName}>{eventName}</li>
+                          {channel.trackingEvents.map((eventName, eventIndex) => (
+                            <li key={displayItemKey(`${channel.id || channel.name}-event`, eventName, eventIndex)}>
+                              {describeDisplayItem(eventName)}
+                            </li>
                           ))}
                         </ul>
                       </article>
@@ -2793,24 +5826,24 @@ export function AppDemo() {
                     <div className="why-row">
                       <article>
                         <span>Why this should work</span>
-                        <p>{channel.whyItWorks}</p>
+                        <p>{safeText(channel.whyItWorks)}</p>
                       </article>
                       <article>
                         <span>Owner action and risk check</span>
-                        <p>{channel.ownerAction}</p>
-                        <small>{channel.riskNote}</small>
+                        <p>{safeText(channel.ownerAction)}</p>
+                        <small>{safeText(channel.riskNote)}</small>
                       </article>
                     </div>
 
                     <ul className="publish-checklist">
                       {channel.checklist.map((item, itemIndex) => (
-                        <li key={item.text}>
+                        <li key={stableNodeKey(item?.text, "channel-checklist-item", itemIndex)}>
                           <button
                             className={item.done ? "done" : ""}
                             type="button"
                             onClick={() => toggleChecklist(safeSelectedChannel, itemIndex)}
                           >
-                            {item.text}
+                            {safeChecklistText(item?.text)}
                           </button>
                         </li>
                       ))}
@@ -2891,6 +5924,646 @@ export function AppDemo() {
               </div>
             )}
 
+            {config.view === "brand" && (
+              <div className="predis-surface">
+                <section className="brand-kit-hero">
+                  <div>
+                    <p className="app-kicker">Brand kit</p>
+                    <h2>{campaignInput.business} is ready for branded generation</h2>
+                    <p>
+                      This mirrors Predis brand management: business context, voice, colors, approved phrases,
+                      and examples are applied before any post, carousel, or video script is generated.
+                    </p>
+                  </div>
+                  <div className="brand-swatch-card">
+                    <span>Palette</span>
+                    <div className="brand-swatches" aria-label="Brand colors">
+                      <i className="navy" />
+                      <i className="blue" />
+                      <i className="amber" />
+                      <i className="paper" />
+                    </div>
+                    <strong>Trusted local service</strong>
+                    <small>Server-owned profile, browser-safe preferences only</small>
+                  </div>
+                </section>
+                <section className="brand-kit-grid">
+                  {brandKitDisplayCards.map(([label, value, note]) => (
+                    <article key={label}>
+                      <span>{label}</span>
+                      <strong>{value}</strong>
+                      <p>{note}</p>
+                    </article>
+                  ))}
+                </section>
+                <section className="brand-voice-panel">
+                  <div>
+                    <span>Voice calibration</span>
+                    <h3>Past posts and reviews become guardrails, not a generic prompt.</h3>
+                    <p>
+                      The demo keeps this deterministic for now, but the product seam is ready for LLM brand
+                      voice learning from approved examples.
+                    </p>
+                  </div>
+                  <button className="primary-action" type="button" onClick={saveBrandKitCalibration}>
+                    Save backend calibration
+                  </button>
+                </section>
+              </div>
+            )}
+
+            {config.view === "library" && (
+              <div className="predis-surface">
+                <section className="content-library-hero">
+                  <div>
+                    <p className="app-kicker">Content Library</p>
+                    <h2>Central asset grid for generated posts, videos, and carousels.</h2>
+                    <p>
+                      Filter by type, source, tags, user, or archived state. Publishing stays gated
+                      by media compatibility, connected accounts, and explicit owner approval.
+                    </p>
+                  </div>
+                  <button className="primary-action" type="button" onClick={() => selectModule("Create New")}>
+                    Create New
+                  </button>
+                </section>
+                <section className="library-filter-panel" aria-label="Content Library filters">
+                  <div className="type-tab-row" role="tablist" aria-label="Content type filters">
+                    {contentTypeFilters.map((type) => (
+                      <button
+                        className={libraryFilters.type === type ? "active" : ""}
+                        type="button"
+                        role="tab"
+                        aria-selected={libraryFilters.type === type}
+                        key={type}
+                        onClick={() => updateLibraryFilter("type", type)}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                  <label>
+                    Search
+                    <input
+                      value={libraryFilters.search}
+                      onChange={(event) => updateLibraryFilter("search", event.target.value)}
+                      placeholder="Search captions, platform, or format"
+                    />
+                  </label>
+                  <label>
+                    Date
+                    <select value={libraryFilters.date} onChange={(event) => updateLibraryFilter("date", event.target.value)}>
+                      {["This week", "This month", "Last 90 days"].map((option) => (
+                        <option key={option}>{option}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Tags
+                    <input
+                      value={libraryFilters.tags}
+                      onChange={(event) => updateLibraryFilter("tags", event.target.value)}
+                      placeholder="#local #offer"
+                    />
+                  </label>
+                  <label>
+                    Users
+                    <select value={libraryFilters.users} onChange={(event) => updateLibraryFilter("users", event.target.value)}>
+                      {["All users", "Karen Li", "LocalPilot AI"].map((option) => (
+                        <option key={option}>{option}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Created from
+                    <select
+                      value={libraryFilters.createdFrom}
+                      onChange={(event) => updateLibraryFilter("createdFrom", event.target.value)}
+                    >
+                      {libraryCreatedFromOptions.map((option) => (
+                        <option key={option}>{option}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="archive-toggle">
+                    <input
+                      type="checkbox"
+                      checked={libraryFilters.archived}
+                      onChange={(event) => updateLibraryFilter("archived", event.target.checked)}
+                    />
+                    Show archived
+                  </label>
+                </section>
+                <section className="content-card-grid" aria-label="Filtered Content Library cards">
+                  {(filteredLibraryCreatives.length ? filteredLibraryCreatives : phase3Creatives).slice(0, 8).map((creative, index) => {
+                    const mediaAsset = creative.mediaAssets?.[0];
+                    const previewImage = creativePreviewImage(creative, index);
+                    const typeBlob = [
+                      creative.format,
+                      creative.platform,
+                      creative.title,
+                      creative.caption,
+                      mediaAsset?.assetType,
+                      mediaAsset?.format,
+                      mediaAsset?.aspectRatio,
+                    ]
+                      .filter(Boolean)
+                      .join(" ")
+                      .toLowerCase();
+                    const isVideoCard = /video|ugc|reel|storyboard|tiktok|9:16/.test(typeBlob);
+                    const isCooking = cookingCreativeId === creative.id;
+                    return (
+                      <article
+                        key={creative.id}
+                        className={[
+                          selectedPhase3Creative?.id === creative.id ? "active" : "",
+                          isVideoCard ? "video-card" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        style={referencePreviewStyle(previewImage)}
+                      >
+                        <div className="content-card-preview">
+                          {isVideoCard && (
+                            <>
+                              <button
+                                className="library-edit-pencil"
+                                type="button"
+                                aria-label={`Edit ${creative.title}`}
+                                onClick={() => openLibraryDetail(creative, index)}
+                              >
+                                ✎
+                              </button>
+                              <button
+                                className="library-play-button"
+                                type="button"
+                                aria-label={`Preview ${creative.title}`}
+                                onClick={() => openLibraryDetail(creative, index)}
+                              >
+                                ▶
+                              </button>
+                            </>
+                          )}
+                          <span>{creative.format || mediaAsset?.format || "Local post"}</span>
+                          <strong>{creative.platform?.replace(/_/g, " ") || "platform"}</strong>
+                          <small>{mediaAsset?.aspectRatio || "1:1"} · {creative.status}</small>
+                          {isCooking && (
+                            <div className="cooking-overlay">
+                              <strong>Great things take time — your content is cooking!</strong>
+                              <small>Backend record creation remains authoritative.</small>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <span>{(creative.hashtags || []).slice(0, 2).join(" ")}</span>
+                          <strong>{safeText(creative.title)}</strong>
+                          <p>{safeText(creative.caption)}</p>
+                        </div>
+                        <div className="library-card-actions">
+                          <button type="button" onClick={() => setSelectedPost(index)}>
+                            Edit
+                          </button>
+                          <button type="button" onClick={() => openPublishModal(creative)}>
+                            Publish
+                          </button>
+                          <button type="button" onClick={() => showAppToast("Remove Watermark is a LocalPilot usage-plan badge in this demo.")}>
+                            Remove Watermark
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </section>
+                <section className="creative-editor-hero">
+                  <div>
+                    <p className="app-kicker">Creative editor</p>
+                    <h2>Post, carousel, and reel previews from the same local idea</h2>
+                    <p>
+                      Predis parity means the customer sees generated creative formats, not just captions.
+                      LocalPilot adds proof hooks and approval checks to every format.
+                    </p>
+                  </div>
+                  <button className="primary-action" type="button" onClick={generateIdeaLabVariants} disabled={ideaVariantPending === "generate"}>
+                    {ideaVariantPending === "generate" ? "Scoring variants..." : "Generate variants"}
+                  </button>
+                </section>
+                <div className="creative-format-grid">
+                  {creativeFormats.map((item) => (
+                    <article key={item.format}>
+                      <span>Format</span>
+                      <strong>{item.format}</strong>
+                      <p>{item.description}</p>
+                    </article>
+                  ))}
+                </div>
+                {selectedPlan && (
+                  <section className={`creative-editor-card ${selectedPlan.tone}`}>
+                    <div className="creative-canvas">
+                      <img src={selectedPlan.asset} alt={`${selectedPlan.name} creative mockup`} />
+                      <div>
+                        <span>{selectedPlan.name}</span>
+                        <strong>{safeText(selectedPlan.nativeCreative?.cover)}</strong>
+                        <p>{safeText(selectedPlan.nativeCreative?.hook)}</p>
+                      </div>
+                    </div>
+                    <div className="creative-fields">
+                      {selectedPhase3Creative && (
+                        <div className="backend-record-pill">
+                          <span>Backend creative</span>
+                          <strong>{selectedPhase3Creative.platform} · {selectedPhase3Creative.format}</strong>
+                          <small>{selectedPhase3Creative.id}</small>
+                        </div>
+                      )}
+                      <section className="idea-lab-panel" aria-label="Idea Lab AI scoring">
+                        <div>
+                          <span>Idea Labs</span>
+                          <strong>AI-scored messaging variations</strong>
+                          <p>
+                            Generate multiple creative angles, score them against the campaign objective,
+                            then apply the best-performing hook and CTA back to the backend creative.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={ideaVariantPending === "generate"}
+                          onClick={generateIdeaLabVariants}
+                        >
+                          {ideaVariantPending === "generate" ? "Scoring..." : "Generate AI-scored variants"}
+                        </button>
+                        <div className="idea-variant-grid" aria-label="Scored Idea Lab variants">
+                          {(selectedPhase3Creative?.ideaVariants || []).slice(0, 4).map((variant) => (
+                            <article className={variant.status === "applied" ? "applied" : ""} key={variant.id}>
+                              <span>{variant.status}</span>
+                              <strong>{variant.variantLabel}</strong>
+                              <div className="idea-score">
+                                <b>{variant.score}</b>
+                                <small>AI score</small>
+                              </div>
+                              <p>{safeText(variant.hook)}</p>
+                              <small>{variant.scoreBreakdown?.rationale}</small>
+                              <button
+                                type="button"
+                                disabled={ideaVariantPending === variant.id}
+                                onClick={() => applyIdeaLabVariant(variant)}
+                              >
+                                {ideaVariantPending === variant.id ? "Applying..." : "Apply winner"}
+                              </button>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                      <section className="bulk-variation-panel" aria-label="Bulk creative variations">
+                        <div>
+                          <span>Bulk variations</span>
+                          <strong>Test hooks, copy, and visuals</strong>
+                          <p>
+                            Predis-style bulk generation for customer demos: create multiple ready-to-test
+                            directions from one approved local offer without changing the owner approval boundary.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={bulkVariationPending}
+                          onClick={generateBulkVariations}
+                        >
+                          {bulkVariationPending ? "Generating bulk..." : "Generate bulk variations"}
+                        </button>
+                        <div className="bulk-variation-grid" aria-label="Ready-to-test bulk variations">
+                          {selectedPhase3BulkVariants.slice(0, 6).map((variant) => (
+                            <article key={variant.id}>
+                              <span>{variant.status}</span>
+                              <strong>{variant.variantLabel}</strong>
+                              <div className="idea-score">
+                                <b>{variant.score}</b>
+                                <small>test score</small>
+                              </div>
+                              <p>{safeText(variant.hook)}</p>
+                              <small>{variant.format}</small>
+                              <em>{variant.visualDirection}</em>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                      <section className="ugc-package-panel" aria-label="UGC voiceover packages">
+                        <div>
+                          <span>UGC voiceover</span>
+                          <strong>Avatar-ready video package</strong>
+                          <p>
+                            Predis-style UGC/video-with-voiceover package adapted for owner-approved
+                            local posts: avatar, script, scenes, captions, and export spec.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={ugcPackagePending}
+                          onClick={generateUgcVoiceoverPackage}
+                        >
+                          {ugcPackagePending ? "Building package..." : "Generate UGC voiceover package"}
+                        </button>
+                        <div className="ugc-package-grid" aria-label="Storyboard-ready UGC packages">
+                          {selectedPhase3UgcPackages.slice(0, 3).map((ugcPackage) => (
+                            <article key={ugcPackage.id}>
+                              <span>{ugcPackage.status}</span>
+                              <strong>{ugcPackage.packageLabel}</strong>
+                              <p>
+                                {ugcPackage.avatar?.type} · {ugcPackage.avatar?.ethnicity}
+                              </p>
+                              <small>
+                                {ugcPackage.voiceover?.tone} · {ugcPackage.voiceover?.durationSeconds}s ·{" "}
+                                {ugcPackage.voiceover?.language}
+                              </small>
+                              <ul>
+                                {(ugcPackage.scenes || []).slice(0, 3).map((scene, index) => (
+                                  <li key={displayItemKey(ugcPackage.id, scene, index)}>
+                                    {describeDisplayItem(scene)}
+                                  </li>
+                                ))}
+                              </ul>
+                              <em>
+                                {ugcPackage.exportSpec?.format} · {ugcPackage.exportSpec?.resolution} ·{" "}
+                                {ugcPackage.exportSpec?.frameRate}
+                              </em>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                      <section className="language-variant-panel" aria-label="Multilingual creative variants">
+                        <div>
+                          <span>Multilingual variants</span>
+                          <strong>Switch output language in two clicks</strong>
+                          <p>
+                            Predis-style multilingual generation adapted for local organic posts:
+                            keep the same offer, proof hook, and owner approval flow while creating localized copy.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={languageVariantPending}
+                          onClick={generateLanguageVariants}
+                        >
+                          {languageVariantPending ? "Localizing..." : "Generate multilingual variants"}
+                        </button>
+                        <div className="language-variant-grid" aria-label="Localized creative copy">
+                          {selectedPhase3LanguageVariants.slice(0, 6).map((variant) => (
+                            <article key={variant.id}>
+                              <span>{variant.languageCode} · {variant.status}</span>
+                              <strong>{variant.languageLabel}</strong>
+                              <p>{variant.localizedTitle}</p>
+                              <small>{variant.localizedCaption}</small>
+                              <em>{variant.localizedCta}</em>
+                              <small>{(variant.localizedHashtags || []).join(" ")}</small>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                      <section className="template-import-panel" aria-label="Template import and asset library">
+                        <div>
+                          <span>Template import</span>
+                          <strong>Canva, Figma, Adobe-style templates</strong>
+                          <p>
+                            Predis-style template reuse with backend-owned imports, custom template refs,
+                            and premium-safe asset choices.
+                          </p>
+                        </div>
+                        {phase3ImportedTemplates.length > 0 && (
+                          <div className="imported-template-strip" aria-label="Imported templates">
+                            {phase3ImportedTemplates.slice(0, 3).map((item) => (
+                              <small key={item.id}>
+                                Imported {item.sourceProvider} · {item.status}
+                              </small>
+                            ))}
+                          </div>
+                        )}
+                        <div className="template-card-grid">
+                          {phase3CreativeTemplates.slice(0, 3).map((template, index) => {
+                            const pairedAsset = phase3AssetLibraryItems[index % Math.max(phase3AssetLibraryItems.length, 1)];
+                            return (
+                              <article key={template.id}>
+                                <span>{template.sourceProvider}</span>
+                                <strong>{template.title}</strong>
+                                <p>{template.format} · {template.aspectRatio} · {template.category}</p>
+                                <small>{pairedAsset?.title || "No premium asset selected"}</small>
+                                <em>{template.previewRef}</em>
+                                <button
+                                  type="button"
+                                  disabled={mediaAssetPending === `template:${template.id}`}
+                                  onClick={() => applyTemplateImport(template, pairedAsset)}
+                                >
+                                  {mediaAssetPending === `template:${template.id}` ? "Importing..." : "Import template"}
+                                </button>
+                              </article>
+                            );
+                          })}
+                        </div>
+                        <div className="asset-library-strip" aria-label="Premium asset library">
+                          <span className="asset-library-heading">Premium asset library</span>
+                          {phase3AssetLibraryItems.slice(0, 3).map((item) => (
+                            <article key={item.id}>
+                              <span>{item.kind}</span>
+                              <strong>{item.title}</strong>
+                              <small>{item.provider} · {item.license}</small>
+                              <p>{item.fitNotes}</p>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                      <section className="media-asset-panel" aria-label="Generated media assets">
+                        <span>Generated media assets</span>
+                        {selectedPhase3MediaAssets.length ? (
+                          selectedPhase3MediaAssets.map((asset) => (
+                            <article key={asset.id}>
+                              <div>
+                                <strong>{asset.format}</strong>
+                                <small>{asset.assetType} · {asset.aspectRatio} · {asset.status}</small>
+                              </div>
+                              <p>{safeText(asset.prompt, asset.format || "Generated media asset")}</p>
+                              <ul>
+                                {mediaAssetHighlights(asset).slice(0, 3).map((item, index) => (
+                                  <li key={displayItemKey(`${asset.id}-highlight`, item, index)}>
+                                    {describeDisplayItem(item)}
+                                  </li>
+                                ))}
+                              </ul>
+                              {asset.metadata?.lastLayerEdit && (
+                                <small>Last layer edit: {asset.metadata.lastLayerEdit}</small>
+                              )}
+                              {asset.metadata?.resizeVariant && (
+                                <small>Resize variant from {asset.metadata.sourceAssetId}</small>
+                              )}
+                              {Array.isArray(asset.metadata?.layerControls) && asset.metadata.layerControls.length > 0 && (
+                                <div className="layer-control-list" aria-label={`${asset.format} layer controls`}>
+                                  <span>Layer controls</span>
+                                  {asset.metadata.layerControls.slice(0, 4).map((control) => (
+                                    <section key={control.id}>
+                                      <div>
+                                        <strong>{control.label}</strong>
+                                        <small>
+                                          {safeText(control.placement)} · {safeText(control.style)} · {safeText(control.status)}
+                                        </small>
+                                        {control.layout && (
+                                          <small>
+                                            Layer order {safeText(control.layout.order)} · x{safeText(control.layout.x)}% y
+                                            {safeText(control.layout.y)}% · w{safeText(control.layout.width)}%
+                                          </small>
+                                        )}
+                                        <em>{safeText(control.value)}</em>
+                                      </div>
+                                      <div className="layer-control-actions">
+                                        <button
+                                          type="button"
+                                          disabled={mediaAssetPending === `${asset.id}:layout:${control.id}`}
+                                          onClick={() => moveMediaLayer(asset, control)}
+                                        >
+                                          {mediaAssetPending === `${asset.id}:layout:${control.id}` ? "Moving..." : "Move layer"}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={mediaAssetPending === `${asset.id}:layer:${control.id}`}
+                                          onClick={() => applyMediaLayerControl(asset, control)}
+                                        >
+                                          {mediaAssetPending === `${asset.id}:layer:${control.id}` ? "Applying..." : "Apply layer edit"}
+                                        </button>
+                                      </div>
+                                    </section>
+                                  ))}
+                                </div>
+                              )}
+                              {Array.isArray(asset.renderedOutputs) && asset.renderedOutputs.length > 0 && (
+                                <div className="rendered-output-list">
+                                  {asset.renderedOutputs.slice(0, 2).map((output) => (
+                                    <section key={output.id}>
+                                      {output.previewDataUrl && (
+                                        <img src={output.previewDataUrl} alt={`${asset.format} rendered preview`} />
+                                      )}
+                                      <div>
+                                        <strong>{output.format}</strong>
+                                        <small>{output.outputKind} · {output.mimeType} · {output.status}</small>
+                                        <em>{output.storageRef}</em>
+                                      </div>
+                                    </section>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="media-asset-actions">
+                                <button
+                                  type="button"
+                                  disabled={mediaAssetPending === asset.id}
+                                  onClick={() => saveMediaLayerEdit(asset)}
+                                >
+                                  {mediaAssetPending === asset.id ? "Saving layer..." : "Save layer edit"}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={mediaAssetPending === `${asset.id}:variant`}
+                                  onClick={() => createMediaResizeVariant(asset)}
+                                >
+                                  {mediaAssetPending === `${asset.id}:variant` ? "Creating resize..." : "Create resize variant"}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={mediaAssetPending === `${asset.id}:render`}
+                                  onClick={() => renderMediaPreview(asset)}
+                                >
+                                  {mediaAssetPending === `${asset.id}:render` ? "Rendering..." : "Render preview"}
+                                </button>
+                              </div>
+                              <em>{asset.storageRef}</em>
+                            </article>
+                          ))
+                        ) : (
+                          <p>Generate a backend weekly batch to create image, carousel, or video storyboard assets.</p>
+                        )}
+                      </section>
+                      <label>
+                        Caption
+                        <textarea
+                          readOnly
+                          value={safeText(
+                            selectedPhase3Creative?.caption,
+                            safeText(selectedPlan.nativeCreative?.caption),
+                          )}
+                        />
+                      </label>
+                      <label>
+                        Hashtags
+                        <input
+                          readOnly
+                          value={(selectedPhase3Creative?.hashtags || ["#localbusiness", "#annarbor"]).join(" ")}
+                        />
+                      </label>
+                      <label>
+                        Proof hook
+                        <input
+                          readOnly
+                          value={safeText(
+                            selectedPhase3Creative?.proofHook,
+                            `${safeText(selectedPlan.nativeCreative?.cta)} -> tracked link / QR / event`,
+                          )}
+                        />
+                      </label>
+                      <div className="calendar-actions">
+                        <button type="button" onClick={() => approvePlan(safeSelectedPost)}>
+                          Approve exact version
+                        </button>
+                        <button type="button" onClick={saveCreativeEdit}>
+                          Save backend edit
+                        </button>
+                        <button type="button" onClick={() => requestChanges(safeSelectedPost)}>
+                          Request rewrite
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
+
+            {config.view === "autopost" && (
+              <div className="autopost-workspace">
+                <section className="autopost-hero">
+                  <div>
+                    <p className="app-kicker">Auto Posting</p>
+                    <h2>Weekly local autoplan, never autonomous publishing.</h2>
+                    <p>
+                      The logged-in reference flow upsells auto-posting after scheduling. LocalPilot
+                      reframes that as a weekly plan that still requires owner approval before any official publish request.
+                    </p>
+                  </div>
+                  <button className="primary-action" type="button" onClick={() => selectModule("Content Calendar")}>
+                    Review schedule
+                  </button>
+                </section>
+                <section className="autopost-grid">
+                  {[
+                    ["Plan cadence", "Weekly", "Generate a fresh local campaign batch from the active offer."],
+                    ["Approval gate", "Required", "No live request is sent before exact owner sign-off."],
+                    ["Facebook", "Official first", "OAuth Page publish remains the first production path."],
+                    ["TikTok/GBP", "Assisted", "Unsupported channels become safe handoff packages."],
+                  ].map(([label, value, note]) => (
+                    <article key={label}>
+                      <span>{label}</span>
+                      <strong>{value}</strong>
+                      <p>{note}</p>
+                    </article>
+                  ))}
+                </section>
+                <section className="autopost-timeline" aria-label="Owner-approved autoplan steps">
+                  {[
+                    "Generate weekly batch",
+                    "Owner reviews exact posts",
+                    "Compatible Facebook posts publish through OAuth",
+                    "Assisted packages export for unsupported channels",
+                    "Proof hooks collect lower-bound response evidence",
+                  ].map((step, index) => (
+                    <article key={step}>
+                      <span>Step {index + 1}</span>
+                      <strong>{step}</strong>
+                    </article>
+                  ))}
+                </section>
+              </div>
+            )}
+
             {config.view === "calendar" && (
               <div className="calendar-workbench">
                 <section className="calendar-intro">
@@ -2909,30 +6582,99 @@ export function AppDemo() {
                   </div>
                 </section>
 
-                <div className="calendar-board">
-                  {plans.map((plan, index) => (
-                    <button
-                      className={`schedule-card ${plan.tone} ${safeSelectedPost === index ? "active" : ""}`}
-                      type="button"
-                      key={plan.name}
-                      onClick={() => setSelectedPost(index)}
-                    >
-                      <span>{plan.scheduleSlot}</span>
-                      <strong>{plan.name}</strong>
-                      <small>{plan.nativeCreative.cover}</small>
-                      <em>{plan.status}</em>
+                <section className="calendar-toolbar" aria-label="Calendar controls">
+                  <div className="calendar-month-nav" aria-label="Calendar month navigation">
+                    <button type="button" onClick={() => showAppToast("Previous month is disabled in this seeded demo.")}>
+                      ‹
                     </button>
+                    <strong>June 2026</strong>
+                    <button type="button" onClick={() => showAppToast("Next month is disabled in this seeded demo.")}>
+                      ›
+                    </button>
+                  </div>
+                </section>
+
+                <div className="calendar-weekdays" aria-label="Calendar weekdays">
+                  {calendarWeekdays.map((day) => (
+                    <span key={day}>{day}</span>
                   ))}
                 </div>
+
+                <div className={`calendar-board calendar-board--${calendarView.toLowerCase()}`}>
+                  {Array.from({ length: 42 }).map((_, index) => {
+                    const dayLabel = index === 0 ? "31" : index <= 30 ? String(index) : String(index - 30);
+                    const planIndexByCell = {
+                      8: 0,
+                      12: 1,
+                      18: 2,
+                      24: 3,
+                      30: 4,
+                    };
+                    const planIndex = planIndexByCell[index];
+                    const plan = typeof planIndex === "number" ? plans[planIndex % plans.length] : null;
+                    const slot = plan ? phase3CalendarSlots[planIndex % Math.max(phase3CalendarSlots.length, 1)] : null;
+                    const creativeForSlot =
+                      slot?.creativeId
+                        ? phase3Creatives.find((creative) => creative.id === slot.creativeId)
+                        : phase3Creatives[planIndex % Math.max(phase3Creatives.length, 1)];
+                    const calendarPreviewImage = creativeForSlot ? creativePreviewImage(creativeForSlot, planIndex) : "";
+                    const scheduledTime =
+                      planIndex === 0 ? "8:05 AM" : planIndex === 1 ? "5:15 PM" : slot?.slotLabel || "10:00 AM";
+                    return (
+                      <button
+                        className={`calendar-day ${plan ? `has-post ${plan.tone}` : ""} ${safeSelectedPost === planIndex ? "active" : ""}`}
+                        type="button"
+                        key={`calendar-cell-${index}`}
+                        onClick={() => {
+                          if (plan) {
+                            setSelectedPost(planIndex);
+                            setCalendarDrawerOpen(true);
+                            if (slot?.id) {
+                              setSelectedCalendarSlotId(slot.id);
+                            }
+                          }
+                        }}
+                      >
+                        <span>{dayLabel}</span>
+                        {plan && (
+                          <div className="calendar-post-card">
+                            <div className="calendar-post-thumb" style={referencePreviewStyle(calendarPreviewImage)}>
+                              <i>{creativeForSlot?.mediaAssets?.[0]?.aspectRatio || plan.nativeCreative.size}</i>
+                              <strong>{creativeForSlot?.platform?.replace(/_/g, " ") || plan.name}</strong>
+                            </div>
+                            <small><b /> {scheduledTime}</small>
+                            <em>f</em>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <section className="calendar-footer" aria-label="Calendar legend and timezone">
+                  <div className="calendar-legend" aria-label="Calendar status legend">
+                    {calendarLegend.map((status) => (
+                      <span key={status}>{status}</span>
+                    ))}
+                  </div>
+                  <label>
+                    Select Timezone
+                    <select value={selectedTimezone} onChange={(event) => setSelectedTimezone(event.target.value)}>
+                      {["America/Detroit", "Browser local", "America/New_York", "America/Chicago"].map((timezone) => (
+                        <option key={timezone}>{timezone}</option>
+                      ))}
+                    </select>
+                  </label>
+                </section>
 
                 {selectedPlan ? (
                   <article className="selected-post selected-post--calendar">
                     <div className="selected-post-copy">
-                      <span className="status-pill">{selectedPlan.status}</span>
+                      <span className="status-pill">{safeText(selectedPlan.status)}</span>
                       <h3>
-                        {selectedPlan.name}: {selectedPlan.publishingMode}
+                        {safeText(selectedPlan.name)}: {safeText(selectedPlan.publishingMode)}
                       </h3>
-                      <p>{selectedPlan.nativeCreative.caption}</p>
+                      <p>{safeText(selectedPlan.nativeCreative?.caption)}</p>
                       <div className="calendar-actions">
                         <button
                           type="button"
@@ -2950,16 +6692,50 @@ export function AppDemo() {
                             Queue fake publish
                           </button>
                         )}
+                        {selectedPlan.platform === "facebook" && selectedPlan.approvalSnapshot?.draftVersionId && !selectedPlan.publishJob?.id && (
+                          <div className="facebook-live-publish facebook-live-publish--compact">
+                            <select
+                              value={facebookPublishForm.pageId}
+                              onChange={(event) => updateFacebookPublishForm("pageId", event.target.value)}
+                            >
+                              {facebookConnection.connectedPages.length ? (
+                                facebookConnection.connectedPages.map((page) => (
+                                  <option value={page.pageId} key={page.pageId}>
+                                    {page.name || page.pageId}
+                                  </option>
+                                ))
+                              ) : (
+                                <option value={facebookPublishForm.pageId}>No Page connected</option>
+                              )}
+                            </select>
+                            <button type="button" onClick={connectFacebook}>
+                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={publishPending === selectedPlan.id || !facebookConnection.connectedPages.length}
+                              onClick={() => publishFacebookLive(safeSelectedPost)}
+                            >
+                              Publish live
+                            </button>
+                          </div>
+                        )}
                         <button type="button" onClick={() => requestChanges(safeSelectedPost)}>
                           Request edit
+                        </button>
+                        <button type="button" onClick={rescheduleSelectedCreative}>
+                          Reschedule backend slot
                         </button>
                       </div>
                       <div className="selected-checklist">
                         <span>Before publishing</span>
                         <ul>
-                          {selectedPlan.checklist.map((item) => (
-                            <li key={item.text} className={item.done ? "done" : ""}>
-                              {item.text}
+                          {selectedPlan.checklist.map((item, itemIndex) => (
+                            <li
+                              key={stableNodeKey(item?.text, "selected-plan-checklist-item", itemIndex)}
+                              className={item.done ? "done" : ""}
+                            >
+                              {safeChecklistText(item?.text)}
                             </li>
                           ))}
                         </ul>
@@ -2993,6 +6769,562 @@ export function AppDemo() {
                     </button>
                   </section>
                 )}
+                {calendarDrawerOpen && activeCalendarSlot && (
+                  <aside className="calendar-detail-drawer" aria-label="Scheduled post detail drawer">
+                    <button className="drawer-close" type="button" onClick={() => setCalendarDrawerOpen(false)}>
+                      Close
+                    </button>
+                    <div>
+                      <span>Scheduled post detail drawer · {calendarView}</span>
+                      <h3>{activeCalendarSlot.platform?.replace(/_/g, " ") || selectedPlan?.name || "Scheduled post"}</h3>
+                      <p>{activeCalendarSlot.slotLabel || selectedPlan?.scheduleSlot}</p>
+                    </div>
+                    <div className="drawer-preview-card">
+                      <strong>{safeText(selectedPhase3Creative?.title, safeText(selectedPlan?.nativeCreative?.cover))}</strong>
+                      <p>{safeText(selectedPhase3Creative?.caption, safeText(selectedPlan?.nativeCreative?.caption))}</p>
+                      <small>{activeCalendarSlot.status || selectedPlan?.status} · {selectedTimezone}</small>
+                    </div>
+                    <div className="locked-state-copy">
+                      <strong>Locked near publish</strong>
+                      <p>Edits close to publish require discard or reschedule so the owner approves the exact final version.</p>
+                    </div>
+                    <div className="calendar-actions">
+                      <button type="button" onClick={() => showAppToast("Demo slot discarded locally. Backend discard status is a production hardening item.")}>
+                        Discard
+                      </button>
+                      <button type="button" onClick={rescheduleSelectedCreative}>
+                        Reschedule
+                      </button>
+                    </div>
+                  </aside>
+                )}
+              </div>
+            )}
+
+            {config.view === "approvals" && (
+              <div className="predis-surface">
+                <section className="approval-command-panel">
+                  <div>
+                    <p className="app-kicker">Approval queue</p>
+                    <h2>{pendingPlans.length} drafts need owner review</h2>
+                    <p>
+                      This is the 1% better layer: automated posting is not trusted until the owner approves
+                      the exact version that will be published.
+                    </p>
+                  </div>
+                  <button
+                    className="primary-action"
+                    type="button"
+                    disabled={approvalPending === "batch"}
+                    onClick={approveSafeDrafts}
+                  >
+                    Approve all safe drafts
+                  </button>
+                </section>
+                <section className="approval-queue-grid">
+                  {plans.map((plan, index) => {
+                    const reviewCreative = phase3CreativeForPlan(plan, index);
+                    const reviewLink =
+                      (reviewCreative && approvalReviewLinksByCreativeId[reviewCreative.id]) || reviewCreative?.reviewLink;
+                    const reviewFeedback =
+                      (reviewCreative && approvalFeedbackByCreativeId[reviewCreative.id]) || reviewCreative?.approvalFeedback || [];
+                    const reviewNotifications =
+                      (reviewCreative && reviewNotificationsByCreativeId[reviewCreative.id]) ||
+                      reviewCreative?.reviewNotifications ||
+                      [];
+                    const lastNotification = reviewNotifications[0];
+                    const feedbackPendingKey = reviewCreative ? `${reviewCreative.id}:approval_note` : "";
+                    const changePendingKey = reviewCreative ? `${reviewCreative.id}:change_request` : "";
+                    return (
+                      <article key={`${plan.id || plan.name}-approval`} className={plan.status === "Approved" ? "approved" : ""}>
+                        <div>
+                          <span>{plan.name}</span>
+                          <strong>{safeText(plan.nativeCreative?.hook)}</strong>
+                          <p>{safeText(plan.nativeCreative?.caption)}</p>
+                        </div>
+                        <dl>
+                          <div>
+                            <dt>Status</dt>
+                            <dd>{plan.status}</dd>
+                          </div>
+                          <div>
+                            <dt>Version</dt>
+                            <dd>v{plan.currentVersion?.versionNumber || 1}</dd>
+                          </div>
+                          <div>
+                            <dt>Proof hook</dt>
+                            <dd>{plan.trackingEvents.map(describeDisplayItem).filter(Boolean).join(", ")}</dd>
+                          </div>
+                        </dl>
+                        <div className="approval-feedback-panel">
+                          <span>Share review link</span>
+                          <input readOnly value={reviewLink?.reviewUrl || "Generating review link from backend workspace"} />
+                          <div className="approval-notification-strip">
+                            <strong>{lastNotification ? "Review link sent" : "Not sent yet"}</strong>
+                            <small>
+                              {lastNotification
+                                ? `${lastNotification.channel} · ${lastNotification.recipientContact} · ${lastNotification.status}`
+                                : "Create a backend outbox record before asking the client to review."}
+                            </small>
+                          </div>
+                          <div className="approval-feedback-list">
+                            {reviewFeedback.slice(0, 2).map((feedback) => (
+                              <article key={feedback.id}>
+                                <strong>{feedback.feedbackType.replace(/_/g, " ")}</strong>
+                                <p>{feedback.body}</p>
+                                <small>
+                                  {feedback.authorName} · {feedback.status}
+                                </small>
+                              </article>
+                            ))}
+                            {!reviewFeedback.length && (
+                              <article>
+                                <strong>No feedback yet</strong>
+                                <p>Share the link, then keep owner comments and approval notes attached to this post.</p>
+                              </article>
+                            )}
+                          </div>
+                        </div>
+                        <div className="calendar-actions">
+                          <button
+                            type="button"
+                            disabled={approvalPending === plan.id || plan.status === "Approved"}
+                            onClick={() => approvePlan(index)}
+                          >
+                            Approve exact version
+                          </button>
+                          <button
+                            type="button"
+                            disabled={approvalFeedbackPending === feedbackPendingKey}
+                            onClick={() => addApprovalFeedback(index, "approval_note")}
+                          >
+                            Add approval note
+                          </button>
+                          <button
+                            type="button"
+                            disabled={reviewNotificationPending === reviewCreative?.id}
+                            onClick={() => sendReviewNotification(index)}
+                          >
+                            Send review link
+                          </button>
+                          <button
+                            type="button"
+                            disabled={approvalFeedbackPending === changePendingKey}
+                            onClick={() => requestChanges(index)}
+                          >
+                            Request changes
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </section>
+              </div>
+            )}
+
+            {config.view === "accounts" && (
+              <div className="predis-surface">
+                <section className="accounts-hero">
+                  <div>
+                    <p className="app-kicker">Brand & Social Accounts</p>
+                    <h2>Clickable auth, brand details, style, integrations, and exports.</h2>
+                    <p>
+                      Predis parity needs an account and brand hub. LocalPilot keeps the secure boundary explicit:
+                      users click OAuth to grant access, and provider credentials stay server-side.
+                    </p>
+                  </div>
+                  <button className="primary-action" type="button" onClick={connectFacebook}>
+                    {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+                  </button>
+                </section>
+                <div className="brand-account-tabs" role="tablist" aria-label="Brand and social account sections">
+                  {brandAccountTabs.map((tab) => (
+                    <button
+                      className={activeBrandAccountTab === tab ? "active" : ""}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeBrandAccountTab === tab}
+                      key={tab}
+                      onClick={() => setActiveBrandAccountTab(tab)}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+                {activeBrandAccountTab === "Social Platforms" && (
+                  <section className="account-grid social-platform-grid">
+                    {socialPlatformRows.map((platform) => (
+                      <article className={platform.provider === "Facebook" ? "expanded" : ""} key={platform.provider}>
+                        <div className={`social-platform-icon ${platform.tone}`}>{platform.icon}</div>
+                        <div className="social-platform-copy">
+                          <strong>{platform.provider}</strong>
+                          <p>{platform.accountType}</p>
+                        </div>
+                        <div className="social-platform-actions">
+                          {platform.watch && (
+                            <button type="button" onClick={() => openSocialDialog(platform.provider, "video")}>
+                              <span className="social-action-icon">▦</span>
+                              Watch Videos
+                            </button>
+                          )}
+                          <button type="button" onClick={() => openSocialDialog(platform.provider, "faq")}>
+                            <span className="social-action-icon">?</span>
+                            FAQ
+                          </button>
+                          <button type="button" onClick={() => handleSocialAdd(platform)}>
+                            Add
+                          </button>
+                        </div>
+                        {platform.provider === "Facebook" && (
+                          <div className="social-connected-card">
+                            <div className="social-connected-avatar">●</div>
+                            <strong>{selectedFacebookPage?.name || campaignInput.business}</strong>
+                            <small>{selectedFacebookPage?.pageId || "1243605852158721_"}</small>
+                            <button type="button" onClick={() => showAppToast("Demo unlink keeps OAuth tokens server-side.")}>
+                              Unlink
+                            </button>
+                          </div>
+                        )}
+                      </article>
+                    ))}
+                  </section>
+                )}
+                {activeBrandAccountTab === "Social Platforms" && (
+                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden>
+                    <div>
+                      <span>Facebook Page selection</span>
+                      <h3>Choose the Page LocalPilot should use after OAuth.</h3>
+                      <p>
+                        The cards mirror the logged-in Page picker. Demo cards are placeholders until a real
+                        OAuth callback returns manageable Pages.
+                      </p>
+                    </div>
+                    <div className="page-card-grid">
+                      {pagePickerPages.map((page) => (
+                        <button
+                          className={(selectedFacebookPageId || pagePickerPages[0]?.pageId) === page.pageId ? "active" : ""}
+                          type="button"
+                          key={page.pageId}
+                          onClick={() => setSelectedFacebookPageId(page.pageId)}
+                        >
+                          <strong>{page.name || page.pageId}</strong>
+                          <span>{page.category || "Facebook Page"}</span>
+                          <small>{(page.tasks || []).join(" · ") || "Page permissions pending"}</small>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="permission-health-card">
+                      <span>Permission health</span>
+                      <strong>{facebookConnection.configured ? "OAuth configured" : "Backend env required"}</strong>
+                      <p>
+                        Required scopes: {(facebookConnection.scopes || []).join(", ") || "pages_show_list, pages_read_engagement, pages_manage_posts"}.
+                      </p>
+                      <small>{facebookConnection.redirectUri || "Backend callback not loaded"}</small>
+                    </div>
+                    <button className="primary-action" type="button" onClick={saveSelectedFacebookPage}>
+                      Save selected Page
+                    </button>
+                  </section>
+                )}
+                {activeBrandAccountTab === "Brand Details" && (
+                  <section className="brand-details-workspace" aria-label="Brand Details">
+                    <nav className="brand-details-inner-nav" aria-label="Brand Details sections">
+                      {brandDetailSections.map((section) => (
+                        <button
+                          className={activeBrandDetailSection === section ? "active" : ""}
+                          type="button"
+                          key={section}
+                          onClick={() => setActiveBrandDetailSection(section)}
+                        >
+                          {section}
+                        </button>
+                      ))}
+                    </nav>
+                    <div className="brand-details-main">
+                      {activeBrandDetailSection === "Business identity" && (
+                        <div className="brand-identity-panel">
+                          <h3>Business identity</h3>
+                          <div className="brand-details-form">
+                            {[
+                              ["Business name", campaignInput.business],
+                              ["Business description", phase3BrandKit.voice?.promise || "Local team with honest recommendations and fast scheduling."],
+                              ["Website", phase3BrandKit.website || "https://auroraheatcool.example"],
+                              ["Social handle", phase3BrandKit.socialHandle || "@auroraheatcool"],
+                              ["Hashtags", (phase3BrandKit.hashtags || ["#AnnArbor", "#HVAC", "#LocalService"]).join(" ")],
+                            ].map(([label, value]) => (
+                              <label key={label}>
+                                {label}
+                                <input readOnly value={value} />
+                              </label>
+                            ))}
+                            <button className="secondary-action" type="button" onClick={() => showAppToast("Website fetch demo uses the existing source URL import boundary.")}>
+                              Fetch details from website
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeBrandDetailSection === "Style" && (
+                        <div className="brand-style-panel">
+                          <div className="brand-style-preview-row" aria-hidden="true">
+                            <i />
+                            <i />
+                          </div>
+                          <p>
+                            Note: Not all templates will adapt well to the brand colors. It is possible that a
+                            creative template might lose its sheen because of color/font change.
+                          </p>
+                          <div className="brand-style-grid" aria-label="Brand Style">
+                            {[
+                              ["Title typography", phase3BrandKit.typography?.title || "Fraunces-style bold service headline"],
+                              ["Subtitle typography", phase3BrandKit.typography?.subtitle || "Clean sans caption for readable local offers"],
+                              ["Light logo", phase3BrandKit.logos?.light || phase3BrandKit.logoRef || "localpilot-brand/aurora/logo.svg"],
+                              ["Dark logo", phase3BrandKit.logos?.dark || "localpilot-brand/aurora/logo-dark.svg"],
+                            ].map(([label, value]) => (
+                              <article key={label}>
+                                <span>{label}</span>
+                                <strong>{value}</strong>
+                              </article>
+                            ))}
+                            <article className="brand-color-control">
+                              <span>Font colors</span>
+                              <div className="brand-swatches" aria-label="Brand font colors">
+                                {(phase3BrandKit.colors || ["#172033", "#2563eb", "#f4a62a", "#fff7e8"]).map((color) => (
+                                  <i style={{ background: color }} key={color} />
+                                ))}
+                              </div>
+                            </article>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeBrandDetailSection === "Content settings" && (
+                        <div className="brand-content-settings">
+                          <div className="brand-style-preview-row" aria-hidden="true">
+                            <i />
+                            <i />
+                          </div>
+                          <p>
+                            Note: Not all templates will adapt well to the brand colors. It is possible that a
+                            creative template might lose its sheen because of color/font change.
+                          </p>
+                          <h3>Content settings</h3>
+                          <div className="brand-content-form">
+                            <label>
+                              Tonality of Communication
+                              <select defaultValue="">
+                                <option value="" disabled>Select tonality</option>
+                                <option>Motivational</option>
+                                <option>Helpful expert</option>
+                                <option>Friendly local</option>
+                              </select>
+                            </label>
+                            <label>
+                              Select Timezone
+                              <select value={selectedTimezone} onChange={(event) => setSelectedTimezone(event.target.value)}>
+                                <option value="America/Detroit">(GMT -4:00) America/Detroit</option>
+                                <option value="America/New_York">(GMT -4:00) America/New_York</option>
+                                <option value="America/Chicago">(GMT -5:00) America/Chicago</option>
+                              </select>
+                            </label>
+                            <label>
+                              Brand Ethnicity
+                              <select defaultValue="">
+                                <option value="" disabled>Select Ethnicity</option>
+                                <option>Local market neutral</option>
+                                <option>Inclusive small business</option>
+                              </select>
+                            </label>
+                            <label>
+                              Brand Voiceover <span aria-label="Voiceover info">ⓘ</span>
+                              <select defaultValue="">
+                                <option value="" disabled>Select Voiceover</option>
+                                <option>Warm owner voice</option>
+                                <option>Clear service narrator</option>
+                              </select>
+                              <small>Used in all voiceover videos.</small>
+                            </label>
+                          </div>
+                          <h3>AI Media</h3>
+                          <div className="brand-content-form">
+                            <label>
+                              Brand Avatar
+                              <small>Used in UGC style Videos. each avatar will speak using this voice.</small>
+                              <select defaultValue="">
+                                <option value="" disabled>Select Avatar</option>
+                                <option>Owner-style avatar</option>
+                                <option>Service expert avatar</option>
+                              </select>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="brand-details-save">
+                        <button type="button" onClick={saveBrandKitCalibration}>
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                )}
+                {activeBrandAccountTab === "Integrations" && (
+                  <section className="integrations-reference-panel" aria-label="Integrations">
+                    <div className="integrations-copy">
+                      <h3>Integrations</h3>
+                      <p>Connect your online store and link your products.</p>
+                    </div>
+                    <div className="integration-trust-grid" aria-label="Integration trust signals">
+                      {integrationTrustCards.map((card) => (
+                        <article key={card.title}>
+                          <span>{card.icon}</span>
+                          <strong>{card.title}</strong>
+                          <p>{card.detail}</p>
+                        </article>
+                      ))}
+                    </div>
+                    <div className="ecommerce-connector-grid" aria-label="E-commerce platform connectors">
+                      {ecommerceConnectors.map((connector) => (
+                        <article key={connector.name}>
+                          <span className={`ecommerce-icon ${connector.tone}`}>{connector.icon}</span>
+                          <strong>{connector.name}</strong>
+                          <button type="button" onClick={() => showAppToast(`${connector.name} connect is demo-safe and keeps credentials server-side.`)}>
+                            Connect
+                          </button>
+                        </article>
+                      ))}
+                    </div>
+                    <div className="integration-or-separator">
+                      <span>or</span>
+                    </div>
+                    <div className="other-ecommerce-head">
+                      <h3>Other E-Commerce Platforms</h3>
+                      <button type="button" onClick={exportPackage}>
+                        Download Sample
+                      </button>
+                    </div>
+                    <button
+                      className="ecommerce-upload-dropzone"
+                      type="button"
+                      onClick={() => showAppToast("CSV upload demo uses the existing source import boundary.")}
+                    >
+                      <span>☁</span>
+                      <strong>
+                        Click to upload <em>or drag and drop</em>
+                      </strong>
+                      <small>Upload any e-commerce store's product csv to create posts for them.</small>
+                    </button>
+                  </section>
+                )}
+                {activeBrandAccountTab === "Exports" && (
+                  <section className="exports-panel export-table-panel" aria-label="Exports">
+                    <div className="exports-table-copy">
+                      <h3>Exports</h3>
+                      <p>View, download, and reuse all the posts you've created.</p>
+                    </div>
+                    <div className="exports-table" role="table" aria-label="Created post exports">
+                      <div className="exports-table-head" role="row">
+                        <span role="columnheader">Description</span>
+                        <span role="columnheader">Dimension</span>
+                        <span role="columnheader">Status</span>
+                        <span role="columnheader" aria-label="Download action" />
+                      </div>
+                      {brandExportRows.map((row) => (
+                        <div className="exports-table-row" role="row" key={row.id}>
+                          <div className="export-description-cell" role="cell">
+                            <img src={row.preview} alt="" />
+                            <strong>{row.title}</strong>
+                          </div>
+                          <span role="cell">{row.dimension}</span>
+                          <span role="cell">{row.status}</span>
+                          <button type="button" aria-label={`Download ${row.title}`} onClick={exportPackage}>
+                            ⇩
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
+
+            {config.view === "ideas" && (
+              <div className="predis-surface">
+                <section className="competitor-link-gate" aria-label="Competitor Analysis account link gate">
+                  <div className="competitor-link-copy">
+                    <h2>Please link Your Accounts to start using Competitor Analysis</h2>
+                    <p>
+                      Competitor Analysis needs Facebook and Instagram API access to work. Please give
+                      access to all facebook pages to authorise API access.
+                    </p>
+                  </div>
+                  <article className="competitor-link-account">
+                    <div>
+                      <strong>Instagram - Business or Creator Account</strong>
+                      <p>Must be connected via Facebook Page for competitor analysis to work</p>
+                      <span>Facebook connection required</span>
+                    </div>
+                    <button
+                      className="competitor-link-button"
+                      type="button"
+                      onClick={() => {
+                        setActiveBrandAccountTab("Social Platforms");
+                        selectModule("Brand & Social Accounts");
+                        openSocialDialog("Instagram", "add");
+                      }}
+                    >
+                      Link now
+                    </button>
+                  </article>
+                </section>
+
+                <section className="competitor-advanced-panel" aria-label="LocalPilot competitor analysis advanced panel">
+                  <div>
+                    <p className="app-kicker">LocalPilot advanced demo</p>
+                    <h3>Analyze a saved source after account linking is ready</h3>
+                    <p>
+                      This preserves the backend competitor-source workflow, but the first screen now
+                      matches the reference account-link gate.
+                    </p>
+                  </div>
+                  <form className="competitor-source-form" onSubmit={analyzeCompetitorSource}>
+                    <input
+                      aria-label="Competitor source label"
+                      value={competitorSourceForm.label}
+                      onChange={(event) => updateCompetitorSourceForm("label", event.target.value)}
+                      placeholder="Source label"
+                    />
+                    <input
+                      aria-label="Competitor profile URL"
+                      value={competitorSourceForm.url}
+                      onChange={(event) => updateCompetitorSourceForm("url", event.target.value)}
+                      placeholder="Paste competitor profile or Page URL"
+                    />
+                    <button className="primary-action" type="submit" disabled={competitorAnalysisPending}>
+                      {competitorAnalysisPending ? "Analyzing..." : "Analyze"}
+                    </button>
+                  </form>
+                  <section className="competitor-source-list" aria-label="Saved competitor sources">
+                    {phase3CompetitorSources.map((source) => (
+                      <article key={source.id}>
+                        <span>{source.status}</span>
+                        <strong>{source.label}</strong>
+                        <p>{source.url}</p>
+                      </article>
+                    ))}
+                  </section>
+                  <section className="idea-card-grid">
+                    {(phase3Ideas.length ? phase3Ideas : competitorIdeas).map((idea) => (
+                      <article key={idea.id || safeText(idea.hook, "idea")}>
+                        <span>{idea.source || idea.confidence || "Demo competitor pattern"}</span>
+                        <strong>{idea.theme}</strong>
+                        <p>{safeText(idea.hook)}</p>
+                        <small>{idea.timing}</small>
+                        <em>{Array.isArray(idea.hashtags) ? idea.hashtags.join(" ") : idea.hashtags}</em>
+                      </article>
+                    ))}
+                  </section>
+                </section>
               </div>
             )}
 
@@ -3000,7 +7332,7 @@ export function AppDemo() {
               <div className="ai-studio">
                 <section className="ai-command-grid">
                   {aiStudioTasks.map(([action, title, body]) => (
-                    <button type="button" key={title} onClick={() => runAiTask(title)}>
+                    <button type="button" key={title} onClick={() => askAiAssistant(title)} disabled={assistantReplyPending === "reply"}>
                       <span>{action}</span>
                       <strong>{title}</strong>
                       <small>{body}</small>
@@ -3009,10 +7341,10 @@ export function AppDemo() {
                 </section>
                 <div className="ai-thread">
                   <article>
-                    <span>AI Studio</span>
+                    <span>AI Generator</span>
                     <p>
-                      Build a week of posts for {campaignInput.business} using the offer "{campaignInput.offer}".
-                      Make each channel native and track local business outcomes.
+                      Build a week of Predis-style posts for {campaignInput.business} using the offer "{campaignInput.offer}".
+                      Make each channel native, branded, approval-ready, and measurable.
                     </p>
                   </article>
                   <article className="ai-answer">
@@ -3020,19 +7352,134 @@ export function AppDemo() {
                     <p>{aiResponse}</p>
                   </article>
                 </div>
+                <section className="assistant-reply-panel" aria-label="AI Assistant replies">
+                  <div>
+                    <span>In-built AI chat</span>
+                    <strong>Ask for post ideas, then create posts with one click</strong>
+                    <p>
+                      Predis-style assistant replies are saved by the backend. Use a reply as the input
+                      for a new weekly content batch when the idea is ready.
+                    </p>
+                  </div>
+                  <form className="assistant-prompt-form" onSubmit={submitAssistantPrompt}>
+                    <input
+                      aria-label="AI Assistant prompt"
+                      value={assistantPrompt}
+                      onChange={(event) => setAssistantPrompt(event.target.value)}
+                      placeholder="Ask for post ideas or a content calendar outline..."
+                    />
+                    <button className="primary-action" type="submit" disabled={assistantReplyPending === "reply"}>
+                      {assistantReplyPending === "reply" ? "Asking..." : "Ask AI Assistant"}
+                    </button>
+                  </form>
+                  <div className="assistant-reply-list" aria-label="Saved AI Assistant replies">
+                    {phase3AssistantReplies.slice(0, 3).map((reply) => (
+                      <article key={reply.id}>
+                        <span>{reply.status}</span>
+                        <strong>{reply.prompt}</strong>
+                        <p>{reply.replyText}</p>
+                        <ul>
+                          {(reply.outline || []).slice(0, 3).map((item) => (
+                            <li key={`${reply.id}-${item.day}`}>
+                              {item.day}: {item.postIdea}
+                            </li>
+                          ))}
+                        </ul>
+                        <button
+                          className="secondary-action"
+                          type="button"
+                          disabled={assistantReplyPending === reply.id}
+                          onClick={() => createPostsFromAssistantReply(reply)}
+                        >
+                          {assistantReplyPending === reply.id ? "Creating..." : "Create posts from reply"}
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+                <section className="source-import-panel" aria-label="Source URL import">
+                  <div>
+                    <span>Source URL import</span>
+                    <strong>Turn a local offer page into social posts</strong>
+                    <p>
+                      Paste a business page, service URL, product page, or offer link. LocalPilot stores the source
+                      server-side, extracts a demo brief, and can generate approval-ready posts from it.
+                    </p>
+                  </div>
+                  <form className="source-import-form" onSubmit={importContentSource}>
+                    <input
+                      aria-label="Source page label"
+                      value={contentSourceForm.label}
+                      onChange={(event) => updateContentSourceForm("label", event.target.value)}
+                      placeholder="Source label"
+                    />
+                    <input
+                      aria-label="Source page URL"
+                      value={contentSourceForm.url}
+                      onChange={(event) => updateContentSourceForm("url", event.target.value)}
+                      placeholder="https://business.example/offer"
+                    />
+                    <button className="primary-action" type="submit" disabled={contentSourcePending}>
+                      {contentSourcePending ? "Importing..." : "Import source URL"}
+                    </button>
+                  </form>
+                  <form className="source-image-form" onSubmit={importContentImage}>
+                    <input
+                      aria-label="Source image label"
+                      value={contentImageForm.label}
+                      onChange={(event) => updateContentImageForm("label", event.target.value)}
+                      placeholder="Image source label"
+                    />
+                    <label className="source-image-picker">
+                      <span>Product/service image</span>
+                      <input aria-label="Source image file" type="file" accept="image/*" onChange={readContentImageFile} />
+                    </label>
+                    {contentImageForm.imageDataUrl && (
+                      <img
+                        className="source-image-preview"
+                        src={contentImageForm.imageDataUrl}
+                        alt={contentImageForm.fileName || "Selected source image preview"}
+                      />
+                    )}
+                    <button className="primary-action" type="submit" disabled={contentImagePending}>
+                      {contentImagePending ? "Importing..." : "Import source image"}
+                    </button>
+                  </form>
+                  <div className="source-import-list" aria-label="Imported source URLs">
+                    {phase3ContentSources.slice(0, 3).map((source) => (
+                      <article key={source.id}>
+                        {source.extracted?.previewDataUrl && (
+                          <img className="source-card-image" src={source.extracted.previewDataUrl} alt={`${source.label} preview`} />
+                        )}
+                        <span>{source.sourceType === "image" ? `${source.status} image` : source.status}</span>
+                        <strong>{source.label}</strong>
+                        <p>{source.brief?.summary || source.url}</p>
+                        <small>{Array.isArray(source.brief?.angles) ? source.brief.angles.join(" / ") : source.url}</small>
+                        <button
+                          className="secondary-action"
+                          type="button"
+                          onClick={() => generateFromContentSource(source)}
+                          disabled={sourceGenerationPending === source.id}
+                        >
+                          {sourceGenerationPending === source.id ? "Generating..." : "Generate from source"}
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </section>
                 <div className="ai-output-list">
-                  {plans.map((plan) => (
-                    <article key={`${plan.name}-ai`}>
-                      <span>{plan.name}</span>
-                      <strong>{plan.nativeCreative.hook}</strong>
-                      <p>{plan.nativeCreative.caption}</p>
+                  {(phase3Creatives.length ? phase3Creatives : plans).map((item) => (
+                    <article key={`${item.id || item.name}-ai`}>
+                      <span>{item.platform || item.name}</span>
+                      <strong>{safeText(item.title, safeText(item.nativeCreative?.hook))}</strong>
+                      <p>{safeText(item.caption, safeText(item.nativeCreative?.caption))}</p>
                     </article>
                   ))}
                 </div>
                 <form className="ai-prompt" onSubmit={submitPrompt}>
-                  <input name="prompt" type="text" placeholder="Ask AI Studio to create, refine, analyze, or schedule..." />
+                  <input name="prompt" type="text" placeholder="Describe one offer, product, service, or local event..." />
                   <button className="primary-action" type="submit">
-                    Generate
+                    Generate weekly batch
                   </button>
                 </form>
               </div>
@@ -3040,11 +7487,11 @@ export function AppDemo() {
 
             {config.view === "month" && (
               <div className="month-grid" aria-label="Calendar overview">
-                {plans.map((plan) => (
-                  <div key={`${plan.name}-month`}>
-                    <span>{plan.scheduleSlot}</span>
-                    <strong>{plan.name}</strong>
-                    <small>{plan.publishingMode}</small>
+                {(phase3CalendarSlots.length ? phase3CalendarSlots : plans).map((item) => (
+                  <div key={`${item.id || item.name}-month`}>
+                    <span>{item.slotLabel || item.scheduleSlot}</span>
+                    <strong>{item.platform || item.name}</strong>
+                    <small>{item.status || item.publishingMode}</small>
                   </div>
                 ))}
               </div>
@@ -3054,25 +7501,33 @@ export function AppDemo() {
               <div className="inbox-workspace">
                 <div className="inbox-list">
                   {inboxThreads.map((thread, index) => (
-                    <article className={safeSelectedInbox === index ? "active" : ""} key={thread.source}>
+                    <article
+                      className={safeSelectedInbox === index ? "active" : ""}
+                      key={stableNodeKey(thread.source, "inbox-thread", index)}
+                    >
                       <button type="button" onClick={() => setSelectedInbox(index)}>
-                        <span>{thread.source}</span>
-                        <strong>{thread.customer}</strong>
-                        <small>{thread.intent}</small>
+                        <span>{safeText(thread.source)}</span>
+                        <strong>{safeText(thread.customer)}</strong>
+                        <small>{safeText(thread.intent)}</small>
                       </button>
                     </article>
                   ))}
                 </div>
                 <section className="inbox-detail">
-                  <span>{inboxThreads[safeSelectedInbox].source}</span>
-                  <h3>{inboxThreads[safeSelectedInbox].intent}</h3>
-                  <p>{inboxThreads[safeSelectedInbox].message}</p>
+                  <span>{safeText(inboxThreads[safeSelectedInbox]?.source)}</span>
+                  <h3>{safeText(inboxThreads[safeSelectedInbox]?.intent)}</h3>
+                  <p>{safeText(inboxThreads[safeSelectedInbox]?.message)}</p>
                   <div>
                     <strong>Suggested reply</strong>
-                    <p>{inboxThreads[safeSelectedInbox].draft}</p>
+                    <p>{safeText(inboxThreads[safeSelectedInbox]?.draft)}</p>
                   </div>
-                  <button type="button" onClick={() => showAppToast(`${inboxThreads[safeSelectedInbox].action} saved.`)}>
-                    {inboxThreads[safeSelectedInbox].action}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      showAppToast(`${safeText(inboxThreads[safeSelectedInbox]?.action)} saved.`)
+                    }
+                  >
+                    {safeText(inboxThreads[safeSelectedInbox]?.action)}
                   </button>
                 </section>
               </div>
@@ -3080,22 +7535,112 @@ export function AppDemo() {
 
             {config.view === "analytics" && (
               <div className="analytics-workspace">
+                <section className="performance-dashboard analytics-reference-dashboard" aria-label="Performance analytics dashboard">
+                  <div className="analytics-reference-consistency" aria-label="Post consistency">
+                    <article className="consistency-grid-card">
+                      <strong>Post consistency</strong>
+                      <div className="consistency-week-row" aria-label="Weekly posting consistency">
+                        {["F", "S", "S", "M", "T", "W", "T"].map((day, index) => (
+                          <span className={index === 2 ? "posted" : index === 3 ? "scheduled" : ""} key={`${day}-${index}`}>
+                            <small>{day}</small>
+                            <i />
+                          </span>
+                        ))}
+                      </div>
+                      <div className="consistency-legend">
+                        <span><i className="posted" />Posted</span>
+                        <span><i />No Activity</span>
+                        <span><i className="scheduled" />Scheduled</span>
+                      </div>
+                    </article>
+                    <article className="posting-streak-card">
+                      <strong>Post consistency</strong>
+                      <p>
+                        <b>1</b>
+                        <span>Day streak</span>
+                      </p>
+                      <small>Based on your recent activity</small>
+                    </article>
+                  </div>
+
+                  <div className="analytics-account-tabs" role="tablist" aria-label="Analytics connected accounts">
+                    {analyticsAccountTabs.map((tab) => (
+                      <button className={tab.active ? "active" : ""} type="button" role="tab" aria-selected={tab.active} key={tab.label}>
+                        <span>{tab.icon}</span>
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="analytics-reference-metrics">
+                    {analyticsMetricCards.map((metric) => (
+                      <article className={`analytics-reference-card ${metric.tone}`} key={metric.label}>
+                        <span>{metric.icon}</span>
+                        <div>
+                          <strong>{metric.label}</strong>
+                          <b>{metric.value}</b>
+                          <small>{metric.dateRange}</small>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="analytics-chart-grid">
+                    <article className="analytics-chart-card posting">
+                      <h3>Your Posting Activity</h3>
+                      <div className="analytics-chart-area">
+                        <i className="activity-bar first" />
+                        <i className="activity-bar second" />
+                      </div>
+                      <div className="analytics-chart-axis">
+                        {analyticsChartDates.map((date) => (
+                          <span key={date}>{date}</span>
+                        ))}
+                      </div>
+                    </article>
+                    <article className="analytics-chart-card engagement">
+                      <h3>Your Posts' Engagement</h3>
+                      <div className="analytics-chart-area">
+                        <i className="engagement-line" />
+                      </div>
+                      <div className="analytics-chart-axis">
+                        {["24 May", "28 May", "02 Jun", "06 Jun", "11 Jun", "16 Jun", "20 Jun"].map((date) => (
+                          <span key={date}>{date}</span>
+                        ))}
+                      </div>
+                    </article>
+                    <article className="analytics-chart-card followers">
+                      <h3>Your Followers' Growth</h3>
+                      <div className="analytics-chart-area">
+                        <i className="followers-line" />
+                      </div>
+                      <div className="analytics-chart-axis">
+                        {["22 May", "25 May", "27 May", "29 May", "01 Jun", "03 Jun", "05 Jun", "08 Jun", "10 Jun", "15 Jun", "19 Jun"].map((date) => (
+                          <span key={date}>{date}</span>
+                        ))}
+                      </div>
+                    </article>
+                  </div>
+                </section>
                 <section className="roi-signal-grid">
-                  {localRoiSignals.map(([value, label, body]) => (
+                  {proofEventDisplayCards.map(([label, value, body]) => (
                     <article key={label}>
                       <span>{label}</span>
                       <strong>{value}</strong>
                       <p>{body}</p>
+                      <button type="button" onClick={() => recordProofEvent(label, phase3Creatives[0]?.id)}>
+                        Record demo event
+                      </button>
                     </article>
                   ))}
                 </section>
                 <section className="roi-explain-panel">
                   <div>
-                    <span>Best signal</span>
-                    <h3>Owner-led content is creating higher local intent.</h3>
+                    <span>Proof loop</span>
+                    <h3>Lower-bound evidence, not fake exact ROI.</h3>
                     <p>
-                      LocalPilot connects the content plan to business actions: calls from Facebook and Google,
-                      DMs from Instagram, saves from Xiaohongshu, and coupon scans from TikTok.
+                      LocalPilot connects content to observable actions: short-link clicks, QR scans, call taps,
+                      direction taps, DMs, coupon redemptions, and owner-confirmed mentions.
                     </p>
                   </div>
                   <div className="analytics-channel-list">
@@ -3103,12 +7648,835 @@ export function AppDemo() {
                       <article key={`${plan.name}-roi`}>
                         <strong>{plan.name}</strong>
                         <span>{plan.kpi}</span>
-                        <button type="button" onClick={() => showAppToast(`${plan.name} ROI note added to report.`)}>
+                        <button type="button" onClick={() => showAppToast(`${plan.name} proof note added to report.`)}>
                           Add note
                         </button>
                       </article>
                     ))}
                   </div>
+                </section>
+              </div>
+            )}
+
+            {config.view === "help" && (
+              <div className="help-workspace">
+                <section className="help-support-hero">
+                  <div>
+                    <p className="app-kicker">Need help</p>
+                    <h2>Support center for account setup, FAQs, and demo handoff.</h2>
+                    <p>
+                      Choose a topic, review the status, and save a local support draft. Nothing is sent
+                      externally from this demo.
+                    </p>
+                  </div>
+                  <div className="help-status-strip">
+                    <article>
+                      <span>Service status</span>
+                      <strong>Local demo online</strong>
+                      <p>Backend workflow and screen smoke passed.</p>
+                    </article>
+                    <article>
+                      <span>Account safety</span>
+                      <strong>No external send</strong>
+                      <p>Drafts stay local until production confirmation exists.</p>
+                    </article>
+                    <article>
+                      <span>Publishing help</span>
+                      <strong>Owner approval first</strong>
+                      <p>Facebook live publish stays gated by connected accounts.</p>
+                    </article>
+                  </div>
+                </section>
+                <section className="help-action-grid">
+                  {helpActions.map(([title, body]) => (
+                    <article className={activeHelpAction === title ? "active" : ""} key={title}>
+                      <span>{title}</span>
+                      <strong>{title}</strong>
+                      <p>{body}</p>
+                      <button type="button" onClick={() => openHelpAction(title, body)}>
+                        Open
+                      </button>
+                    </article>
+                  ))}
+                </section>
+                <section className="help-message-card">
+                  <div>
+                    <p className="app-kicker">Selected topic</p>
+                    <h3>{selectedHelpAction[0]}</h3>
+                    <p>{selectedHelpAction[1]}</p>
+                  </div>
+                  <form className="help-message-form" onSubmit={submitHelpDraft}>
+                    <label>
+                      Send a message
+                      <textarea
+                        value={helpDraft}
+                        onChange={(event) => setHelpDraft(event.target.value)}
+                        placeholder="Draft a setup question for the LocalPilot team..."
+                      />
+                    </label>
+                    <div className="help-message-actions">
+                      <button className="secondary-action" type="button" onClick={() => setHelpDraft("")}>
+                        Clear draft
+                      </button>
+                      <button className="primary-action" type="submit">
+                        Save local draft
+                      </button>
+                    </div>
+                  </form>
+                </section>
+              </div>
+            )}
+
+            {creatorWorkflowOpen && (
+              <div className="modal-backdrop creator-workflow-backdrop" role="presentation">
+                <section className="creator-workflow-modal" role="dialog" aria-modal="true" aria-label="Creator Style Video workflow modal">
+                  <button className="modal-close" type="button" aria-label="Close workflow" onClick={closeCreatorWorkflow}>
+                    ×
+                  </button>
+                  <div className="creator-reference-shell">
+                    <aside className="creator-reference-sidebar" aria-label="Creator workflow reference navigation">
+                      <div className="creator-reference-brand">
+                        <span className="creator-reference-mark">LP</span>
+                        <strong>LocalPilot.ai</strong>
+                      </div>
+                      <button className="creator-reference-create" type="button">
+                        <span>+</span>
+                        Create New
+                      </button>
+                      <button className="creator-reference-auto" type="button">
+                        <span>➤</span>
+                        Auto Posting
+                      </button>
+                      <nav>
+                        {[
+                          ["◐", "Ad Inspirations", "New"],
+                          ["▰", "Content Library", ""],
+                          ["▦", "Content Calendar", ""],
+                          ["▣", "Brand & Social Accounts", ""],
+                          ["▥", "Competitor Analysis", ""],
+                          ["▤", "Analytics", ""],
+                          ["?", "Need help?", ""],
+                        ].map(([icon, label, badge]) => (
+                          <button type="button" key={label}>
+                            <span>{icon}</span>
+                            <strong>{label}</strong>
+                            {badge && <em>{badge}</em>}
+                          </button>
+                        ))}
+                      </nav>
+                      <article className="creator-reference-trial">
+                        <strong>Rise Plan Trial Activated</strong>
+                        <p>Enjoy full access. Your card will be charged tomorrow</p>
+                      </article>
+                      <div className="creator-reference-user">
+                        <span>H</span>
+                        <div>
+                          <strong>Aurora Heating &...</strong>
+                          <small>huihuipan69@gm...</small>
+                        </div>
+                      </div>
+                    </aside>
+                    <main className="creator-reference-main">
+                  <div className="creator-modal-head">
+                    <div>
+                      <p className="app-kicker">Creator Style Video</p>
+                      <h2>Make creator-style videos using AI-generated actors.</h2>
+                      <p>
+                        Popup workflow: generate ideas, select the angle, choose Motivational style,
+                        pick AI actor and subtitle style, then generate backend artifacts.
+                      </p>
+                    </div>
+                  </div>
+                  <section className="creator-style-wizard" aria-label="Creator Style Video workflow">
+                    <div className="creator-progress-dots" aria-label="Creator Style Video workflow progress">
+                      {creatorVisibleWorkflowSteps.map((step, index) => (
+                        <span
+                          className={
+                            index < creatorWorkflowStepIndex
+                              ? "complete"
+                              : index === creatorWorkflowStepIndex
+                              ? "active"
+                              : ""
+                          }
+                          key={step.id}
+                          aria-label={`${index + 1}. ${step.label}`}
+                        >
+                          {index < creatorWorkflowStepIndex ? "✓" : index + 1}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="creator-step-title">
+                      <h2>{activeCreatorWorkflowStep.title}</h2>
+                      <p>{activeCreatorWorkflowStep.subtitle}</p>
+                    </div>
+
+                    <div className="creator-step-shell">
+                      {creatorWorkflowStep === "prompt" && (
+                        <article className="creator-step-panel creator-prompt-panel">
+                        <label>
+                          Write Your Idea
+                          <textarea
+                            rows="6"
+                            value={creatorStyleForm.prompt}
+                            placeholder="Describe what this UGC Video should be about."
+                            onChange={(event) => updateCreatorStyleForm("prompt", event.target.value)}
+                          />
+                        </label>
+                        <button
+                          className="secondary-action creator-idea-button"
+                          type="button"
+                          onClick={openCreatorIdeaChat}
+                          disabled={creatorStylePending === "ideas"}
+                        >
+                          {creatorStylePending === "ideas" ? "Generating ideas..." : "Generate ideas for me"}
+                        </button>
+                      </article>
+                      )}
+
+                      {creatorWorkflowStep === "idea" && (
+                        <article className="creator-step-panel">
+                        <div className="creator-idea-list">
+                          {selectedCreatorIdeas.length ? (
+                            selectedCreatorIdeas.map((idea) => (
+                              <button
+                                className={
+                                  (creatorStyleForm.selectedIdeaId || selectedCreatorWorkflow?.selectedIdeaId) === idea.id
+                                    ? "active"
+                                    : ""
+                                }
+                                type="button"
+                                key={idea.id}
+                                onClick={() => updateCreatorStyleForm("selectedIdeaId", idea.id)}
+                              >
+                                <strong>{idea.label}</strong>
+                                <small>{safeText(idea.hook)}</small>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="creator-empty-state">
+                              <strong>No ideas yet.</strong>
+                              <p>Click Generate ideas for me to populate backend ideas.</p>
+                              <button className="secondary-action" type="button" onClick={generateCreatorStyleIdeas}>
+                                Generate ideas for me
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                      )}
+
+                      {creatorWorkflowStep === "style" && (
+                        <article className="creator-step-panel">
+                        <div className="creator-field-group">
+                          <span>Script Style</span>
+                          <p>Choose the kind of post you want to create.</p>
+                        </div>
+                        <div className="creator-segmented">
+                          {creatorStyleStyleChoices.map((style) => (
+                            <button
+                              className={creatorStyleForm.styleId === style.id ? "active" : ""}
+                              type="button"
+                              key={style.id}
+                              onClick={() => updateCreatorStyleForm("styleId", style.id)}
+                            >
+                              <strong>{style.label}</strong>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="creator-field-group">
+                          <span>Aspect Ratio</span>
+                          <p>Select a canvas size to proceed.</p>
+                        </div>
+                        <div className="ratio-picker creator-ratio-picker" aria-label="Creator Style Video aspect ratios">
+                          {creatorAspectRatioOptions.map((ratio) => (
+                            <button
+                              className={creatorStyleForm.aspectRatio === ratio ? "active" : ""}
+                              type="button"
+                              key={ratio}
+                              onClick={() => updateCreatorStyleForm("aspectRatio", ratio)}
+                            >
+                              {ratio}
+                            </button>
+                          ))}
+                        </div>
+                      </article>
+                      )}
+
+                      {creatorWorkflowStep === "actor" && (
+                        <article className="creator-step-panel">
+                        <div className="creator-filter-row" aria-label="Avatar filters">
+                          <span>Gender</span>
+                          <span>Age</span>
+                          <span>Ethnicity</span>
+                        </div>
+                        <div className="creator-avatar-grid">
+                          {creatorStyleActorChoices.map((actor, index) => (
+                            <button
+                              className={creatorStyleForm.actorId === actor.id ? "active" : ""}
+                              type="button"
+                              aria-label={`Select ${actor.name}: ${actor.persona}`}
+                              key={actor.id}
+                              onClick={() => updateCreatorStyleForm("actorId", actor.id)}
+                            >
+                              {creatorStyleForm.actorId === actor.id && (
+                                <span className="creator-selection-check" aria-hidden="true">
+                                  ✓
+                                </span>
+                              )}
+                              <div
+                                className={`creator-avatar-swatch swatch-${index + 1}`}
+                                style={creatorAvatarPreviewStyle(index)}
+                              >
+                                {actor.badge || "Actor"}
+                              </div>
+                              <strong>{actor.name}</strong>
+                              <small>{actor.persona}</small>
+                            </button>
+                          ))}
+                        </div>
+                      </article>
+                      )}
+
+                      {creatorWorkflowStep === "template" && (
+                        <article className="creator-step-panel">
+                        <div className="creator-template-grid">
+                          {creatorStyleTemplateChoices.map((template, index) => {
+                            const sample = creatorTemplatePreviewSamples[index % creatorTemplatePreviewSamples.length];
+                            return (
+                              <button
+                                className={creatorStyleForm.templateId === template.id ? "active" : ""}
+                                type="button"
+                                key={template.id}
+                                onClick={() => updateCreatorStyleForm("templateId", template.id)}
+                              >
+                                {creatorStyleForm.templateId === template.id && (
+                                  <span className="creator-selection-check" aria-hidden="true">
+                                    ✓
+                                  </span>
+                                )}
+                                <div className={`creator-template-preview subtitle-style-${(index % 8) + 1}`}>
+                                  <span>{sample.lead}</span>
+                                  <strong>{sample.accent}</strong>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </article>
+                      )}
+
+                      {creatorWorkflowStep === "review" && (
+                        <article className="creator-step-panel creator-review-panel">
+                          <div className="creator-script-card">
+                            <span className="creator-script-tab">Your script</span>
+                            <blockquote>{creatorReviewScript}</blockquote>
+                            <span className="creator-duration-pill">
+                              Estimated Duration: {selectedCreatorScriptDuration.estimate}
+                            </span>
+                          </div>
+                          <div className="creator-rewrite-block">
+                            <strong>Want a different length? We'll rewrite the script.</strong>
+                            <div className="creator-duration-options" aria-label="Rewrite duration options">
+                              {creatorScriptDurationOptions.map((duration) => (
+                                <button
+                                  className={creatorScriptDuration === duration.id ? "active" : ""}
+                                  type="button"
+                                  key={duration.id}
+                                  onClick={() => setCreatorScriptDuration(duration.id)}
+                                >
+                                  {duration.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <label className="creator-script-rewrite">
+                            Update your script by describing the changes you want
+                            <span>
+                              <input
+                                type="text"
+                                value={creatorScriptRewritePrompt}
+                                placeholder="e.g. Make it more casual, add a stronger CTA at the end, keep it under 30 seconds."
+                                onChange={(event) => setCreatorScriptRewritePrompt(event.target.value)}
+                              />
+                              <button type="button" aria-label="Apply script rewrite" onClick={applyCreatorScriptRewrite}>
+                                →
+                              </button>
+                            </span>
+                          </label>
+                      </article>
+                      )}
+
+                      {creatorWorkflowStep === "confirm" && (
+                        <article className="creator-step-panel creator-confirm-panel">
+                          <div className="creator-confirm-summary">
+                            <h3>Summary</h3>
+                            <div className="creator-confirm-grid">
+                              <span className="creator-confirm-icon">▣</span>
+                              <p>
+                                <strong>Post Type:</strong> UGC
+                              </p>
+                              <span className="creator-confirm-icon">↗</span>
+                              <p>
+                                <strong>Aspect Ratio:</strong> {creatorStyleForm.aspectRatio}
+                              </p>
+                              <span className="creator-confirm-icon">$</span>
+                              <p>
+                                <strong>Estimated credit usage ⓘ :</strong> 114 - 139
+                              </p>
+                            </div>
+                          </div>
+                        </article>
+                      )}
+
+                      {creatorWorkflowStep === "generated" && (
+                        <article className="creator-output-panel">
+                          <div className="creator-video-preview" aria-label="Generated creator-style media preview">
+                            <span>{creatorStyleForm.aspectRatio}</span>
+                            <button type="button" aria-label="Play generated storyboard preview">▶</button>
+                            <strong>{selectedCreatorActor?.name || selectedCreatorPackage?.avatar?.name || "AI actor"}</strong>
+                            <p>{selectedCreatorTemplate?.sceneStyle || selectedCreatorMediaAsset?.metadata?.template?.sceneStyle || "actor + service b-roll + branded end card"}</p>
+                          </div>
+                          <div className="creator-output-details">
+                            <div className="creator-output-topline">
+                              <span>from your idea</span>
+                              <span>130.18 credits used</span>
+                            </div>
+                            <h3>Caption</h3>
+                            <p>
+                              {safeText(selectedCreatorCreative?.caption) || "Generate the creator-style video to create caption and storyboard output."}
+                            </p>
+                            <h3>Input Prompt:</h3>
+                            <p>{creatorStyleForm.prompt}</p>
+                            <div className="creator-artifact-list">
+                              <span>creative: {selectedCreatorCreative?.id || "not generated"}</span>
+                              <span>media asset: {selectedCreatorMediaAsset?.status || "pending"}</span>
+                              <span>UGC package: {selectedCreatorPackage?.status || "pending"}</span>
+                              <span>calendar slot: {selectedCreatorCalendarSlot?.slotLabel || selectedCreatorCreative?.scheduleSlot || "pending"}</span>
+                            </div>
+                            <div className="creator-generated-actions">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCreatorWorkflowOpen(false);
+                                  openPublishModal(selectedCreatorCreative);
+                                }}
+                                disabled={!selectedCreatorCreative}
+                              >
+                                Publish
+                              </button>
+                              <button type="button" onClick={openCreatorSchedule} disabled={!selectedCreatorCreative}>
+                                Schedule Post
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      )}
+                    </div>
+
+                    {creatorWorkflowStep !== "generated" && (
+                      <div className="creator-wizard-footer">
+                        <button className="secondary-action" type="button" onClick={stepCreatorWorkflowBack}>
+                          ← Back
+                        </button>
+                        <button
+                          className="primary-action"
+                          type="button"
+                          onClick={continueCreatorWorkflow}
+                          disabled={!creatorCanContinue || creatorStylePending === "ideas" || creatorStylePending === "generate"}
+                        >
+                          {creatorWorkflowStep === "review"
+                            ? "Continue"
+                            : creatorWorkflowStep === "confirm"
+                            ? creatorStylePending === "generate"
+                              ? "Generating..."
+                              : "Generate"
+                            : creatorWorkflowStep === "prompt" && creatorStylePending === "ideas"
+                            ? "Generating ideas..."
+                            : "Continue"}
+                        </button>
+                      </div>
+                    )}
+                  </section>
+                    </main>
+                  </div>
+                  {creatorIdeaChatOpen && (
+                    <div className="creator-idea-chat-backdrop" role="presentation">
+                      <section className="creator-idea-chat" role="dialog" aria-modal="true" aria-label="Generate ideas for me chat">
+                        <div className="creator-idea-chat-head">
+                          <h3>
+                            <span aria-hidden="true">✎</span>
+                            Generate ideas for me
+                          </h3>
+                          <button
+                            type="button"
+                            aria-label="Close generate ideas chat"
+                            onClick={closeCreatorIdeaChat}
+                            disabled={creatorStylePending === "ideas"}
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="creator-idea-chat-body">
+                          <p className="creator-chat-bubble bot">🤖 What would you like to create?</p>
+                          {creatorStyleForm.prompt.trim() && (
+                            <p className="creator-chat-bubble user">{creatorStyleForm.prompt.trim()}</p>
+                          )}
+                          <p className="creator-chat-bubble bot wide">
+                            🤖 Can you tell me more about what you would like to achieve with this?
+                          </p>
+                          {creatorIdeaChatInput.trim() && (
+                            <p className="creator-chat-bubble user compact">{creatorIdeaChatInput.trim()}</p>
+                          )}
+                          {creatorIdeaChatResults.length > 0 && (
+                            <div className="creator-chat-prompt-results">
+                              <p>🤖 Here are {creatorIdeaChatResults.length} prompts for you:</p>
+                              {creatorIdeaChatResults.map((idea, index) => (
+                                <article key={idea.id || `${idea.label}-${index}`}>
+                                <span>
+                                  {index + 1}. {safeText(idea.hook)}
+                                </span>
+                                  <small>{idea.angle}</small>
+                                  <button type="button" onClick={() => useCreatorIdeaPrompt(idea)}>
+                                    Use This Prompt
+                                  </button>
+                                </article>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <form className="creator-idea-chat-form" onSubmit={submitCreatorIdeaChat}>
+                          <input
+                            type="text"
+                            value={creatorIdeaChatInput}
+                            placeholder="Describe what you want to create..."
+                            onChange={(event) => setCreatorIdeaChatInput(event.target.value)}
+                            disabled={creatorStylePending === "ideas"}
+                          />
+                          <button type="submit" aria-label="Send idea goal" disabled={creatorStylePending === "ideas"}>
+                            {creatorStylePending === "ideas" ? "…" : "➤"}
+                          </button>
+                        </form>
+                      </section>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {waitNudgeOpen && (
+              <div
+                className="wait-nudge-backdrop"
+                role="presentation"
+                onMouseDown={(event) => event.target === event.currentTarget && closeInspirationNudge()}
+              >
+                <section className="wait-nudge-modal" role="dialog" aria-modal="true" aria-labelledby="wait-nudge-title">
+                  <button className="wait-nudge-close" type="button" aria-label="Close wait nudge" onClick={closeInspirationNudge}>
+                    ×
+                  </button>
+                  <h3 id="wait-nudge-title">Wait! Don&apos;t Go...</h3>
+                  <p>
+                    You haven&apos;t unlocked the power of AI content yet. Give it a try — your first 10 generations are on us!
+                  </p>
+                  <div className="wait-nudge-actions">
+                    <button className="wait-nudge-secondary" type="button" onClick={continueInspirationAfterNudge}>
+                      Maybe later
+                    </button>
+                    <button className="wait-nudge-primary" type="button" onClick={downloadPostFromInspirationNudge}>
+                      Download a post
+                    </button>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {libraryDetailCreative && (
+              <div className="library-detail-backdrop" role="presentation">
+                <section className="library-detail-modal" role="dialog" aria-modal="true" aria-label="Content Library asset detail">
+                  <div className="library-detail-preview" style={referencePreviewStyle(libraryDetailPreviewImage)}>
+                    <span>{libraryDetailMediaAsset?.aspectRatio || "9:16"}</span>
+                    <button type="button" aria-label={`Play ${libraryDetailCreative.title}`}>
+                      ▶
+                    </button>
+                    <strong>{libraryDetailCreative.platform?.replace(/_/g, " ") || "Generated video"}</strong>
+                  </div>
+                <div className="library-detail-copy">
+                    <button className="library-detail-close" type="button" aria-label="Close asset detail" onClick={closeLibraryDetail}>
+                      ×
+                    </button>
+                    <div className="library-detail-topline">
+                      <span>from your idea</span>
+                      <span>130.18 credits used</span>
+                    </div>
+                    <h3>Caption</h3>
+                    <p>{safeText(libraryDetailCreative?.caption)}</p>
+                    <p className="library-detail-tags">{(libraryDetailCreative.hashtags || []).join(" ") || "#auroraheatcool"}</p>
+                    <h3>Input Prompt:</h3>
+                    <p>
+                      <strong>Text to Post</strong>
+                      <br />
+                      {libraryDetailPrompt}
+                    </p>
+                    <small>{libraryDetailCreative.updatedAt || "11 minutes ago"}</small>
+                    <div className="library-detail-feedback">
+                      <strong>Would you use this post?</strong>
+                      <span>
+                        <button type="button" aria-label="Like this post">♡</button>
+                        <button type="button" aria-label="Dislike this post">♧</button>
+                      </span>
+                    </div>
+                    <div className="library-detail-actions">
+                      <button type="button" onClick={() => openPublishModal(libraryDetailCreative)}>
+                        Publish
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPost(libraryDetailIndex);
+                          closeLibraryDetail();
+                          showAppToast("Creative editor selected this generated asset.");
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => showAppToast("Download package prepared for owner review.")}>
+                        Download
+                      </button>
+                      <button type="button" aria-label="More asset actions" onClick={() => showAppToast("More asset actions are demo-safe.")}>
+                        …
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {socialActionDialog && activeSocialPlatform && (
+              <div className="social-action-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeSocialDialog()}>
+                <section
+                  className={`social-action-modal ${socialActionDialog.mode}`}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`${activeSocialPlatform.provider} social account dialog`}
+                >
+                  <header className="social-action-modal-head">
+                    <div className={`social-platform-icon ${activeSocialPlatform.tone}`}>{activeSocialPlatform.icon}</div>
+                    <div>
+                      <h3>
+                        {socialActionDialog.mode === "faq"
+                          ? `${activeSocialPlatform.provider} FAQ's`
+                          : socialActionDialog.mode === "video"
+                          ? `${activeSocialPlatform.provider} Videos`
+                          : activeSocialPlatform.provider}
+                      </h3>
+                      {socialActionDialog.mode === "add" && <p>Connect your {activeSocialPlatform.provider} account</p>}
+                      {socialActionDialog.mode === "video" && <p>Watch setup videos before linking the account.</p>}
+                    </div>
+                    <button className="social-action-close" type="button" aria-label="Close social account dialog" onClick={closeSocialDialog}>
+                      ×
+                    </button>
+                  </header>
+
+                  {socialActionDialog.mode === "faq" && (
+                    <div className="social-action-accordion">
+                      {activeSocialFaqs.map((question) => (
+                        <button type="button" key={question} onClick={() => showAppToast(`${activeSocialPlatform.provider} FAQ opened.`)}>
+                          <span>{question}</span>
+                          <i>⌄</i>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {socialActionDialog.mode === "add" && (
+                    <div className="social-connect-options">
+                      {activeSocialConnectionChoices.map((choice) => (
+                        <button type="button" key={`${choice.title}-${choice.subtitle}`} onClick={() => handleSocialConnectionChoice(choice)}>
+                          <span className="social-connect-icons">
+                            <b>{choice.icon}</b>
+                            {choice.companion && <em>{choice.companion}</em>}
+                          </span>
+                          <span>
+                            <strong>{choice.title}</strong>
+                            <small>{choice.subtitle}</small>
+                          </span>
+                          {choice.badge && <i className={choice.badgeTone}>{choice.badge}</i>}
+                          {choice.note && <mark>{choice.note}</mark>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {socialActionDialog.mode === "video" && (
+                    <div className="social-action-accordion">
+                      {[
+                        `How to connect ${activeSocialPlatform.provider}`,
+                        `How to schedule ${activeSocialPlatform.provider} posts`,
+                        "How owner approval works before publishing",
+                      ].map((title) => (
+                        <button type="button" key={title} onClick={() => showAppToast(`${title} queued for the demo help panel.`)}>
+                          <span>{title}</span>
+                          <i>▶</i>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {publishDraft.creativeId && publishCreative && (
+              <div className="modal-backdrop publish-modal-backdrop" role="presentation">
+                <section className="modal publish-modal" role="dialog" aria-modal="true" aria-label="Publish post modal">
+                  <button className="modal-close" type="button" onClick={closePublishModal}>
+                    ×
+                  </button>
+                  <div className="modal-copy">
+                    <p className="app-kicker">{publishDraft.step === "schedule" ? "Schedule post" : "Publish post"}</p>
+                    <h2>
+                      {publishDraft.step === "schedule"
+                        ? "Choose the optimal time for your post to go live."
+                        : "Choose the specific social media platform below to publish/schedule your post."}
+                    </h2>
+                  </div>
+                  {publishDraft.step === "platform" ? (
+                    <>
+                      <div className="publish-reference-body">
+                        <section className="publish-ready-panel" aria-label="Ready to post">
+                          <h3>Ready to post</h3>
+                          <button
+                            className={publishDraft.platform === "Facebook" && publishDraft.postType === "Feed post" ? "active" : ""}
+                            type="button"
+                            onClick={() => {
+                              updatePublishDraft("platform", "Facebook");
+                              updatePublishDraft("postType", "Feed post");
+                            }}
+                          >
+                            <span>{publishDraft.platform === "Facebook" && publishDraft.postType === "Feed post" ? "✓" : ""}</span>
+                            <strong>f</strong>
+                            Facebook
+                            <i>›</i>
+                          </button>
+                          <button
+                            className={publishDraft.platform === "Facebook Reel" || publishDraft.postType === "Reel/Short" ? "active" : ""}
+                            type="button"
+                            onClick={() => {
+                              updatePublishDraft("platform", "Facebook Reel");
+                              updatePublishDraft("postType", "Reel/Short");
+                            }}
+                          >
+                            <span>{publishDraft.platform === "Facebook Reel" || publishDraft.postType === "Reel/Short" ? "✓" : ""}</span>
+                            <strong>▣</strong>
+                            Facebook Reel
+                            <i>›</i>
+                          </button>
+                        </section>
+                        <section className="publish-reference-status">
+                          <article className={publishUnsupported ? "warning" : ""}>
+                            <strong>{publishUnsupported ? "Not Supported" : "Supported"}</strong>
+                            <p>
+                              {publishUnsupported
+                                ? "Videos media type are not supported by this destination."
+                                : "Selected destination is compatible with assisted owner-approval handoff."}
+                            </p>
+                          </article>
+                          <article>
+                            <div>
+                              <strong>{publishMissingAccount && !publishAssisted ? "Accounts not linked" : "Accounts ready"}</strong>
+                              <button type="button" onClick={() => selectModule("Brand & Social Accounts")}>
+                                Link account
+                              </button>
+                            </div>
+                            <p>Please connect the accounts below to publish/schedule this post!</p>
+                            <div className="publish-account-icons" aria-label="Supported account connectors">
+                              {["IG", "in", "P", "f", "♪", "X", "▶", "+"].map((icon) => (
+                                <span key={icon}>{icon}</span>
+                              ))}
+                            </div>
+                          </article>
+                        </section>
+                        {publishAssisted && (
+                          <div className="publish-assisted">
+                            <strong>Assisted package</strong>
+                            <p>This path creates a handoff package. It is not autonomous publishing.</p>
+                          </div>
+                        )}
+                      </div>
+                      <button className="primary-action publish-reference-continue" type="button" disabled={!publishCanContinue} onClick={continuePublishSchedule}>
+                        Continue
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="publish-schedule-body">
+                        <section className="publish-schedule-calendar" aria-label="Schedule calendar">
+                          <div className="publish-schedule-month">
+                            <button type="button" aria-label="Previous month">‹</button>
+                            <strong>June 2026</strong>
+                            <button type="button" aria-label="Next month">›</button>
+                          </div>
+                          <div className="publish-schedule-days">
+                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
+                              <span key={day}>{day}</span>
+                            ))}
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 1, 2, 3, 4, 5].map((day, index) => (
+                              <button
+                                className={publishDraft.scheduleDay === day && index < 30 ? "active" : ""}
+                                type="button"
+                                key={`${day}-${index}`}
+                                onClick={() => updatePublishDraft("scheduleDay", day)}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
+                        </section>
+                        <section className="publish-schedule-time" aria-label="Schedule time">
+                          <h3>Monday, June {publishDraft.scheduleDay}, 2026</h3>
+                          <p>Brand Timezone : (GMT -4:00) America/Detroit</p>
+                          <div className="publish-time-picker">
+                            {["scheduleHour", "scheduleMinute", "scheduleMeridiem"].map((field) => (
+                              <label key={field}>
+                                <span>⌃</span>
+                                <input
+                                  value={publishDraft[field]}
+                                  onChange={(event) => updatePublishDraft(field, event.target.value)}
+                                  aria-label={field}
+                                />
+                                <span>⌄</span>
+                              </label>
+                            ))}
+                          </div>
+                        </section>
+                        <label className="publish-schedule-check">
+                          <input
+                            type="checkbox"
+                            checked={publishDraft.aiSuggestedTime}
+                            onChange={(event) => updatePublishDraft("aiSuggestedTime", event.target.checked)}
+                          />
+                          Apply AI suggested time for publishing
+                        </label>
+                        <label className="publish-schedule-check">
+                          <input
+                            type="checkbox"
+                            checked={publishDraft.approvalMember}
+                            onChange={(event) => updatePublishDraft("approvalMember", event.target.checked)}
+                          />
+                          Select Team Member for approval
+                        </label>
+                      </div>
+                      <button className="publish-immediate-link" type="button" onClick={schedulePublishPost}>
+                        Publish Immediately Instead?
+                      </button>
+                      <div className="publish-schedule-actions">
+                        <button type="button" onClick={() => updatePublishDraft("step", "platform")}>
+                          Back
+                        </button>
+                        <button className="primary-action" type="button" onClick={schedulePublishPost}>
+                          Schedule Post
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </section>
               </div>
             )}
@@ -3237,9 +8605,29 @@ function App() {
   return (
     <LanguageProvider>
       <TranslationLayer />
-      <AppRoutes />
+      <AppRoutes appElement={<AppDemo />} landingElement={<LandingPage />} />
     </LanguageProvider>
   );
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error("LocalPilot root element was not found.");
+}
+
+const rootStoreKey = "__localpilotReactRoot";
+const existingRoot = window[rootStoreKey];
+const localPilotRoot =
+  existingRoot && existingRoot._internalRoot?.containerInfo === rootElement
+    ? existingRoot
+    : createRoot(rootElement);
+window[rootStoreKey] = localPilotRoot;
+localPilotRoot.render(<App />);
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    // Intentionally no root disposal here. Keep the existing root between module updates
+    // to avoid duplicate createRoot() calls and child-removal consistency errors.
+  });
+}

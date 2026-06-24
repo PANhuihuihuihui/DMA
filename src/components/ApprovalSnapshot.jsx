@@ -9,10 +9,22 @@ const formatValue = (value) => {
   if (typeof value === "boolean") {
     return value ? "Yes" : "No";
   }
+  if (Array.isArray(value)) {
+    return value.map(formatValue).filter(Boolean).join(", ");
+  }
+  if (typeof value === "object") {
+    return Object.entries(value)
+      .map(([nestedKey, nestedValue]) => `${nestedKey}: ${formatValue(nestedValue)}`)
+      .filter(Boolean)
+      .join("; ");
+  }
   return String(value);
 };
 
-const idSuffix = (value) => (value ? value.slice(-8) : "pending");
+const idSuffix = (value) => {
+  const safeValue = String(value || "");
+  return safeValue ? safeValue.slice(-8) : "pending";
+};
 
 const renderSummaryRows = (summary) =>
   Object.entries(summary || {}).map(([key, value]) => (

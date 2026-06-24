@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from backend.app import facebook_oauth, facebook_publisher, fake_publisher, store
+from backend.app import facebook_oauth, facebook_publisher, fake_publisher, sessions, store
 
 
 DEFAULT_DB_PATH = ".localpilot-dev/backend.sqlite"
@@ -199,6 +199,30 @@ class JsonHandler(BaseHTTPRequestHandler):
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json({"status": "ok", "publishJobs": store.list_debug_publish_jobs(conn)})
                 return
+            if method == "GET" and path == "/api/v1/channels/health":
+                query = parse_qs(parsed.query)
+                platform = (query.get("platform") or [None])[0]
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    self.send_json(store.get_channel_health(conn, merchant_id, platform=platform))
+                return
+            channel_action = self.match_channel_action(path)
+            if channel_action and method == "POST" and channel_action["action"] == "disconnect":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    self.send_json(
+                        store.disconnect_channel(conn, merchant_id, channel_action["channel_id"]),
+                        status=201,
+                    )
+                return
+            if channel_action and method == "POST" and channel_action["action"] == "reconnect":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    self.send_json(
+                        store.set_channel_health(conn, merchant_id, channel_action["channel_id"], "connected"),
+                        status=201,
+                    )
+                return
             if method == "GET" and path == "/api/v1/facebook/connection":
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json(facebook_oauth.connection_status(conn=conn))
@@ -320,6 +344,24 @@ class JsonHandler(BaseHTTPRequestHandler):
         ):
             return {"id": parts[6], "action": parts[7]}
         return None
+
+    def match_channel_action(self, path):
+        parts = path.split("/")
+        if len(parts) == 6 and parts[:4] == ["", "api", "v1", "channels"]:
+            return {"channel_id": parts[4], "action": parts[5]}
+        return None
+
+    def resolve_merchant_id(self, conn, parsed):
+        token = self.headers.get("X-LocalPilot-Session")
+        if not token:
+            token = (parse_qs(parsed.query).get("session") or [None])[0]
+        if not token:
+            return store.DEMO_MERCHANT_ID
+        try:
+            resolved = sessions.resolve_session(conn, token)
+        except sessions.SessionError as exc:
+            raise store.StoreError(401, str(exc)) from exc
+        return resolved["merchant_id"]
 
     def match_approval_action(self, path):
         parts = path.split("/")

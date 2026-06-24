@@ -1,13 +1,13 @@
 {
   "model_profile": "balanced",
   "model_overrides": {
-      "gsd-codebase-mapper": "gpt-5.4-mini",
-      "gsd-plan-checker": "gpt-5.4-mini",
-      "gsd-verifier": "gpt-5.4-mini",
-      "gsd-executor": "gpt-5.4",
-      "gsd-debugger": "gpt-5.5",
-      "gsd-planner": "inherit"
-    },
+    "gsd-codebase-mapper": "gpt-5.4-mini",
+    "gsd-plan-checker": "gpt-5.4-mini",
+    "gsd-verifier": "gpt-5.4-mini",
+    "gsd-executor": "gpt-5.4",
+    "gsd-debugger": "gpt-5.5",
+    "gsd-planner": "inherit"
+  },
   "commit_docs": true,
   "parallelization": true,
   "search_gitignored": false,

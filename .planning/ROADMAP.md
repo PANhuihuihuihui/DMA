@@ -124,7 +124,16 @@ Plans:
   4. Approved TikTok drafts can be delivered through official Upload-to-Inbox or draft-style flow after TikTok media validation, with publish IDs, status responses, and provider diagnostics stored.
   5. TikTok failures are classified by authentication, scope, creator setting mismatch, media validation, rate limit, audit/visibility block, platform transient, or unknown error, and Direct Post only becomes available when all official gates are satisfied.
 
-**Plans**: TBD
+**Plans**: 5 planned
+
+Plans:
+
+- [ ] 05-01-PLAN.md — Multi-channel publishing foundation + real session auth (channel_registry, scheduled_posts, publish_dispatch_queue, sessions; calendar_slots migration)
+- [ ] 05-02-PLAN.md — Channel health visibility + disconnect enforcement without blocking content creation (ACCT-04..07)
+- [ ] 05-03-PLAN.md — Creator-info snapshot + disclosure, privacy, and interaction approval gates (TT-01..03)
+- [ ] 05-04-PLAN.md — TikTok upload/draft publish path + backend-owned Direct Post gating (TT-04..06)
+- [ ] 05-05-PLAN.md — Backend media validation + failure taxonomy + strictest-channel generation defaults (TT-07, MEDIA-04)
+
 **UI hint**: yes
 
 ### Phase 6: Manual Fallback And Pilot Support

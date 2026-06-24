@@ -60,6 +60,22 @@ const diagnosticValue = (value) => {
   return unsafeDiagnosticParts.some((part) => rendered.toLowerCase().includes(part)) ? "" : rendered;
 };
 
+const timelineText = (value) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (Array.isArray(value)) {
+    return value.map(timelineText).filter(Boolean).join(", ");
+  }
+  if (typeof value === "object") {
+    return Object.entries(value)
+      .map(([nestedKey, nestedValue]) => `${nestedKey}: ${timelineText(nestedValue)}`)
+      .filter(Boolean)
+      .join("; ");
+  }
+  return String(value);
+};
+
 const diagnosticRows = (diagnostics = {}) =>
   Object.entries(diagnostics)
     .filter(([key]) => safeDiagnosticKey(key))
@@ -178,7 +194,7 @@ export function PublishTimeline({ platform, job, fallbackStatus = "needs_review"
                           <time dateTime={event.timestamp}>{event.timestamp}</time>
                           <strong className={statusClass(event.status)}>{lifecycleLabels[event.status] || event.status}</strong>
                         </div>
-                        <p>{event.summary}</p>
+                        <p>{timelineText(event.summary)}</p>
                         <small>
                           {event.sourceActor || "system"} · {formatAttempt(event.attemptNumber)}
                         </small>
