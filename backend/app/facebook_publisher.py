@@ -6,7 +6,11 @@ from backend.app import facebook_token_vault, store
 from backend.app.contracts import json_loads
 
 
-GRAPH_API_BASE = "https://graph.facebook.com/v20.0"
+GRAPH_API_BASE = "https://graph.facebook.com/v25.0"
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif"}
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
 CTA_COPY = "Publish to Facebook"
 
 
@@ -34,6 +38,8 @@ def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE
         health = facebook_oauth.active_page_health(conn)
         if not health["canPublish"]:
             raise store.StoreError(409, "This Page can't publish yet \u2014 reconnect or grant the publishing permission first.")
+
+    media_info = validate_facebook_media(snapshot, opener=opener)
 
     job = store.create_publish_job(conn, approval)
     if job["status"] == "published":
@@ -76,6 +82,7 @@ def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE
             scheduled_publish_time=payload.get("scheduledPublishTime"),
             graph_base=graph_base,
             opener=opener,
+            media_info=media_info,
         )
         outcome = {
             "attemptStatus": "published",
@@ -116,7 +123,69 @@ def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE
     return {"status": "ok", "ctaCopy": CTA_COPY, "job": store.get_serialized_publish_job(conn, job["id"])}
 
 
-def publish_approved_snapshot(snapshot, user_token, page_id, publish_mode, scheduled_publish_time, graph_base, opener=None):
+def _is_private_host(hostname):
+    import ipaddress
+    hostname = hostname.lower()
+    if hostname in ("localhost", "127.0.0.1", "::1", "0.0.0.0"):
+        return True
+    try:
+        addr = ipaddress.ip_address(hostname)
+        return addr.is_private or addr.is_loopback or addr.is_link_local
+    except ValueError:
+        return False
+
+
+def validate_facebook_media(snapshot, opener=None):
+    all_refs = snapshot.get("mediaRefs") or []
+    media_refs = [
+        r for r in all_refs
+        if r.get("kind") == "image" and (r.get("storageRef") or r.get("url") or "").startswith("http")
+    ]
+    link = snapshot.get("link")
+
+    if len(media_refs) > 1:
+        raise store.StoreError(400, "Facebook publishing supports one image per post. Remove extra images.")
+
+    if media_refs:
+        ref = media_refs[0]
+        image_url = ref.get("storageRef") or ref.get("url") or ""
+        if not image_url:
+            raise store.StoreError(400, "Image media ref is missing a URL.")
+
+        parsed_url = parse.urlparse(image_url)
+        if parsed_url.scheme not in ("http", "https"):
+            raise store.StoreError(400, "Image URL must use http or https.")
+        if _is_private_host(parsed_url.hostname or ""):
+            raise store.StoreError(400, "Image URL must be publicly accessible.")
+
+        ext = (parsed_url.path.rsplit(".", 1)[-1] if "." in parsed_url.path else "").lower()
+        if f".{ext}" not in ALLOWED_IMAGE_EXTENSIONS:
+            raise store.StoreError(400, "Use a JPG, PNG, or GIF image for Facebook.")
+
+        try:
+            head_req = request.Request(image_url, method="HEAD", headers={"Accept": "*/*"})
+            open_fn = opener or request.urlopen
+            with open_fn(head_req, timeout=10) as resp:
+                content_type = (resp.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+                content_length = int(resp.headers.get("Content-Length") or "0")
+                if content_type and content_type not in ALLOWED_IMAGE_TYPES:
+                    raise store.StoreError(400, "Use a JPG, PNG, or GIF image for Facebook.")
+                if content_length > MAX_IMAGE_BYTES:
+                    raise store.StoreError(400, "Image is too large for Facebook (max 10 MB). Use a smaller file.")
+        except store.StoreError:
+            raise
+        except Exception:
+            raise store.StoreError(400, "We can't reach this image URL. Make sure it's public, then try again.")
+
+        return {"kind": "image", "imageUrl": image_url}
+
+    if link:
+        return {"kind": "link", "link": link}
+
+    return {"kind": "text"}
+
+
+def publish_approved_snapshot(snapshot, user_token, page_id, publish_mode, scheduled_publish_time, graph_base, opener=None, media_info=None):
     page_token = facebook_token_vault.get_page_token(page_id)
     if not page_token and user_token:
         page_token = resolve_page_access_token(user_token, page_id, graph_base, opener=opener)
@@ -127,21 +196,39 @@ def publish_approved_snapshot(snapshot, user_token, page_id, publish_mode, sched
             provider_diagnostics("authentication", "not_connected", {"pageId": page_id}),
         )
     message = build_facebook_message(snapshot)
-    body = {"message": message}
+    media_info = media_info or {"kind": "text"}
     scheduled_at = None
     if publish_mode == "schedule":
         scheduled_at = parse_scheduled_time(scheduled_publish_time)
-        body["published"] = "false"
-        body["scheduled_publish_time"] = str(scheduled_at)
 
-    published = graph_request(
-        "POST",
-        f"{graph_base}/{parse.quote(page_id)}/feed",
-        page_token,
-        body=body,
-        opener=opener,
-    )
-    post_id = published.get("id")
+    if media_info["kind"] == "image":
+        body = {"url": media_info["imageUrl"]}
+        if message:
+            body["message"] = message
+        published = graph_request(
+            "POST",
+            f"{graph_base}/{parse.quote(page_id)}/photos",
+            page_token,
+            body=body,
+            opener=opener,
+        )
+        post_id = published.get("post_id") or published.get("id")
+    else:
+        body = {"message": message}
+        if media_info["kind"] == "link":
+            body["link"] = media_info["link"]
+        if scheduled_at:
+            body["published"] = "false"
+            body["scheduled_publish_time"] = str(scheduled_at)
+        published = graph_request(
+            "POST",
+            f"{graph_base}/{parse.quote(page_id)}/feed",
+            page_token,
+            body=body,
+            opener=opener,
+        )
+        post_id = published.get("id")
+
     if not post_id:
         raise FacebookProviderError(
             502,
