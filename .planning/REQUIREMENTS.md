@@ -58,7 +58,7 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [ ] **MEDIA-01**: Merchant can attach or reference media assets for Facebook and TikTok drafts.
 - [ ] **MEDIA-02**: System stores media assets in a server-side storage location suitable for platform publishing or upload.
 - [ ] **MEDIA-03**: System validates Facebook media requirements before creating a Facebook publish job.
-- [ ] **MEDIA-04**: System validates TikTok media requirements such as file type, file size, duration, and accessible upload source before creating a TikTok publish job.
+- [x] **MEDIA-04**: System validates TikTok media requirements such as file type, file size, duration, and accessible upload source before creating a TikTok publish job.
 - [ ] **MEDIA-05**: System surfaces actionable media validation errors to the merchant before publishing.
 
 ### Publishing Engine Reuse
@@ -86,7 +86,7 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [x] **TT-04**: Merchant can choose TikTok privacy and interaction settings from options returned by TikTok creator-info APIs.
 - [x] **TT-05**: Merchant can explicitly confirm TikTok disclosure settings such as organic business promotion, paid partnership, or AI-generated content where applicable.
 - [x] **TT-06**: System stores TikTok publish IDs, status responses, and provider diagnostics for support and reconciliation.
-- [ ] **TT-07**: System classifies TikTok failures by authentication, scope, creator setting mismatch, media validation, rate limit, audit/visibility block, platform transient, or unknown error.
+- [x] **TT-07**: System classifies TikTok failures by authentication, scope, creator setting mismatch, media validation, rate limit, audit/visibility block, platform transient, or unknown error.
 
 ### Publishing Status And Fallback
 
@@ -196,7 +196,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MEDIA-01 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | MEDIA-02 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | MEDIA-03 | Phase 4 - Facebook Page Publishing | Pending |
-| MEDIA-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| MEDIA-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | MEDIA-05 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | ENGINE-01 | Phase 2 - Publishing Engine Reuse Decision | Pending |
 | ENGINE-02 | Phase 2 - Publishing Engine Reuse Decision | Pending |
@@ -215,7 +215,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TT-04 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | TT-05 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | TT-06 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
-| TT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Pending |
+| TT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | STATUS-01 | Phase 1 - Backend Publishing Foundation | Complete |
 | STATUS-02 | Phase 1 - Backend Publishing Foundation | Complete |
 | STATUS-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
