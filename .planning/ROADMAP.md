@@ -20,6 +20,15 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: TikTok Upload And Direct-Post Gates** - Connects TikTok second and delivers approved TikTok drafts through official upload/draft paths while gating Direct Post. (completed 2026-06-24)
 - [ ] **Phase 6: Manual Fallback And Pilot Support** - Gives merchants and operators safe paths for blocked jobs, manual packages, retries, and diagnostics.
 
+### Milestone v2.0 — Predis-style Generative Engine + Smart Onboarding
+
+- [ ] **Phase 7: Google Login And Auth** - Adds real Google OAuth sign-in with backend ID-token verification on top of the v1.0 sessions foundation.
+- [ ] **Phase 8: Website-Crawl Smart Onboarding** - Crawls a merchant's website to auto-generate a brand/business profile, style, and content-setting defaults.
+- [ ] **Phase 9: Generation Engine And Image Generation** - Adds a provider-agnostic async generation contract and real image/ad-creative generation.
+- [ ] **Phase 10: Credit Metering And Model Selection** - Meters generation credits per model/type/duration, exposes model selection, and enforces plan limits.
+- [ ] **Phase 11: Carousel Generation** - Generates multi-slide carousels from an idea/URL using real image generation and brand layout.
+- [ ] **Phase 12: Text-To-Video And UGC Avatar** - Generates short videos and UGC avatar videos through video-model providers with voiceover.
+
 ## Phase Details
 
 ### Phase 1: Backend Publishing Foundation
@@ -155,6 +164,103 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+---
+
+## Milestone v2.0 Phase Details
+
+### Phase 7: Google Login And Auth
+
+**Goal**: A user can sign in with Google, and the backend verifies the Google ID token and issues a LocalPilot session linked to a user and merchant.
+**Mode:** mvp
+**Depends on**: Phase 5 (sessions/auth foundation)
+**Requirements**: GAUTH-01, GAUTH-02
+**Success Criteria** (what must be TRUE):
+
+  1. A user can complete Google sign-in and reach an authenticated session.
+  2. The backend verifies the Google ID token signature, `aud`, `exp`, and `iss`, and rejects invalid or mis-audienced tokens.
+  3. The system uses the Google `sub` as the stable user key and links or creates the user and merchant.
+  4. Provider secrets (Google client secret) stay server-side and never reach the browser or committed files.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 8: Website-Crawl Smart Onboarding
+
+**Goal**: A merchant can enter a website URL and the backend crawls public info to auto-generate a brand/business profile, style, and content-setting defaults they can review and edit.
+**Mode:** mvp
+**Depends on**: Phase 7
+**Requirements**: ONBOARD-01, ONBOARD-02, ONBOARD-03, ONBOARD-04, ONBOARD-05
+**Success Criteria** (what must be TRUE):
+
+  1. Merchant can submit a website URL and receive an auto-generated business profile (name, description, digital presence).
+  2. System extracts brand style (logo, colors, fonts) to seed the brand kit and proposes content-setting defaults (tonality, language, timezone, voiceover, avatar).
+  3. Merchant can review and edit the generated profile before confirming; re-fetch replaces details only after an explicit warning.
+  4. Crawl fetches public info only, stores no site credentials, and sanitizes untrusted content.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 9: Generation Engine And Image Generation
+
+**Goal**: The backend can route generation requests to a configured model/provider through a provider-agnostic async contract and produce real images / ad creatives.
+**Mode:** mvp
+**Depends on**: Phase 5 (publish lifecycle pattern)
+**Requirements**: GEN-01, GEN-02, GEN-03
+**Success Criteria** (what must be TRUE):
+
+  1. A generation request routes to a configured `{provider, model}` without exposing API keys.
+  2. Generation runs as an async job with a normalized status lifecycle and a result reference surfaced to the client.
+  3. Merchant can generate a real image / ad creative from a prompt and brand context.
+  4. The provider abstraction allows swapping models/providers via configuration.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 10: Credit Metering And Model Selection
+
+**Goal**: The system meters generation credits, exposes model selection with per-model cost, and enforces plan limits before expensive generation runs.
+**Mode:** mvp
+**Depends on**: Phase 9
+**Requirements**: CREDIT-01, CREDIT-02, CREDIT-03
+**Success Criteria** (what must be TRUE):
+
+  1. System meters credit usage per generation by content type, model, and duration.
+  2. Merchant can select among available models with visible per-model credit cost.
+  3. System enforces plan credit limits and blocks or queues generation when exhausted.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 11: Carousel Generation
+
+**Goal**: A merchant can generate a multi-slide carousel from an idea or URL using real image generation and brand layout.
+**Mode:** mvp
+**Depends on**: Phase 9, Phase 10
+**Requirements**: GENC-01
+**Success Criteria** (what must be TRUE):
+
+  1. Merchant can generate a multi-slide carousel from an idea or URL.
+  2. Slides use real generated imagery and the merchant's brand layout.
+  3. Carousel generation is metered through the credit system.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 12: Text-To-Video And UGC Avatar
+
+**Goal**: A merchant can generate short videos and UGC avatar videos through video-model providers, with voiceover, gated by credits.
+**Mode:** mvp
+**Depends on**: Phase 9, Phase 10
+**Requirements**: GENV-01, GENV-02
+**Success Criteria** (what must be TRUE):
+
+  1. Merchant can generate a short video from a text prompt (script, scenes, captions, voiceover).
+  2. Merchant can generate a UGC avatar video by selecting an avatar and providing a script, producing a video with voiceover.
+  3. Video generation is metered and gated by plan credit limits.
+
+**Plans**: TBD
+**UI hint**: yes
+
 ## Coverage
 
 The roadmap still preserves the original Facebook-first, TikTok-second publishing order, but Phase 3 now pulls selected analytics/proof-loop requirements forward because the v3 research made measurable response evidence part of the customer-demo wedge. Xiaohongshu direct publishing remains deferred to v2.
@@ -172,6 +278,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Facebook Page Publishing Hardening | 3/8 | In Progress|  |
 | 5. TikTok Upload And Direct-Post Gates | 5/5 | Complete    | 2026-06-24 |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
+| 7. Google Login And Auth (v2.0) | 0/TBD | Not started | - |
+| 8. Website-Crawl Smart Onboarding (v2.0) | 0/TBD | Not started | - |
+| 9. Generation Engine And Image Generation (v2.0) | 0/TBD | Not started | - |
+| 10. Credit Metering And Model Selection (v2.0) | 0/TBD | Not started | - |
+| 11. Carousel Generation (v2.0) | 0/TBD | Not started | - |
+| 12. Text-To-Video And UGC Avatar (v2.0) | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-06-09*
+*Milestone v2.0 added: 2026-06-24*

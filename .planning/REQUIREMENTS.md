@@ -112,6 +112,41 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [ ] **ADMIN-03**: Internal operator can trigger safe retry or mark a manual support path for blocked publish jobs.
 - [ ] **ADMIN-04**: System records enough diagnostics to prepare Meta/TikTok app review evidence and troubleshoot pilot merchant failures.
 
+## Milestone v2.0 Requirements (Generative Engine + Smart Onboarding)
+
+Requirements for milestone v2.0. Each maps to exactly one v2.0 phase (7–12). Builds on the v1.0 backend (sessions/auth, brand kit, publish lifecycle).
+
+### Smart Onboarding
+
+- [ ] **ONBOARD-01**: Merchant can enter a website URL during onboarding and the backend crawls public information to auto-generate a business profile (name, description, digital presence).
+- [ ] **ONBOARD-02**: System extracts brand style (logo, colors, fonts/typography) from the website to seed the brand kit.
+- [ ] **ONBOARD-03**: System populates content-setting defaults (tonality, language, timezone, voiceover, avatar) that the merchant can edit before saving.
+- [ ] **ONBOARD-04**: Merchant can review and edit the auto-generated profile before confirming, and a re-fetch replaces details only after an explicit confirmation warning.
+- [ ] **ONBOARD-05**: Website crawl fetches public information only, stores no site credentials, and sanitizes untrusted crawled content before use or display.
+
+### Google Login
+
+- [ ] **GAUTH-01**: User can sign in with Google, and the backend verifies the Google ID token (signature, `aud`, `exp`, `iss`) rather than trusting client-sent identifiers.
+- [ ] **GAUTH-02**: System uses the Google `sub` claim as the stable user identifier, links or creates the user and merchant, and issues a LocalPilot session.
+
+### Generation Engine
+
+- [ ] **GEN-01**: Backend exposes a provider-agnostic generation contract that routes a request to a configured `{provider, model}` with API keys kept server-side only.
+- [ ] **GEN-02**: Generation runs as asynchronous jobs with a normalized status lifecycle (queued, running, succeeded, failed) and a result reference surfaced to the client.
+- [ ] **GEN-03**: Merchant can generate a real image / ad creative from a prompt and brand context.
+
+### Generative Content Types
+
+- [ ] **GENC-01**: Merchant can generate a multi-slide carousel from an idea or URL using real image generation and brand layout.
+- [ ] **GENV-01**: Merchant can generate a short video from a text prompt (script, scenes, captions, voiceover).
+- [ ] **GENV-02**: Merchant can generate a UGC avatar video by selecting an avatar (by attributes) and providing a script, producing a video with voiceover.
+
+### Credits And Model Selection
+
+- [ ] **CREDIT-01**: System meters credit usage per generation by content type, model, and duration.
+- [ ] **CREDIT-02**: Merchant can select among available models with visible per-model credit cost.
+- [ ] **CREDIT-03**: System enforces plan credit limits and blocks or queues generation when credits are exhausted.
+
 ## v2 Requirements
 
 Deferred requirements tracked for later releases.
@@ -231,6 +266,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADMIN-02 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | ADMIN-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
 | ADMIN-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| GAUTH-01 | Phase 7 - Google Login And Auth | Pending |
+| GAUTH-02 | Phase 7 - Google Login And Auth | Pending |
+| ONBOARD-01 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| ONBOARD-02 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| ONBOARD-03 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| ONBOARD-04 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| ONBOARD-05 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| GEN-01 | Phase 9 - Generation Engine And Image Generation | Pending |
+| GEN-02 | Phase 9 - Generation Engine And Image Generation | Pending |
+| GEN-03 | Phase 9 - Generation Engine And Image Generation | Pending |
+| CREDIT-01 | Phase 10 - Credit Metering And Model Selection | Pending |
+| CREDIT-02 | Phase 10 - Credit Metering And Model Selection | Pending |
+| CREDIT-03 | Phase 10 - Credit Metering And Model Selection | Pending |
+| GENC-01 | Phase 11 - Carousel Generation | Pending |
+| GENV-01 | Phase 12 - Text-To-Video And UGC Avatar | Pending |
+| GENV-02 | Phase 12 - Text-To-Video And UGC Avatar | Pending |
 
 **Coverage:**
 
