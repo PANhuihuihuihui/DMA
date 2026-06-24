@@ -1551,6 +1551,44 @@ def validate_tiktok_confirmations(creator_info, confirmations):
     }
 
 
+def strictest_channel_media_policy(conn, platforms=None):
+    """Media generation policy that targets the strictest relevant channel first.
+
+    Default to a single asset that satisfies the strictest enabled-channel
+    constraints; extra variants are opt-in, not a default fallback (D-13).
+    """
+    rows = conn.execute(
+        "select id, status, max_caption_length, supported_media_json from channel_registry"
+    ).fetchall()
+    enabled = [row for row in rows if row["status"] == "enabled"]
+    if platforms:
+        wanted = set(platforms)
+        enabled = [row for row in enabled if row["id"] in wanted]
+
+    caption_limits = [
+        (row["id"], row["max_caption_length"])
+        for row in enabled
+        if row["max_caption_length"] is not None
+    ]
+    strictest_caption = min((limit for _, limit in caption_limits), default=None)
+    strictest_channel = min(caption_limits, key=lambda item: item[1])[0] if caption_limits else None
+
+    media_sets = [set(json_loads(row["supported_media_json"], [])) for row in enabled]
+    supported_media = sorted(set.intersection(*media_sets)) if media_sets else []
+
+    return {
+        "strictestChannel": strictest_channel,
+        "maxCaptionLength": strictest_caption,
+        "supportedMedia": supported_media,
+        "generateVariants": False,
+        "variantPolicy": "strictest_relevant_channel_first",
+        "rationale": (
+            "Generate one asset that satisfies the strictest relevant channel constraints first; "
+            "only create extra variants when a concrete compliance or performance reason requires it."
+        ),
+    }
+
+
 def migrate_demo_seed_to_aurora(conn):
     now = utc_now()
     conn.execute(

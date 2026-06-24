@@ -234,6 +234,8 @@ export const refreshTiktokCreatorInfo = (channelId) =>
     body: JSON.stringify({ channelId }),
   });
 
+export const loadTiktokMediaPolicy = () => requestJson("/tiktok/media-policy");
+
 export const loadFacebookConnection = () => requestJson("/facebook/connection");
 
 export const loadFacebookPages = (connectSession) =>

@@ -230,6 +230,11 @@ class JsonHandler(BaseHTTPRequestHandler):
                     self.resolve_merchant_id(conn, parsed)
                     self.send_json({"creatorInfo": store.get_tiktok_creator_info(conn, channel_id)})
                 return
+            if method == "GET" and path == "/api/v1/tiktok/media-policy":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_merchant_id(conn, parsed)
+                    self.send_json({"mediaPolicy": store.strictest_channel_media_policy(conn)})
+                return
             if method == "POST" and path == "/api/v1/tiktok/creator-info/refresh":
                 with closing(store.connect(self.db_path)) as conn:
                     self.resolve_merchant_id(conn, parsed)
