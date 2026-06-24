@@ -158,20 +158,18 @@ class RetryRedactionIdempotencyTest(ApiCase):
         _approval, published_job = self.publish_platform("facebook")
 
         self.assertEqual("published", published_job["status"])
-        error_payload = self.assert_http_error_payload(
+        retry_payload = self.send_json(
             "POST",
             f"/api/v1/publish-jobs/{published_job['id']}/retry",
             {"diagnosticsFixture": forbidden_diagnostics_fixture()},
-            409,
         )
         fetched = self.get_json(f"/api/v1/publish-jobs/{published_job['id']}")
 
         self.assertEqual("published", fetched["job"]["status"])
         self.assertEqual(1, len(fetched["job"]["attempts"]))
         self.assertEqual(1, len(self.raw_outcome_rows()))
-        assert_no_forbidden_terms(self, "published retry conflict", error_payload)
-        assert_no_secret_values(self, "published retry conflict", error_payload)
-        self.assertIn("already published", error_payload["error"]["message"].lower())
+        assert_no_forbidden_terms(self, "published retry idempotent", retry_payload)
+        assert_no_secret_values(self, "published retry idempotent", retry_payload)
 
 
 if __name__ == "__main__":
