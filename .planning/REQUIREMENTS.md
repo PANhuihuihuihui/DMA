@@ -93,8 +93,8 @@ Requirements for the first real publishing milestone. Each requirement should ma
 - [x] **STATUS-01**: Merchant can see a timeline for each platform publish job from approval through terminal status.
 - [x] **STATUS-02**: System can retry transient publish failures without duplicating successful posts.
 - [ ] **STATUS-03**: System can mark a platform draft as manual fallback required when official API access, review status, account eligibility, or media constraints block direct publishing.
-- [ ] **STATUS-04**: Merchant can download or copy a manual publishing package containing caption, hashtags, CTA, media checklist, disclosure notes, and platform instructions.
-- [ ] **STATUS-05**: Merchant can mark a manual fallback package as manually completed.
+- [ ] **STATUS-04**: Merchant can download or copy a manual publishing package containing caption, hashtags, CTA, media checklist, disclosure notes, and platform instructions. _(Deferred post-v1.0 — descoped from Phase 6 on 2026-06-24.)_
+- [ ] **STATUS-05**: Merchant can mark a manual fallback package as manually completed. _(Deferred post-v1.0 — descoped from Phase 6 on 2026-06-24.)_
 
 ### Local-Business Differentiation
 
@@ -219,8 +219,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STATUS-01 | Phase 1 - Backend Publishing Foundation | Complete |
 | STATUS-02 | Phase 1 - Backend Publishing Foundation | Complete |
 | STATUS-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
-| STATUS-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
-| STATUS-05 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| STATUS-04 | Deferred (post-v1.0) | Deferred |
+| STATUS-05 | Deferred (post-v1.0) | Deferred |
 | LOCAL-01 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | LOCAL-02 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | LOCAL-03 | Phase 3 - Facebook Customer Demo Loop | Pending |

@@ -138,17 +138,19 @@ Plans:
 
 ### Phase 6: Manual Fallback And Pilot Support
 
-**Goal**: Merchant and internal operator can resolve blocked publish jobs safely through manual packages, completion tracking, redacted diagnostics, and support actions.
+**Goal**: Internal operator (and the system) can resolve blocked publish jobs safely through automatic manual-fallback marking, redacted diagnostics, support actions, and app-review evidence export.
 **Mode:** mvp
 **Depends on**: Phase 5
-**Requirements**: STATUS-03, STATUS-04, STATUS-05, ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
+**Requirements**: STATUS-03, ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
+**Scope note (2026-06-24):** Merchant-facing manual package (STATUS-04) and manual completion tracking (STATUS-05) were descoped from this phase and deferred post-v1.0 (see `06-CONTEXT.md`).
 **Success Criteria** (what must be TRUE):
 
-  1. Merchant can see when direct publishing is blocked by official API access, review status, account eligibility, or media constraints and is marked manual fallback required.
-  2. Merchant can download or copy a platform manual publishing package with caption, hashtags, CTA, media checklist, disclosure notes, and instructions.
-  3. Merchant can mark a manual fallback package as completed and see the platform draft timeline reflect manual completion.
-  4. Internal operator can inspect merchant, channel, job, attempt, and error status with redacted provider IDs, trace IDs, error classes, next recommended action, and app-review evidence.
-  5. Internal operator can trigger safe retry or mark a manual support path without viewing tokens or secrets.
+  1. System marks a publish job manual fallback required when direct publishing is blocked by official API access, review status, account eligibility, or media constraints (terminal non-retryable failure classes).
+  2. Internal operator can inspect merchant, channel, job, attempt, and error status with redacted provider IDs, trace IDs, error classes, and next recommended action.
+  3. Internal operator can trigger safe retry or mark a manual support path without viewing tokens or secrets.
+  4. System can export a per-job redacted app-review/pilot evidence bundle (scopes, chosen route, gate results, confirmations) for Meta/TikTok review and troubleshooting.
+
+  _Deferred (post-v1.0): merchant download/copy manual package; merchant manual completion tracking._
 
 **Plans**: TBD
 **UI hint**: yes
