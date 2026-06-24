@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from backend.app import facebook_oauth, facebook_publisher, fake_publisher, sessions, store
+from backend.app import facebook_oauth, facebook_publisher, fake_publisher, sessions, store, tiktok_publisher
 
 
 DEFAULT_DB_PATH = ".localpilot-dev/backend.sqlite"
@@ -277,6 +277,17 @@ class JsonHandler(BaseHTTPRequestHandler):
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json(
                         facebook_publisher.queue_facebook_publish(
+                            conn,
+                            approval_action["approval_id"],
+                            self.read_json(),
+                        ),
+                        status=201,
+                    )
+                return
+            if approval_action and method == "POST" and approval_action["action"] == "publish-tiktok":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(
+                        tiktok_publisher.queue_tiktok_publish(
                             conn,
                             approval_action["approval_id"],
                             self.read_json(),

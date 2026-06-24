@@ -197,6 +197,12 @@ export const publishFacebookPost = (approvalId, payload) =>
     body: JSON.stringify(payload),
   });
 
+export const publishTiktokPost = (approvalId, payload = {}) =>
+  requestJson(`/approvals/${encodeURIComponent(approvalId)}/publish-tiktok`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
 export const loadPublishJob = (jobId) => requestJson(`/publish-jobs/${encodeURIComponent(jobId)}`);
 
 export const retryPublishJob = (jobId) =>
