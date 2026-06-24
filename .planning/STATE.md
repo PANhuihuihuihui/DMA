@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Phase 6 context gathered
-last_updated: "2026-06-24T19:13:36.997Z"
-last_activity: 2026-06-24 -- Phase 06 planning complete
+milestone: v2.0
+milestone_name: Predis-style Generative Engine + Smart Onboarding
+status: planning
+last_updated: "2026-06-24T21:25:41.754Z"
+last_activity: 2026-06-24
 progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 25
-  completed_plans: 25
-  percent: 83
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-24 -- Phase 06 planning complete
-
-Progress: [##########] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-24 — Milestone v2.0 started
 
 ## Performance Metrics
 

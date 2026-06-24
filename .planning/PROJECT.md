@@ -10,6 +10,20 @@ The product is not trying to become a generic scheduler. Its wedge is local-busi
 
 A local business owner can go from one marketing idea to approved, platform-native Facebook and TikTok posts published through their own official accounts with minimal effort.
 
+## Current Milestone: v2.0 Predis-style Generative Engine + Smart Onboarding
+
+**Goal:** Turn LocalPilot into a Predis-equivalent: onboard a merchant from just their website, sign in with Google, and generate real platform-native images, carousels, and videos (including UGC avatars) through a provider-agnostic generation engine with credit metering.
+
+**Target features:**
+- Website-crawl onboarding — merchant enters a URL → backend crawls public info → auto-generates a brand/customer profile (business identity, description, digital presence), style (fonts/colors), and content settings (tonality, voiceover, avatar, timezone). Mirrors Predis "Fetch details from website".
+- Google account login — real Google OAuth sign-in, extending the Phase 5 sessions/auth foundation.
+- Generative content engine — provider-agnostic abstraction plus real image/ad-creative generation, carousel generation, text-to-video pipeline, and UGC avatar video (concrete models chosen during research).
+- Credit metering + model selection — usage tracking, per-model cost, and plan limits.
+
+**Note:** v1.0 (Phases 1–6) remains in progress (Phases 3, 4 partial; Phase 6 planned). v2.0 phases continue numbering from Phase 7; v1.0 phase work is preserved and resumable.
+
+**Deferred from v2.0:** public content-generation API + webhooks.
+
 ## Requirements
 
 ### Validated
@@ -95,4 +109,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-09 after initialization*
+*Last updated: 2026-06-24 — opened milestone v2.0 (generative engine + smart onboarding)*
