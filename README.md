@@ -57,6 +57,41 @@ Then it writes the deployable archive to:
 
 Current remote deployment status: Sites provisioning is blocked until Sites is enabled for this workspace. When it is enabled, create the Sites project, save a version from the archive, and deploy that version.
 
+## Backend Setup (Phase 4+)
+
+The Python backend requires one third-party dependency for token encryption:
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+To run the full stack (frontend + backend):
+
+```bash
+npm run dev:full
+```
+
+### Token encryption (optional for local dev)
+
+Facebook Page tokens are encrypted at rest using Fernet symmetric encryption.
+
+- **Local dev (no key set):** The backend runs in a clearly-labeled insecure mode — tokens are kept in memory only and lost on restart. The demo still works.
+- **Production:** Set `LOCALPILOT_ENV=production` and `LOCALPILOT_TOKEN_KEY` — the backend refuses to handle tokens without the key.
+
+Generate a dev key:
+
+```bash
+python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Then export it:
+
+```bash
+export LOCALPILOT_TOKEN_KEY="<paste key>"
+```
+
+Never commit the key. The `.gitignore` should exclude any local key files.
+
 ## Structure
 
 - `index.html`: Vite HTML entry
