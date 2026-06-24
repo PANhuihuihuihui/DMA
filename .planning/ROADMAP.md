@@ -158,7 +158,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Backend Publishing Foundation | 9/9 | Complete   | 2026-06-10 |
 | 2. Publishing Engine Reuse Decision | 1/1 | Complete | 2026-06-10 |
 | 3. Predis Replica Plus Local Proof Loop MVP | 1/2 | In progress | - |
-| 4. Facebook Page Publishing Hardening | 2/8 | In Progress|  |
+| 4. Facebook Page Publishing Hardening | 3/8 | In Progress|  |
 | 5. TikTok Upload And Direct-Post Gates | 0/TBD | Not started | - |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
 
