@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: TikTok Upload And Direct-Post Gates** - Connects TikTok second and delivers approved TikTok drafts through official upload/draft paths while gating Direct Post. (completed 2026-06-24)
 - [ ] **Phase 6: Manual Fallback And Pilot Support** - Gives merchants and operators safe paths for blocked jobs, manual packages, retries, and diagnostics.
 
-### Milestone v2.0 — Predis-style Generative Engine + Smart Onboarding
+**Milestone v2.0 — Predis-style Generative Engine + Smart Onboarding:**
 
 - [ ] **Phase 7: Google Login And Auth** - Adds real Google OAuth sign-in with backend ID-token verification on top of the v1.0 sessions foundation.
 - [ ] **Phase 8: Website-Crawl Smart Onboarding** - Crawls a merchant's website to auto-generate a brand/business profile, style, and content-setting defaults.
