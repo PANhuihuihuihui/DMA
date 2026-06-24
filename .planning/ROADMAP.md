@@ -2,7 +2,7 @@
 
 ## Overview
 
-LocalPilot AI moves from a frontend-only React/Vite demo into a real merchant-owned publishing MVP. The work starts by adding backend-owned publishing records, approval snapshots, status tracking, and a fake adapter while preserving the current demo. A Postiz-style publishing engine spike happens before deep custom provider wrappers. The MVP then delivers local campaign drafting, Facebook Page publishing first, TikTok upload/draft publishing second, and manual support workflows for blocked jobs. Xiaohongshu remains deferred to v2 until a compliant official or partner publishing route is proven.
+LocalPilot AI moves from a frontend-only React/Vite demo into a real merchant-owned publishing MVP. The work starts by adding backend-owned publishing records, approval snapshots, status tracking, and a fake adapter while preserving the current demo. A Postiz-style publishing engine spike happens before deep custom provider wrappers. Phase 3 is now the top-priority customer-demo MVP: replicate Predis.ai's recognizable content creation, brand kit, creative editor, scheduling, approval, competitor idea, and analytics loop, then make it 1% better for local SMBs with owner approval and a measurable response/proof loop. Facebook OAuth publishing remains the first real adapter inside that broader product. TikTok and other channels follow through assisted or official paths as they become reliable. Xiaohongshu remains deferred to v2 until a compliant official or partner publishing route is proven.
 
 ## Phases
 
@@ -14,9 +14,9 @@ LocalPilot AI moves from a frontend-only React/Vite demo into a real merchant-ow
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Backend Publishing Foundation** - Adds API-backed workflow state, fake publishing, approval snapshots, status tracking, and preserves the current demo. (completed 2026-06-10)
-- [ ] **Phase 2: Publishing Engine Reuse Decision** - Spikes Postiz-style engine reuse and rejects AutoCLI-style production publishing before custom provider wrappers.
-- [ ] **Phase 3: Local Campaign Draft Workbench** - Turns one local offer into editable, platform-native Facebook and TikTok drafts with media and local CTA context.
-- [ ] **Phase 4: Facebook Page Publishing** - Connects merchant-owned Facebook Pages and publishes approved Facebook drafts first.
+- [x] **Phase 2: Publishing Engine Reuse Decision** - Spikes Postiz-style engine reuse and rejects AutoCLI-style production publishing before custom provider wrappers. (completed 2026-06-10)
+- [ ] **Phase 3: Predis Replica Plus Local Proof Loop MVP** - Replicates Predis.ai's core prompt-to-content, brand kit, editor, calendar, approval, competitor idea, and analytics loop, then adds local owner approval, Facebook OAuth publishing, and measurable response hooks.
+- [ ] **Phase 4: Facebook Page Publishing Hardening** - Hardens merchant-owned Facebook Page publishing for production readiness, including encrypted token persistence, permission health, app review evidence, media validation, retries, and fallback.
 - [ ] **Phase 5: TikTok Upload And Direct-Post Gates** - Connects TikTok second and delivers approved TikTok drafts through official upload/draft paths while gating Direct Post.
 - [ ] **Phase 6: Manual Fallback And Pilot Support** - Gives merchants and operators safe paths for blocked jobs, manual packages, retries, and diagnostics.
 
@@ -36,10 +36,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Retrying an approved fake publish job records a new immutable attempt without duplicating the approved external outcome.
   5. Support-visible diagnostics and events show approver, draft version, timestamps, and redacted provider details without exposing tokens or secrets.
 
-**Plans**: 1 plan
+**Plans**: 9 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Bounded Postiz-vs-native comparison matrix, evidence capture, and go/no-go decision memo
+- [x] 01-01-PLAN.md — Backend contract and persistence foundation
+- [x] 01-02-PLAN.md — Frontend backend-backed approval workflow
+- [x] 01-03-PLAN.md — Backend fake publish lifecycle
+- [x] 01-04-PLAN.md — React fake publish timeline
+- [x] 01-05-PLAN.md — Retry, idempotency, and redaction backend
+- [x] 01-06-PLAN.md — Retry publish control and attempt timeline UI
+- [x] 01-07-PLAN.md — Read-only redacted debug diagnostics API
+- [x] 01-08-PLAN.md — Hidden debug route and route extraction
+- [x] 01-09-PLAN.md — Storage boundary and final verification scripts
 **UI hint**: yes
 
 ### Phase 2: Publishing Engine Reuse Decision
@@ -58,28 +66,31 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — Bounded Postiz-vs-native comparison matrix, evidence capture, and go/no-go decision memo
+- [x] 02-01-PLAN.md — Bounded Postiz-vs-native comparison matrix, evidence capture, and go/no-go decision memo
 
-### Phase 3: Local Campaign Draft Workbench
+### Phase 3: Predis Replica Plus Local Proof Loop MVP
 
-**Goal**: Merchant can enter one local business offer and produce editable, platform-native Facebook and TikTok draft records with local CTAs, risk checks, and media references.
+**Goal**: Merchant can enter one local business offer and see a Predis-style workflow that generates branded multi-platform content, previews posts/carousels/video scripts, schedules the week, requires owner approval, publishes approved Facebook content through OAuth when configured, and shows measurable local response evidence without buying ads.
 **Mode:** mvp
 **Depends on**: Phase 2
-**Requirements**: CAMP-01, CAMP-02, CAMP-03, CAMP-04, CAMP-05, CAMP-06, LOCAL-01, LOCAL-02, LOCAL-03, LOCAL-04, LOCAL-05, LOCAL-06, APPR-01, APPR-02, APPR-03, MEDIA-01, MEDIA-02, MEDIA-05
+**Requirements**: CAMP-01, CAMP-02, CAMP-03, CAMP-04, CAMP-05, CAMP-06, LOCAL-01, LOCAL-02, LOCAL-03, LOCAL-04, LOCAL-06, APPR-01, APPR-02, APPR-03, APPR-04, APPR-05, APPR-06, ACCT-01, ACCT-02, FB-02, FB-04, STATUS-01, STATUS-02, SEC-01, SEC-04, ROI-01, ROI-02
 **Success Criteria** (what must be TRUE):
 
-  1. Merchant can enter one local offer, service, product, event, or promotion plus business context such as industry, location, audience, tone, languages, services, and goals.
-  2. Merchant can view separate editable Facebook and TikTok draft records side by side, each with platform-native copy, CTA context, and local ROI metadata.
-  3. Merchant can regenerate or request revision of a platform draft while prior versions remain available for audit and comparison.
-  4. Merchant can attach or reference media stored server-side and see actionable media validation errors before approval.
-  5. Drafts can include English, Chinese, or bilingual variants and flag risky claims, unsupported guarantees, regulated phrasing, or missing disclaimers without requiring Xiaohongshu direct publishing.
+  1. Merchant can configure a brand kit and local business profile with location, industry, offer, audience, tone, language, and goals.
+  2. Merchant can enter one local idea and generate a weekly content batch with Facebook, Instagram, TikTok/Reels, and Google Business Profile outputs.
+  3. Merchant can see Predis-like surfaces for AI generation, creative previews, captions, hashtags, calendar scheduling, approvals, connected accounts, competitor ideas, and analytics.
+  4. Merchant can edit drafts, preserve versions, approve exact payloads, and schedule or publish approved Facebook drafts through OAuth without pasting access tokens.
+  5. Merchant can see proof hooks and response events such as short-link clicks, QR scans, call taps, direction taps, booking clicks, DMs, coupon redemptions, and owner-confirmed mentions without exact ROI claims.
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 03-01-PLAN.md — Predis replica plus local proof loop MVP
+- [~] 03-02-PLAN.md — Predis logged-in reference clone hardening (implemented; build/screen gate blocked by local Rollup native binary)
 **UI hint**: yes
 
-### Phase 4: Facebook Page Publishing
+### Phase 4: Facebook Page Publishing Hardening
 
-**Goal**: Merchant can connect an official Facebook Page and publish approved Facebook drafts first through the selected Page, with retry/fallback and support diagnostics.
+**Goal**: Merchant can use production-ready Facebook Page publishing through the selected Page, with secure token persistence, permission health, media validation, retry/fallback, support diagnostics, and app-review evidence.
 **Mode:** mvp
 **Depends on**: Phase 3
 **Requirements**: ACCT-01, ACCT-02, ACCT-03, FB-01, FB-02, FB-03, FB-04, FB-05, FB-06, MEDIA-03
@@ -130,7 +141,7 @@ Plans:
 
 ## Coverage
 
-All 69 v1 requirements are mapped to exactly one phase. Facebook production integration is sequenced before TikTok. Xiaohongshu direct publishing remains deferred to v2.
+The roadmap still preserves the original Facebook-first, TikTok-second publishing order, but Phase 3 now pulls selected analytics/proof-loop requirements forward because the v3 research made measurable response evidence part of the customer-demo wedge. Xiaohongshu direct publishing remains deferred to v2.
 
 ## Progress
 
@@ -140,9 +151,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Backend Publishing Foundation | 9/9 | Complete   | 2026-06-10 |
-| 2. Publishing Engine Reuse Decision | 0/TBD | Not started | - |
-| 3. Local Campaign Draft Workbench | 0/TBD | Not started | - |
-| 4. Facebook Page Publishing | 0/TBD | Not started | - |
+| 2. Publishing Engine Reuse Decision | 1/1 | Complete | 2026-06-10 |
+| 3. Predis Replica Plus Local Proof Loop MVP | 1/2 | In progress | - |
+| 4. Facebook Page Publishing Hardening | 0/TBD | Not started | - |
 | 5. TikTok Upload And Direct-Post Gates | 0/TBD | Not started | - |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
 
