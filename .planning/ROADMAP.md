@@ -39,6 +39,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 9 plans
 
 Plans:
+
 - [x] 01-01-PLAN.md — Backend contract and persistence foundation
 - [x] 01-02-PLAN.md — Frontend backend-backed approval workflow
 - [x] 01-03-PLAN.md — Backend fake publish lifecycle
@@ -48,6 +49,7 @@ Plans:
 - [x] 01-07-PLAN.md — Read-only redacted debug diagnostics API
 - [x] 01-08-PLAN.md — Hidden debug route and route extraction
 - [x] 01-09-PLAN.md — Storage boundary and final verification scripts
+
 **UI hint**: yes
 
 ### Phase 2: Publishing Engine Reuse Decision
@@ -66,6 +68,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
+
 - [x] 02-01-PLAN.md — Bounded Postiz-vs-native comparison matrix, evidence capture, and go/no-go decision memo
 
 ### Phase 3: Predis Replica Plus Local Proof Loop MVP
@@ -84,8 +87,10 @@ Plans:
 
 **Plans**: 2 plans
 Plans:
+
 - [x] 03-01-PLAN.md — Predis replica plus local proof loop MVP
 - [~] 03-02-PLAN.md — Predis logged-in reference clone hardening (implemented; build/screen gate blocked by local Rollup native binary)
+
 **UI hint**: yes
 
 ### Phase 4: Facebook Page Publishing Hardening
@@ -153,7 +158,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Backend Publishing Foundation | 9/9 | Complete   | 2026-06-10 |
 | 2. Publishing Engine Reuse Decision | 1/1 | Complete | 2026-06-10 |
 | 3. Predis Replica Plus Local Proof Loop MVP | 1/2 | In progress | - |
-| 4. Facebook Page Publishing Hardening | 0/TBD | Not started | - |
+| 4. Facebook Page Publishing Hardening | 2/8 | In Progress|  |
 | 5. TikTok Upload And Direct-Post Gates | 0/TBD | Not started | - |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
 
