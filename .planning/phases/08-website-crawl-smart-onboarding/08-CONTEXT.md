@@ -27,7 +27,7 @@ Out of scope:
 - **D-03:** Set a reasonable User-Agent string, respect robots.txt for politeness, and apply a timeout (10-15s). If blocked or timing out, fail gracefully.
 
 ### Extraction Engine
-- **D-04:** Use LLM-only extraction. Feed the fetched HTML content (stripped to meaningful text, meta tags, and structural hints) to the configured generation provider (GPT) with a structured prompt asking for the brand profile fields.
+- **D-04:** Use LLM-only extraction. Feed the fetched HTML content (stripped to meaningful text, meta tags, and structural hints) to MiniMax API (`https://api.minimax.io/v1/chat/completions`, model `MiniMax-M3`) with a structured prompt asking for the brand profile fields. MiniMax is OpenAI-compatible (same request/response format). API key from `MINIMAX_API_KEY` env var.
 - **D-05:** The LLM prompt should request JSON output with the exact field schema. No deterministic regex/DOM parsing step — the LLM handles messy real-world HTML directly.
 - **D-06:** Pre-process HTML before sending to LLM: strip scripts/styles/nav boilerplate, extract meta tags (og:*, description, theme-color, JSON-LD), keep meaningful body text. This reduces token cost and noise.
 
@@ -59,6 +59,7 @@ Out of scope:
 - Whether to add the profile fields to `merchants` table directly or a new `merchant_profiles` table.
 - Exact UI layout of the editable card within the existing app shell.
 - Token cost optimization (truncation strategy for large pages).
+- MiniMax model version (use `MiniMax-M3` unless a lighter model is available for extraction tasks).
 </decisions>
 
 <canonical_refs>
