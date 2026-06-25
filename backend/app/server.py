@@ -6,7 +6,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from backend.app import facebook_oauth, facebook_publisher, fake_publisher, sessions, store, tiktok_publisher
+from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher
+from backend.app.contracts import serialize_session
 
 
 DEFAULT_DB_PATH = ".localpilot-dev/backend.sqlite"
@@ -34,6 +35,51 @@ class JsonHandler(BaseHTTPRequestHandler):
             if method == "GET" and path == "/api/v1/health":
                 self.send_json({"status": "ok", "service": "localpilot-backend"})
                 return
+            if method == "POST" and path == "/api/v1/auth/google":
+                body = self.read_json()
+                with closing(store.connect(self.db_path)) as conn:
+                    if google_auth.dev_login_enabled() and body.get("devLogin"):
+                        token = sessions.create_session(conn, store.DEMO_USER_ID, store.DEMO_MERCHANT_ID)
+                        session_row = conn.execute("select * from sessions where id = ?", (token,)).fetchone()
+                        self.send_json(
+                            {"session": serialize_session(session_row)},
+                            cookies=[self.set_session_cookie(token)],
+                        )
+                        return
+                    credential = body.get("credential")
+                    if not credential:
+                        raise store.StoreError(400, "Missing credential.")
+                    claims = google_auth.verify_google_id_token(credential)
+                    user = google_auth.resolve_or_create_identity(conn, claims)
+                    token = sessions.create_session(conn, user["id"], user["merchant_id"])
+                    session_row = conn.execute("select * from sessions where id = ?", (token,)).fetchone()
+                    self.send_json(
+                        {"session": serialize_session(session_row)},
+                        cookies=[self.set_session_cookie(token)],
+                    )
+                return
+            if method == "POST" and path == "/api/v1/auth/logout":
+                with closing(store.connect(self.db_path)) as conn:
+                    token = self._parse_cookie("lp_session")
+                    if token:
+                        try:
+                            sessions.expire_session(conn, token)
+                        except Exception:
+                            pass
+                    self.send_json({"status": "ok"}, cookies=[self.clear_session_cookie()])
+                return
+            if method == "GET" and path == "/api/v1/auth/session":
+                with closing(store.connect(self.db_path)) as conn:
+                    token = self._parse_cookie("lp_session")
+                    if not token:
+                        raise store.StoreError(401, "No session cookie.")
+                    try:
+                        sessions.resolve_session(conn, token)
+                    except sessions.SessionError as exc:
+                        raise store.StoreError(401, str(exc)) from exc
+                    session_row = conn.execute("select * from sessions where id = ?", (token,)).fetchone()
+                    self.send_json({"session": serialize_session(session_row)})
+                return
             if method == "GET" and path == "/api/v1/workflow":
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json(store.get_workflow(conn))
@@ -41,6 +87,49 @@ class JsonHandler(BaseHTTPRequestHandler):
             if method == "GET" and path == "/api/v1/phase3/workspace":
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json(store.get_phase3_workspace(conn))
+                return
+            if method == "GET" and path == "/api/v1/generation/models":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    self.send_json({"merchantId": merchant_id, "models": store.list_generation_models(conn)})
+                return
+            if method == "GET" and path == "/api/v1/generation/credits":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    self.send_json({"credits": store.get_generation_credit_summary(conn, merchant_id)})
+                return
+            if method == "GET" and path == "/api/v1/generation/jobs":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    self.send_json({"jobs": store.list_generation_jobs(conn, merchant_id)})
+                return
+            if method == "POST" and path == "/api/v1/generation/jobs":
+                body = self.read_json()
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    payload = store.create_generation_job(conn, merchant_id, body)
+                if body.get("dispatch", True):
+                    generation_dispatch.start_async_dispatch(self.db_path, payload["job"]["id"])
+                self.send_json(payload, status=201)
+                return
+            generation_job = self.match_generation_job(path)
+            if generation_job and method == "GET" and generation_job["action"] is None:
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    job = store.get_generation_job(conn, merchant_id, generation_job["job_id"])
+                    self.send_json({"job": store.serialize_generation_job(conn, job)})
+                return
+            if generation_job and method == "POST" and generation_job["action"] == "retry":
+                body = self.read_json()
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                payload = generation_dispatch.retry_generation_job(
+                    self.db_path,
+                    merchant_id,
+                    generation_job["job_id"],
+                    dispatch=body.get("dispatch", True),
+                )
+                self.send_json(payload, status=201)
                 return
             review_route = self.match_review_route(path)
             if review_route and method == "GET":
@@ -199,6 +288,43 @@ class JsonHandler(BaseHTTPRequestHandler):
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json({"status": "ok", "publishJobs": store.list_debug_publish_jobs(conn)})
                 return
+            admin_publish_job = self.match_admin_publish_job(path)
+            if method == "GET" and path == "/api/v1/admin/publish-jobs":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_operator_context(conn, parsed)
+                    self.send_json({"status": "ok", "publishJobs": store.list_debug_publish_jobs(conn)})
+                return
+            if admin_publish_job and method == "GET" and admin_publish_job["action"] is None:
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_operator_context(conn, parsed)
+                    job = store.get_publish_job(conn, admin_publish_job["job_id"])
+                    self.send_json({"status": "ok", "job": store.serialize_debug_publish_job(conn, job)})
+                return
+            if admin_publish_job and method == "GET" and admin_publish_job["action"] == "evidence":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_operator_context(conn, parsed)
+                    self.send_json(
+                        {"status": "ok", "evidence": store.build_publish_job_evidence(conn, admin_publish_job["job_id"])}
+                    )
+                return
+            if admin_publish_job and method == "POST" and admin_publish_job["action"] == "retry":
+                body = self.read_json()
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_operator_context(conn, parsed)
+                    self.retry_publish_job(conn, admin_publish_job["job_id"], body)
+                    job = store.get_publish_job(conn, admin_publish_job["job_id"])
+                    self.send_json({"status": "ok", "job": store.serialize_debug_publish_job(conn, job)}, status=201)
+                return
+            if admin_publish_job and method == "POST" and admin_publish_job["action"] == "mark-support":
+                body = self.read_json()
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_operator_context(conn, parsed)
+                    store.get_publish_job(conn, admin_publish_job["job_id"])
+                    store.mark_publish_job_support_path(conn, admin_publish_job["job_id"], body.get("note"))
+                    conn.commit()
+                    job = store.get_publish_job(conn, admin_publish_job["job_id"])
+                    self.send_json({"status": "ok", "job": store.serialize_debug_publish_job(conn, job)}, status=201)
+                return
             if method == "GET" and path == "/api/v1/channels/health":
                 query = parse_qs(parsed.query)
                 platform = (query.get("platform") or [None])[0]
@@ -308,21 +434,7 @@ class JsonHandler(BaseHTTPRequestHandler):
             if publish_job and method == "POST" and publish_job["action"] == "retry":
                 body = self.read_json()
                 with closing(store.connect(self.db_path)) as conn:
-                    job_row = conn.execute("select platform from publish_jobs where id = ?", (publish_job["job_id"],)).fetchone()
-                    if job_row and job_row["platform"] == "facebook":
-                        self.send_json(
-                            facebook_publisher.retry_facebook_publish(conn, publish_job["job_id"]),
-                            status=201,
-                        )
-                    else:
-                        self.send_json(
-                            fake_publisher.retry_fake_publish(
-                                conn,
-                                publish_job["job_id"],
-                                diagnostics_fixture=body.get("diagnosticsFixture"),
-                            ),
-                            status=201,
-                        )
+                    self.send_json(self.retry_publish_job(conn, publish_job["job_id"], body), status=201)
                 return
             draft_action = self.match_draft_action(path)
             if draft_action and method == "PATCH" and draft_action["action"] is None:
@@ -381,8 +493,34 @@ class JsonHandler(BaseHTTPRequestHandler):
             return {"channel_id": parts[4], "action": parts[5]}
         return None
 
-    def resolve_merchant_id(self, conn, parsed):
+    def resolve_operator_context(self, conn, parsed):
         token = self.headers.get("X-LocalPilot-Session")
+        if not token:
+            token = (parse_qs(parsed.query).get("session") or [None])[0]
+        return store.resolve_operator(conn, token, allow_localhost=True)
+
+    def _parse_cookie(self, name):
+        cookie_header = self.headers.get("Cookie")
+        if not cookie_header:
+            return None
+        for part in cookie_header.split(";"):
+            part = part.strip()
+            if part.startswith(f"{name}="):
+                return part[len(name) + 1:]
+        return None
+
+    def set_session_cookie(self, token):
+        host = self.headers.get("Host", "")
+        secure = "" if "localhost" in host or "127.0.0.1" in host else "; Secure"
+        return f"lp_session={token}; HttpOnly; SameSite=Lax; Path=/{secure}"
+
+    def clear_session_cookie(self):
+        return "lp_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0"
+
+    def resolve_merchant_id(self, conn, parsed):
+        token = self._parse_cookie("lp_session")
+        if not token:
+            token = self.headers.get("X-LocalPilot-Session")
         if not token:
             token = (parse_qs(parsed.query).get("session") or [None])[0]
         if not token:
@@ -407,17 +545,46 @@ class JsonHandler(BaseHTTPRequestHandler):
             return {"job_id": parts[4], "action": parts[5]}
         return None
 
+    def match_generation_job(self, path):
+        parts = path.split("/")
+        if len(parts) == 6 and parts[:5] == ["", "api", "v1", "generation", "jobs"]:
+            return {"job_id": parts[5], "action": None}
+        if len(parts) == 7 and parts[:5] == ["", "api", "v1", "generation", "jobs"]:
+            return {"job_id": parts[5], "action": parts[6]}
+        return None
+
+    def match_admin_publish_job(self, path):
+        parts = path.split("/")
+        if len(parts) == 6 and parts[:5] == ["", "api", "v1", "admin", "publish-jobs"]:
+            return {"job_id": parts[5], "action": None}
+        if len(parts) == 7 and parts[:5] == ["", "api", "v1", "admin", "publish-jobs"]:
+            return {"job_id": parts[5], "action": parts[6]}
+        return None
+
+    def retry_publish_job(self, conn, job_id, body=None):
+        body = body or {}
+        job_row = conn.execute("select platform from publish_jobs where id = ?", (job_id,)).fetchone()
+        if job_row and job_row["platform"] == "facebook":
+            return facebook_publisher.retry_facebook_publish(conn, job_id)
+        return fake_publisher.retry_fake_publish(
+            conn,
+            job_id,
+            diagnostics_fixture=body.get("diagnosticsFixture"),
+        )
+
     def read_json(self):
         length = int(self.headers.get("Content-Length", "0") or "0")
         if length == 0:
             return {}
         return json.loads(self.rfile.read(length).decode("utf-8"))
 
-    def send_json(self, payload, status=200):
+    def send_json(self, payload, status=200, cookies=None):
         body = json.dumps(payload, sort_keys=True).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        for cookie in (cookies or []):
+            self.send_header("Set-Cookie", cookie)
         self.end_headers()
         self.wfile.write(body)
 

@@ -16,6 +16,7 @@ const parseJson = async (response) => {
 const requestJson = async (path, options = {}) => {
   const response = await fetch(`${API_ROOT}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       Accept: "application/json",
       ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -212,6 +213,25 @@ export const retryPublishJob = (jobId) =>
 
 export const loadDebugPublishJobs = () => requestJson("/debug/publish-jobs");
 
+export const loadAdminPublishJobs = () => requestJson("/admin/publish-jobs");
+
+export const loadAdminPublishJob = (jobId) => requestJson(`/admin/publish-jobs/${encodeURIComponent(jobId)}`);
+
+export const retryAdminPublishJob = (jobId, payload = {}) =>
+  requestJson(`/admin/publish-jobs/${encodeURIComponent(jobId)}/retry`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const markAdminSupportPath = (jobId, note) =>
+  requestJson(`/admin/publish-jobs/${encodeURIComponent(jobId)}/mark-support`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+
+export const loadAdminPublishJobEvidence = (jobId) =>
+  requestJson(`/admin/publish-jobs/${encodeURIComponent(jobId)}/evidence`);
+
 export const loadChannelHealth = (platform) =>
   requestJson(`/channels/health${platform ? `?platform=${encodeURIComponent(platform)}` : ""}`);
 
@@ -252,3 +272,22 @@ export const switchFacebookPage = (pageId) =>
     method: "POST",
     body: JSON.stringify({ pageId }),
   });
+
+export const googleLogin = (credential) =>
+  requestJson("/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ credential }),
+  });
+
+export const devLogin = () =>
+  requestJson("/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ devLogin: true }),
+  });
+
+export const logout = () =>
+  requestJson("/auth/logout", {
+    method: "POST",
+  });
+
+export const loadSession = () => requestJson("/auth/session");

@@ -1,10 +1,15 @@
+import json
 import os
 import tempfile
+import threading
 import unittest
+from http.cookiejar import CookieJar
 from pathlib import Path
 from unittest.mock import patch
+from urllib import error, request
 
-from backend.app import google_auth, store
+from backend.app import google_auth, sessions, store
+from backend.app.server import create_app
 from backend.app.store import connect, initialize_database, seed_demo_data
 
 
@@ -121,6 +126,110 @@ class DevLoginEnabledTest(unittest.TestCase):
     def test_disabled_when_no_flag(self):
         with patch.dict(os.environ, {}, clear=True):
             self.assertFalse(google_auth.dev_login_enabled())
+
+
+class AuthEndpointTest(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.db_path = str(Path(self.temp_dir.name) / "test.sqlite")
+        self.server = create_app(host="127.0.0.1", port=0, db_path=self.db_path)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        host, port = self.server.server_address
+        self.base_url = f"http://{host}:{port}"
+        self.cookie_jar = CookieJar()
+        self.opener = request.build_opener(request.HTTPCookieProcessor(self.cookie_jar))
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=2)
+        self.temp_dir.cleanup()
+
+    def _request(self, method, path, body=None):
+        data = json.dumps(body).encode("utf-8") if body is not None else None
+        headers = {"Accept": "application/json"}
+        if data:
+            headers["Content-Type"] = "application/json"
+        req = request.Request(f"{self.base_url}{path}", data=data, method=method, headers=headers)
+        resp = self.opener.open(req, timeout=5)
+        return json.loads(resp.read().decode("utf-8")), resp
+
+    def _session_cookie(self):
+        for c in self.cookie_jar:
+            if c.name == "lp_session":
+                return c.value
+        return None
+
+    @patch.dict(os.environ, {"LOCALPILOT_DEV_LOGIN": "1"}, clear=False)
+    def test_dev_login_sets_cookie_and_returns_session(self):
+        env = os.environ.copy()
+        env.pop("GOOGLE_CLIENT_ID", None)
+        env["LOCALPILOT_DEV_LOGIN"] = "1"
+        with patch.dict(os.environ, env, clear=True):
+            payload, resp = self._request("POST", "/api/v1/auth/google", {"devLogin": True})
+        self.assertIn("session", payload)
+        self.assertNotIn("id", payload["session"])
+        self.assertEqual(payload["session"]["status"], "authenticated")
+        cookie = self._session_cookie()
+        self.assertIsNotNone(cookie)
+
+    @patch.dict(os.environ, {"LOCALPILOT_DEV_LOGIN": "1"}, clear=False)
+    def test_session_and_logout_flow(self):
+        env = os.environ.copy()
+        env.pop("GOOGLE_CLIENT_ID", None)
+        env["LOCALPILOT_DEV_LOGIN"] = "1"
+        with patch.dict(os.environ, env, clear=True):
+            self._request("POST", "/api/v1/auth/google", {"devLogin": True})
+
+        session_payload, _ = self._request("GET", "/api/v1/auth/session")
+        self.assertIn("session", session_payload)
+        self.assertEqual(session_payload["session"]["status"], "authenticated")
+
+        logout_payload, _ = self._request("POST", "/api/v1/auth/logout")
+        self.assertEqual(logout_payload["status"], "ok")
+
+        with self.assertRaises(error.HTTPError) as ctx:
+            self._request("GET", "/api/v1/auth/session")
+        self.assertIn(ctx.exception.code, (401,))
+
+    def test_no_cookie_returns_401_on_session(self):
+        with self.assertRaises(error.HTTPError) as ctx:
+            self._request("GET", "/api/v1/auth/session")
+        self.assertEqual(ctx.exception.code, 401)
+
+    def test_missing_credential_returns_400(self):
+        with self.assertRaises(error.HTTPError) as ctx:
+            self._request("POST", "/api/v1/auth/google", {})
+        self.assertEqual(ctx.exception.code, 400)
+
+    def test_cookie_auth_resolves_merchant(self):
+        conn = store.connect(self.db_path)
+        try:
+            token = sessions.create_session(conn, store.DEMO_USER_ID, store.DEMO_MERCHANT_ID)
+        finally:
+            conn.close()
+        req = request.Request(
+            f"{self.base_url}/api/v1/channels/health",
+            headers={"Accept": "application/json", "Cookie": f"lp_session={token}"},
+        )
+        resp = request.urlopen(req, timeout=5)
+        payload = json.loads(resp.read().decode("utf-8"))
+        self.assertIn("channels", payload)
+
+    def test_session_response_never_contains_token(self):
+        conn = store.connect(self.db_path)
+        try:
+            token = sessions.create_session(conn, store.DEMO_USER_ID, store.DEMO_MERCHANT_ID)
+        finally:
+            conn.close()
+        req = request.Request(
+            f"{self.base_url}/api/v1/auth/session",
+            headers={"Accept": "application/json", "Cookie": f"lp_session={token}"},
+        )
+        resp = request.urlopen(req, timeout=5)
+        raw = resp.read().decode("utf-8")
+        self.assertNotIn(token, raw)
 
 
 if __name__ == "__main__":
