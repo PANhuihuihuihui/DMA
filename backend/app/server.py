@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher
+from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher, website_crawl
 from backend.app.contracts import serialize_session
 
 
@@ -102,6 +102,49 @@ class JsonHandler(BaseHTTPRequestHandler):
                 with closing(store.connect(self.db_path)) as conn:
                     merchant_id = self.resolve_merchant_id(conn, parsed)
                     self.send_json({"jobs": store.list_generation_jobs(conn, merchant_id)})
+                return
+            if method == "POST" and path == "/api/v1/onboarding/crawl":
+                body = self.read_json()
+                url = (body.get("url") or "").strip()
+                if not url:
+                    raise store.StoreError(400, "Missing url.")
+                warning = None
+                profile_data = {"crawl_url": url}
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_authenticated_merchant_id(conn, parsed)
+                    try:
+                        html_text = website_crawl.fetch_homepage(url)
+                        cleaned_text = website_crawl.clean_html_for_llm(html_text)
+                        profile_data.update(website_crawl.extract_brand_profile(cleaned_text))
+                    except website_crawl.CrawlError as exc:
+                        warning = exc.message
+                        if isinstance(exc.partial, dict):
+                            profile_data.update(exc.partial)
+                    row = store.upsert_merchant_profile(conn, merchant_id, profile_data)
+                payload = {"profile": store.serialize_merchant_profile(row)}
+                if warning:
+                    payload["warning"] = warning
+                self.send_json(payload, status=201)
+                return
+            if method == "GET" and path == "/api/v1/onboarding/profile":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_authenticated_merchant_id(conn, parsed)
+                    row = store.get_merchant_profile(conn, merchant_id)
+                    if row is None:
+                        raise store.StoreError(404, "Merchant profile not found.")
+                    self.send_json({"profile": store.serialize_merchant_profile(row)})
+                return
+            if method == "PATCH" and path == "/api/v1/onboarding/profile":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_authenticated_merchant_id(conn, parsed)
+                    row = store.update_merchant_profile(conn, merchant_id, self.read_json())
+                    self.send_json({"profile": store.serialize_merchant_profile(row)})
+                return
+            if method == "POST" and path == "/api/v1/onboarding/profile/confirm":
+                with closing(store.connect(self.db_path)) as conn:
+                    merchant_id = self.resolve_authenticated_merchant_id(conn, parsed)
+                    row = store.confirm_merchant_profile(conn, merchant_id)
+                    self.send_json({"profile": store.serialize_merchant_profile(row)})
                 return
             if method == "POST" and path == "/api/v1/generation/jobs":
                 body = self.read_json()
@@ -518,11 +561,7 @@ class JsonHandler(BaseHTTPRequestHandler):
         return "lp_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0"
 
     def resolve_merchant_id(self, conn, parsed):
-        token = self._parse_cookie("lp_session")
-        if not token:
-            token = self.headers.get("X-LocalPilot-Session")
-        if not token:
-            token = (parse_qs(parsed.query).get("session") or [None])[0]
+        token = self._session_token(parsed)
         if not token:
             return store.DEMO_MERCHANT_ID
         try:
@@ -530,6 +569,24 @@ class JsonHandler(BaseHTTPRequestHandler):
         except sessions.SessionError as exc:
             raise store.StoreError(401, str(exc)) from exc
         return resolved["merchant_id"]
+
+    def resolve_authenticated_merchant_id(self, conn, parsed):
+        token = self._session_token(parsed)
+        if not token:
+            raise store.StoreError(401, "Authentication required.")
+        try:
+            resolved = sessions.resolve_session(conn, token)
+        except sessions.SessionError as exc:
+            raise store.StoreError(401, str(exc)) from exc
+        return resolved["merchant_id"]
+
+    def _session_token(self, parsed):
+        token = self._parse_cookie("lp_session")
+        if not token:
+            token = self.headers.get("X-LocalPilot-Session")
+        if not token:
+            token = (parse_qs(parsed.query).get("session") or [None])[0]
+        return token
 
     def match_approval_action(self, path):
         parts = path.split("/")
