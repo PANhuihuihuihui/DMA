@@ -34,6 +34,13 @@ DEMO_SESSION_ID = "session_demo_karen"
 OPENAI_IMAGE_MODEL_ID = "genmodel_openai_image_primary"
 OPENAI_VIDEO_MODEL_ID = "genmodel_openai_video_primary"
 CCDANCE_AVATAR_MODEL_ID = "genmodel_ccdance_avatar_preview"
+MINIMAX_IMAGE_MODEL_ID = "genmodel_minimax_carousel_primary"
+CAROUSEL_WORKFLOW_TYPE = "carousel"
+CAROUSEL_PRESET_ID = "carousel_canonical_v1"
+CAROUSEL_ASPECT_RATIO = "4:5"
+CAROUSEL_SLIDE_ROLES = ("cover", "problem", "proof", "offer", "cta")
+CAROUSEL_EDITOR_MODE = "carousel_slide_edit"
+CAROUSEL_LOGO_PLACEMENT = "fixed_top_left"
 
 CHANNEL_HEALTH_STATES = (
     "connected",
@@ -1285,6 +1292,33 @@ def seed_generation_model_catalog(conn):
             {
                 "maxPromptLength": 4000,
                 "aspectRatios": ["1:1", "4:5", "16:9"],
+            },
+        ),
+        (
+            MINIMAX_IMAGE_MODEL_ID,
+            "minimax",
+            "image-01",
+            "image",
+            "MiniMax Carousel Image",
+            200,
+            "ready",
+            {
+                "fields": [
+                    "prompt",
+                    "sourceKind",
+                    "sourceText",
+                    "sourceUrl",
+                    "workflowType",
+                    "carouselPresetId",
+                    "slideRoles",
+                    "aspectRatio",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "supportsCarousel": True,
+                "aspectRatios": ["4:5"],
+                "slideCount": 5,
             },
         ),
         (
@@ -3305,15 +3339,19 @@ def ensure_phase3_media_assets(conn):
 
 def create_content_batch(conn, payload, commit=True):
     now = utc_now()
+    merchant_id = payload.get("merchantId") or DEMO_MERCHANT_ID
     prompt = (payload.get("sourcePrompt") or payload.get("prompt") or "").strip()
     if not prompt:
         prompt = "Same-week AC tune-up appointments before the next hot stretch"
     objective = (payload.get("objective") or "book local calls and appointments").strip()
-    campaign = conn.execute("select * from campaigns order by created_at desc limit 1").fetchone()
+    campaign = conn.execute(
+        "select * from campaigns where merchant_id = ? order by created_at desc limit 1",
+        (merchant_id,),
+    ).fetchone()
     batch_id = new_id("batch")
     conn.execute(
         "insert into content_batches values (?, ?, ?, ?, ?, ?, ?, ?)",
-        (batch_id, DEMO_MERCHANT_ID, campaign["id"] if campaign else None, prompt, objective, "generated", now, now),
+        (batch_id, merchant_id, campaign["id"] if campaign else None, prompt, objective, "generated", now, now),
     )
     creatives = []
     for template in generated_creative_templates(prompt, objective):
@@ -3328,7 +3366,7 @@ def create_content_batch(conn, payload, commit=True):
             (
                 creative_id,
                 batch_id,
-                DEMO_MERCHANT_ID,
+                merchant_id,
                 template["platform"],
                 template["format"],
                 template["title"],
@@ -3347,7 +3385,7 @@ def create_content_batch(conn, payload, commit=True):
             (
                 new_id("slot"),
                 creative_id,
-                DEMO_MERCHANT_ID,
+                merchant_id,
                 template["platform"],
                 template["scheduleSlot"],
                 "",
@@ -3363,7 +3401,7 @@ def create_content_batch(conn, payload, commit=True):
             (
                 proof_id,
                 creative_id,
-                DEMO_MERCHANT_ID,
+                merchant_id,
                 "short_link",
                 code,
                 f"https://auroraheatcool.example/offers/{code.lower()}",
@@ -3383,6 +3421,7 @@ def create_content_batch(conn, payload, commit=True):
 
 def create_content_source_import(conn, payload):
     now = utc_now()
+    merchant_id = payload.get("merchantId") or DEMO_MERCHANT_ID
     requested_type = (payload.get("sourceType") or "").strip().lower()
     image_data_url = (payload.get("imageDataUrl") or payload.get("previewDataUrl") or "").strip()
     source_type = "image" if requested_type == "image" or image_data_url else "url"
@@ -3425,7 +3464,7 @@ def create_content_source_import(conn, payload):
         "insert into content_sources values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             source_id,
-            DEMO_MERCHANT_ID,
+            merchant_id,
             source_type,
             label,
             url,
@@ -4489,12 +4528,12 @@ def serialize_creator_style_workflow(row):
     }
 
 
-def creator_style_workflows_for_workspace(conn):
+def creator_style_workflows_for_workspace(conn, merchant_id=DEMO_MERCHANT_ID):
     return [
         serialize_creator_style_workflow(row)
         for row in conn.execute(
             "select * from creator_style_workflows where merchant_id = ? order by created_at desc, id desc",
-            (DEMO_MERCHANT_ID,),
+            (merchant_id,),
         )
     ]
 
@@ -4783,13 +4822,212 @@ def serialize_creative_media_asset(conn, row):
 
 
 def media_assets_for_creative(conn, creative_id):
-    return [
+    assets = [
         serialize_creative_media_asset(conn, row)
         for row in conn.execute(
             "select * from creative_media_assets where creative_id = ? order by created_at, id",
             (creative_id,),
         )
     ]
+    if any(isinstance(asset.get("metadata"), dict) and asset["metadata"].get("carouselSlide") for asset in assets):
+        assets.sort(
+            key=lambda asset: (
+                (asset.get("metadata") or {}).get("carouselSlide", {}).get("index", 999),
+                asset.get("createdAt") or "",
+                asset.get("id") or "",
+            )
+        )
+    return assets
+
+
+def compose_carousel_slide_payload(brand_row, slide_plan_item, output_row):
+    colors = json_loads(brand_row["colors_json"], []) if brand_row else []
+    typography = json_loads(brand_row["typography_json"], {}) if brand_row else {}
+    preview_ref = output_row["preview_ref"] if output_row is not None else ""
+    accent_color = slide_plan_item.get("accentColor") or (colors[1] if len(colors) > 1 else colors[0] if colors else "#172033")
+    typography_token = slide_plan_item.get("typographyToken") or typography.get("title") or typography.get("fontFamily") or "brand-title"
+    return {
+        "headline": slide_plan_item.get("headline") or "",
+        "body": slide_plan_item.get("body") or "",
+        "ctaLabel": slide_plan_item.get("ctaLabel") or "",
+        "imageUrl": preview_ref,
+        "logoSlot": CAROUSEL_LOGO_PLACEMENT,
+        "thumbnailRender": preview_ref,
+        "editorPreview": preview_ref,
+        "layout": {
+            "presetId": CAROUSEL_PRESET_ID,
+            "aspectRatio": CAROUSEL_ASPECT_RATIO,
+            "role": slide_plan_item.get("role") or "",
+            "accentColor": accent_color,
+            "typographyToken": typography_token,
+            "copyAlign": slide_plan_item.get("copyAlign") or "left",
+            "brandLock": True,
+        },
+    }
+
+
+def materialize_carousel_package(conn, merchant_id, job_row, brand_row, slide_plan, output_rows):
+    now = utc_now()
+    campaign = conn.execute(
+        "select * from campaigns where merchant_id = ? order by created_at desc limit 1",
+        (merchant_id,),
+    ).fetchone()
+    source_prompt = ""
+    request_payload = json_loads(job_row["request_json"], {})
+    if request_payload.get("sourceKind") == "url":
+        source_prompt = request_payload.get("sourceUrl") or job_row["prompt"]
+    else:
+        source_prompt = request_payload.get("sourceText") or job_row["prompt"]
+
+    batch_id = new_id("batch")
+    conn.execute(
+        "insert into content_batches values (?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            batch_id,
+            merchant_id,
+            campaign["id"] if campaign else None,
+            source_prompt[:500],
+            "carousel package generation",
+            "generated",
+            now,
+            now,
+        ),
+    )
+
+    title = slide_plan[0]["headline"] if slide_plan else "Generated carousel"
+    caption = " ".join(item.get("body") or item.get("headline") or "" for item in slide_plan)[:1200]
+    cta = slide_plan[-1].get("ctaLabel") or "Review and publish"
+    proof_hook = slide_plan[2].get("headline") if len(slide_plan) > 2 else title
+    creative_id = new_id("creative")
+    conn.execute(
+        """
+        insert into generated_creatives (
+          id, batch_id, merchant_id, platform, format, title, caption, hashtags_json,
+          cta, proof_hook, schedule_slot, status, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            creative_id,
+            batch_id,
+            merchant_id,
+            "facebook",
+            "carousel",
+            title[:180],
+            caption,
+            brand_row["hashtags_json"] if brand_row is not None else json_dumps(["#LocalPilot"]),
+            cta[:180],
+            proof_hook[:240],
+            "Needs scheduling",
+            "needs_review",
+            now,
+            now,
+        ),
+    )
+
+    slot_id = new_id("slot")
+    conn.execute(
+        "insert into calendar_slots values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            slot_id,
+            creative_id,
+            merchant_id,
+            "facebook",
+            "Needs scheduling",
+            "",
+            "in_review",
+            now,
+            now,
+        ),
+    )
+    proof_code = f"CAROUSEL-{creative_id[-6:].upper()}"
+    conn.execute(
+        "insert into proof_links values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            new_id("proof"),
+            creative_id,
+            merchant_id,
+            "short_link",
+            proof_code,
+            f"https://localpilot.ai/carousel/{creative_id}",
+            f"https://lp.local/carousel/{creative_id}",
+            f"localpilot-proof/carousel/{creative_id}.svg",
+            None,
+            now,
+            now,
+        ),
+    )
+
+    locked_layout = build_carousel_locked_layout(brand_row)
+    media_asset_ids = []
+    for index, (slide_plan_item, output_row) in enumerate(zip(slide_plan, output_rows), start=1):
+        composed_payload = compose_carousel_slide_payload(brand_row, slide_plan_item, output_row)
+        asset_id = new_id("creative_asset")
+        metadata = {
+            "editorMode": CAROUSEL_EDITOR_MODE,
+            "lockedLayout": locked_layout,
+            "editableLayers": ["headline", "body", "cta", "image"],
+            "carouselSlide": {
+                "index": index,
+                "role": slide_plan_item.get("role") or "",
+                "presetId": CAROUSEL_PRESET_ID,
+                "brandLock": True,
+                "logoPlacement": CAROUSEL_LOGO_PLACEMENT,
+                "creativeId": creative_id,
+                "mediaAssetId": asset_id,
+                "composedPayload": composed_payload,
+            },
+            "composedPayload": composed_payload,
+        }
+        conn.execute(
+            """
+            insert into creative_media_assets (
+              id, creative_id, merchant_id, asset_type, format, aspect_ratio, storage_ref,
+              prompt, status, provider, metadata_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                asset_id,
+                creative_id,
+                merchant_id,
+                "carousel_slide",
+                f"Carousel slide {index}",
+                CAROUSEL_ASPECT_RATIO,
+                output_row["storage_ref"],
+                slide_plan_item.get("imagePrompt") or slide_plan_item.get("headline") or job_row["prompt"],
+                "ready_preview",
+                job_row["provider_key"],
+                json_dumps(metadata),
+                now,
+                now,
+            ),
+        )
+        output_metadata = json_loads(output_row["metadata_json"], {})
+        output_metadata.update(
+            {
+                "editorMode": CAROUSEL_EDITOR_MODE,
+                "lockedLayout": locked_layout,
+                "carouselSlide": {
+                    **metadata["carouselSlide"],
+                    "composedPayload": composed_payload,
+                },
+                "composedPayload": composed_payload,
+            }
+        )
+        conn.execute(
+            "update generation_outputs set metadata_json = ?, updated_at = ? where id = ?",
+            (json_dumps(output_metadata), now, output_row["id"]),
+        )
+        media_asset_ids.append(asset_id)
+
+    creative_row = conn.execute("select * from generated_creatives where id = ?", (creative_id,)).fetchone()
+    review_link = ensure_review_link_for_creative(conn, creative_row)
+    return {
+        "creativeId": creative_id,
+        "mediaAssetIds": media_asset_ids,
+        "calendarSlotId": slot_id,
+        "reviewLinkId": review_link["id"] if review_link else "",
+        "lockedLayout": locked_layout,
+    }
 
 
 def update_creative_media_asset(conn, asset_id, payload):
@@ -4807,7 +5045,38 @@ def update_creative_media_asset(conn, asset_id, payload):
     if isinstance(payload.get("layerControl"), dict):
         upsert_layer_control(metadata, payload["layerControl"], now)
     if isinstance(payload.get("metadata"), dict):
-        metadata.update(payload["metadata"])
+        next_metadata = dict(payload["metadata"])
+        if metadata.get("editorMode") == CAROUSEL_EDITOR_MODE:
+            next_metadata["editorMode"] = metadata.get("editorMode") or CAROUSEL_EDITOR_MODE
+            next_metadata["lockedLayout"] = metadata.get("lockedLayout") or {}
+            existing_slide = metadata.get("carouselSlide") if isinstance(metadata.get("carouselSlide"), dict) else {}
+            next_slide = next_metadata.get("carouselSlide") if isinstance(next_metadata.get("carouselSlide"), dict) else {}
+            locked_slide = dict(existing_slide)
+            for key in ("index", "role", "presetId", "brandLock", "logoPlacement", "creativeId", "mediaAssetId"):
+                if key in locked_slide:
+                    next_slide[key] = locked_slide[key]
+            existing_composed_payload = (
+                metadata.get("composedPayload") if isinstance(metadata.get("composedPayload"), dict) else {}
+            )
+            if not existing_composed_payload:
+                existing_composed_payload = (
+                    existing_slide.get("composedPayload")
+                    if isinstance(existing_slide.get("composedPayload"), dict)
+                    else {}
+                )
+            incoming_composed_payload = {}
+            if isinstance(next_metadata.get("composedPayload"), dict):
+                incoming_composed_payload.update(next_metadata.get("composedPayload") or {})
+            if isinstance(next_slide.get("composedPayload"), dict):
+                incoming_composed_payload.update(next_slide.get("composedPayload") or {})
+            composed_payload = dict(existing_composed_payload)
+            for key in ("headline", "body", "ctaLabel"):
+                if isinstance(incoming_composed_payload.get(key), str):
+                    composed_payload[key] = incoming_composed_payload[key]
+            next_metadata["composedPayload"] = composed_payload
+            next_slide["composedPayload"] = dict(composed_payload)
+            next_metadata["carouselSlide"] = next_slide
+        metadata.update(next_metadata)
     metadata["layerControls"] = normalized_layer_controls(metadata)
     conn.execute(
         """
@@ -4980,6 +5249,10 @@ def serialize_generated_creative(conn, creative_id):
     row = conn.execute("select * from generated_creatives where id = ?", (creative_id,)).fetchone()
     if row is None:
         raise StoreError(404, "Generated creative not found.")
+    media_assets = media_assets_for_creative(conn, row["id"])
+    carousel_asset = next((asset for asset in media_assets if isinstance(asset.get("metadata"), dict) and asset["metadata"].get("carouselSlide")), None)
+    carousel_metadata = carousel_asset["metadata"] if carousel_asset else {}
+    composed_preview = ((carousel_metadata.get("composedPayload") or {}).get("thumbnailRender") if carousel_metadata else "")
     return {
         "id": row["id"],
         "batchId": row["batch_id"],
@@ -4995,11 +5268,14 @@ def serialize_generated_creative(conn, creative_id):
         "reviewLink": review_link_for_creative(conn, row["id"]),
         "approvalFeedback": feedback_for_creative(conn, row["id"]),
         "reviewNotifications": notifications_for_creative(conn, row["id"]),
-        "mediaAssets": media_assets_for_creative(conn, row["id"]),
+        "mediaAssets": media_assets,
         "ideaVariants": idea_variants_for_creative(conn, row["id"]),
         "bulkVariants": bulk_variants_for_creative(conn, row["id"]),
         "ugcVoiceoverPackages": ugc_packages_for_creative(conn, row["id"]),
         "languageVariants": language_variants_for_creative(conn, row["id"]),
+        "editorMode": carousel_metadata.get("editorMode") or "",
+        "lockedLayout": carousel_metadata.get("lockedLayout") or {},
+        "previewDataUrl": composed_preview or "",
         "scheduleSlot": row["schedule_slot"],
         "status": row["status"],
         "createdAt": row["created_at"],
@@ -5660,10 +5936,10 @@ def serialize_analytics_insight(row):
     }
 
 
-def get_phase3_analytics_summary(conn):
+def get_phase3_analytics_summary(conn, merchant_id=DEMO_MERCHANT_ID):
     rows = conn.execute(
         "select * from performance_snapshots where merchant_id = ? order by platform",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchall()
     totals = {
         "impressions": sum(row["impressions"] for row in rows),
@@ -5690,38 +5966,38 @@ def get_phase3_analytics_summary(conn):
     }
 
 
-def get_phase3_usage_summary(conn):
+def get_phase3_usage_summary(conn, merchant_id=DEMO_MERCHANT_ID):
     generated_count = conn.execute(
         "select count(*) from generated_creatives where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     batch_count = conn.execute(
         "select count(*) from content_batches where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     media_asset_count = conn.execute(
         "select count(*) from creative_media_assets where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     competitor_runs = conn.execute(
         "select count(*) from competitor_ideas where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     template_imports = conn.execute(
         "select count(*) from imported_templates where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     asset_library_count = conn.execute(
         "select count(*) from asset_library_items where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     content_source_count = conn.execute(
         "select count(*) from content_sources where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     social_accounts = conn.execute(
         "select count(*) from connected_channels where merchant_id = ?",
-        (DEMO_MERCHANT_ID,),
+        (merchant_id,),
     ).fetchone()[0]
     # Predis publicly meters by credits, brands, channels, and competitor runs.
     # This local demo uses deterministic estimates so usage can be shown without billing.
@@ -5928,8 +6204,108 @@ def get_generation_job(conn, merchant_id, job_id):
     return row
 
 
+def get_latest_brand_kit_row(conn, merchant_id):
+    return conn.execute(
+        "select * from brand_kits where merchant_id = ? order by updated_at desc limit 1",
+        (merchant_id,),
+    ).fetchone()
+
+
+def build_carousel_locked_layout(brand_row):
+    colors = json_loads(brand_row["colors_json"], []) if brand_row else []
+    typography = json_loads(brand_row["typography_json"], {}) if brand_row else {}
+    return {
+        "slideCount": len(CAROUSEL_SLIDE_ROLES),
+        "slideRoles": list(CAROUSEL_SLIDE_ROLES),
+        "aspectRatio": CAROUSEL_ASPECT_RATIO,
+        "presetId": CAROUSEL_PRESET_ID,
+        "logoPlacement": CAROUSEL_LOGO_PLACEMENT,
+        "brandLock": True,
+        "accentColor": colors[1] if len(colors) > 1 else colors[0] if colors else "#172033",
+        "typographyToken": typography.get("title") or typography.get("fontFamily") or "brand-title",
+    }
+
+
+def normalize_carousel_request(conn, merchant_id, payload, prompt, settings):
+    from backend.app import website_crawl
+
+    brand_row = get_latest_brand_kit_row(conn, merchant_id)
+    if brand_row is None:
+        raise StoreError(409, "Save a brand kit before launching carousel generation.")
+
+    source_kind = str(payload.get("sourceKind") or "idea").strip().lower() or "idea"
+    if source_kind not in {"idea", "url"}:
+        raise StoreError(400, "Carousel sourceKind must be idea or url.")
+    source_text = str(payload.get("sourceText") or (prompt if source_kind == "idea" else "")).strip()
+    source_url = str(payload.get("sourceUrl") or "").strip()
+    if source_kind == "idea" and not source_text:
+        raise StoreError(400, "Carousel idea text is required.")
+    if source_kind == "url":
+        if not source_url:
+            raise StoreError(400, "Carousel sourceUrl is required.")
+        try:
+            source_url = website_crawl._validate_public_url(source_url)
+        except website_crawl.CrawlError as exc:
+            raise StoreError(400, exc.message) from exc
+
+    normalized_request = {
+        "modelId": payload.get("modelId"),
+        "workflowType": CAROUSEL_WORKFLOW_TYPE,
+        "carouselPresetId": CAROUSEL_PRESET_ID,
+        "slideRoles": list(CAROUSEL_SLIDE_ROLES),
+        "sourceKind": source_kind,
+        "sourceText": source_text,
+        "sourceUrl": source_url,
+    }
+    normalized_settings = dict(settings or {})
+    normalized_settings["aspectRatio"] = CAROUSEL_ASPECT_RATIO
+    return brand_row, normalized_request, normalized_settings
+
+
+def build_carousel_job_handoff(outputs, request_payload):
+    if request_payload.get("workflowType") != CAROUSEL_WORKFLOW_TYPE:
+        return {}
+    slide_outputs = []
+    for output in outputs:
+        metadata = output.get("metadata") or {}
+        slide = metadata.get("carouselSlide")
+        composed = metadata.get("composedPayload") or (slide or {}).get("composedPayload")
+        if not isinstance(slide, dict) or not isinstance(composed, dict):
+            continue
+        slide_outputs.append(
+            {
+                "output": output,
+                "slide": slide,
+                "composed": composed,
+            }
+        )
+    slide_outputs.sort(key=lambda item: item["slide"].get("index", 0))
+    if not slide_outputs:
+        return {
+            "workflowType": CAROUSEL_WORKFLOW_TYPE,
+            "carouselPresetId": request_payload.get("carouselPresetId") or CAROUSEL_PRESET_ID,
+            "slideRoles": list(request_payload.get("slideRoles") or CAROUSEL_SLIDE_ROLES),
+            "sourceKind": request_payload.get("sourceKind") or "idea",
+        }
+    first_slide = slide_outputs[0]
+    return {
+        "workflowType": CAROUSEL_WORKFLOW_TYPE,
+        "carouselPresetId": request_payload.get("carouselPresetId") or CAROUSEL_PRESET_ID,
+        "slideRoles": list(request_payload.get("slideRoles") or CAROUSEL_SLIDE_ROLES),
+        "sourceKind": request_payload.get("sourceKind") or "idea",
+        "sourcePreview": request_payload.get("sourcePreview") or {},
+        "sourceHealth": request_payload.get("sourceHealth") or "",
+        "creativeId": first_slide["slide"].get("creativeId") or "",
+        "mediaAssetIds": [item["slide"].get("mediaAssetId") for item in slide_outputs if item["slide"].get("mediaAssetId")],
+        "slideCompositions": [item["composed"] for item in slide_outputs],
+        "thumbnail": first_slide["composed"].get("thumbnailRender") or first_slide["output"].get("previewRef") or "",
+    }
+
+
 def serialize_generation_job(conn, row):
     model = get_generation_model_row(conn, row["model_catalog_id"])
+    request_payload = safe_diagnostics(json_loads(row["request_json"], {}))
+    settings_payload = safe_diagnostics(json_loads(row["settings_json"], {}))
     attempts = [
         serialize_generation_attempt(attempt)
         for attempt in conn.execute(
@@ -5944,16 +6320,19 @@ def serialize_generation_job(conn, row):
             (row["id"],),
         ).fetchall()
     ]
-    return {
+    payload = {
         "id": row["id"],
         "merchantId": row["merchant_id"],
+        "modelId": model["id"],
+        "modelDisplayName": model["display_name"],
+        "creditCost": model["credit_cost"],
         "model": serialize_generation_model(model),
         "providerKey": row["provider_key"],
         "modelKey": row["model_key"],
         "capability": row["capability"],
         "prompt": row["prompt"],
-        "request": safe_diagnostics(json_loads(row["request_json"], {})),
-        "settings": safe_diagnostics(json_loads(row["settings_json"], {})),
+        "request": request_payload,
+        "settings": settings_payload,
         "status": row["status"],
         "reservedCredits": row["reserved_credits"],
         "failureReason": row["failure_reason"],
@@ -5962,6 +6341,8 @@ def serialize_generation_job(conn, row):
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
     }
+    payload.update(build_carousel_job_handoff(outputs, request_payload))
+    return payload
 
 
 def list_generation_jobs(conn, merchant_id):
@@ -5976,6 +6357,7 @@ def create_generation_job(conn, merchant_id, payload):
     model_id = (payload.get("modelId") or "").strip()
     prompt = (payload.get("prompt") or "").strip()
     settings = payload.get("settings") or {}
+    workflow_type = (payload.get("workflowType") or "").strip().lower()
     if not model_id:
         raise StoreError(400, "modelId is required.")
     if not prompt:
@@ -5983,6 +6365,13 @@ def create_generation_job(conn, merchant_id, payload):
     model = get_generation_model_row(conn, model_id)
     if model["readiness_status"] not in {"ready", "preview"}:
         raise StoreError(409, "Selected generation model is not available.")
+    if workflow_type == CAROUSEL_WORKFLOW_TYPE:
+        model_limits = json_loads(model["limits_json"], {})
+        if model["capability"] != "image" or not model_limits.get("supportsCarousel"):
+            raise StoreError(409, "Selected generation model does not support carousel generation.")
+        _brand_row, normalized_request, settings = normalize_carousel_request(conn, merchant_id, payload, prompt, settings)
+    else:
+        normalized_request = dict(payload)
 
     cost = model["credit_cost"]
     if current_credit_balance(conn, merchant_id) < cost:
@@ -6008,7 +6397,7 @@ def create_generation_job(conn, merchant_id, payload):
                 model["model_key"],
                 model["capability"],
                 prompt,
-                json_dumps(payload),
+                json_dumps(normalized_request),
                 json_dumps(settings),
                 "queued",
                 cost,
@@ -6049,70 +6438,70 @@ def create_generation_job(conn, merchant_id, payload):
     }
 
 
-def get_phase3_workspace(conn):
-    brand = conn.execute("select * from brand_kits where merchant_id = ? order by updated_at desc limit 1", (DEMO_MERCHANT_ID,)).fetchone()
-    batches = [serialize_content_batch(conn, row["id"]) for row in conn.execute("select * from content_batches where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))]
+def get_phase3_workspace(conn, merchant_id=DEMO_MERCHANT_ID):
+    brand = conn.execute("select * from brand_kits where merchant_id = ? order by updated_at desc limit 1", (merchant_id,)).fetchone()
+    batches = [serialize_content_batch(conn, row["id"]) for row in conn.execute("select * from content_batches where merchant_id = ? order by created_at desc", (merchant_id,))]
     creatives = [
         serialize_generated_creative(conn, row["id"])
-        for row in conn.execute("select * from generated_creatives where merchant_id = ? order by created_at desc, platform", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from generated_creatives where merchant_id = ? order by created_at desc, platform", (merchant_id,))
     ]
     slots = [
         serialize_calendar_slot(row)
-        for row in conn.execute("select * from calendar_slots where merchant_id = ? order by created_at desc, slot_label", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from calendar_slots where merchant_id = ? order by created_at desc, slot_label", (merchant_id,))
     ]
     sources = [
         serialize_competitor_source(row)
-        for row in conn.execute("select * from competitor_sources where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from competitor_sources where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     content_sources = [
         serialize_content_source(row)
-        for row in conn.execute("select * from content_sources where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from content_sources where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     ai_replies = [
         serialize_ai_assistant_reply(row)
-        for row in conn.execute("select * from ai_assistant_replies where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from ai_assistant_replies where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     ideas = [
         serialize_competitor_idea(row)
-        for row in conn.execute("select * from competitor_ideas where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from competitor_ideas where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     events = [
         serialize_proof_event(row)
-        for row in conn.execute("select * from proof_events where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from proof_events where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     templates = [
         serialize_creative_template(row)
-        for row in conn.execute("select * from creative_templates where merchant_id = ? order by created_at, id", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from creative_templates where merchant_id = ? order by created_at, id", (merchant_id,))
     ]
     imported_templates = [
         serialize_imported_template(row)
-        for row in conn.execute("select * from imported_templates where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from imported_templates where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     approval_review_links = [
         serialize_approval_review_link(row)
-        for row in conn.execute("select * from approval_review_links where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from approval_review_links where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     approval_feedback = [
         serialize_approval_feedback(row)
-        for row in conn.execute("select * from approval_feedback where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from approval_feedback where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     review_notifications = [
         serialize_review_notification(row)
-        for row in conn.execute("select * from review_notifications where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from review_notifications where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
     asset_library = [
         serialize_asset_library_item(row)
-        for row in conn.execute("select * from asset_library_items where merchant_id = ? order by created_at, id", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from asset_library_items where merchant_id = ? order by created_at, id", (merchant_id,))
     ]
     performance_snapshots = [
         serialize_performance_snapshot(row)
-        for row in conn.execute("select * from performance_snapshots where merchant_id = ? order by platform", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from performance_snapshots where merchant_id = ? order by platform", (merchant_id,))
     ]
     analytics_insights = [
         serialize_analytics_insight(row)
-        for row in conn.execute("select * from analytics_insights where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))
+        for row in conn.execute("select * from analytics_insights where merchant_id = ? order by created_at desc", (merchant_id,))
     ]
-    creator_workflows = creator_style_workflows_for_workspace(conn)
+    creator_workflows = creator_style_workflows_for_workspace(conn, merchant_id)
     return {
         "status": "ok",
         "brandKit": serialize_brand_kit(brand),
@@ -6134,8 +6523,8 @@ def get_phase3_workspace(conn):
         "analyticsInsights": analytics_insights,
         "creatorStyleWorkflows": creator_workflows,
         "creatorStyleOptions": creator_style_options(),
-        "analyticsSummary": get_phase3_analytics_summary(conn),
-        "usage": get_phase3_usage_summary(conn),
+        "analyticsSummary": get_phase3_analytics_summary(conn, merchant_id),
+        "usage": get_phase3_usage_summary(conn, merchant_id),
     }
 
 

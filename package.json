@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "dev:api": "python3 -m backend.app.server --port 8787 --db .localpilot-dev/backend.sqlite",
+    "dev:api": "LOCALPILOT_API_PORT=${LOCALPILOT_API_PORT:-8790} python3 -m backend.app.server --port ${LOCALPILOT_API_PORT:-8790} --db .localpilot-dev/backend.sqlite",
     "dev:web": "vite --host 127.0.0.1",
     "dev:full": "node scripts/dev-full.mjs",
+    "dev:safe": "node scripts/dev-safe.mjs",
     "build": "vite build --outDir dist/client --emptyOutDir true && node scripts/prepare-sites-dist.mjs",
     "package:sites": "npm run build && node scripts/package-sites.mjs",
     "preview": "vite preview --host 127.0.0.1",
@@ -21,7 +22,8 @@
     "test:retry-redaction": "python3 -m unittest backend.tests.test_retry_redaction_idempotency -v && node scripts/smoke-retry-redaction.mjs",
     "test:token-boundary": "python3 -m unittest backend.tests.test_token_boundary -v",
     "test:storage-boundary": "node scripts/smoke-no-publish-localstorage.mjs",
-    "test:phase3-screens": "node scripts/smoke-phase3-screens.mjs"
+    "test:phase3-screens": "node scripts/smoke-phase3-screens.mjs",
+    "test:phase11-real-carousel": "PHASE3_SCREEN_REAL_CAROUSEL=1 node scripts/smoke-phase3-screens.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",

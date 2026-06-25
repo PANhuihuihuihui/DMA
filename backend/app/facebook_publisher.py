@@ -111,18 +111,32 @@ def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE
         store.record_publish_outcome(conn, job["id"], attempt["id"], snapshot, provider="facebook", provider_result_ref=provider_ref)
 
     error_class = (outcome.get("diagnostics") or {}).get("errorClass")
+    manual_fallback = outcome["attemptStatus"] == "failed" and store.should_manual_fallback(error_class)
+    if manual_fallback:
+        outcome["terminalStatus"] = "manual_fallback_required"
     if error_class == "authentication":
         facebook_token_vault.mark_reconnect_required(str(page_id), conn=conn)
 
-    store.update_publish_job_status(conn, job["id"], outcome["terminalStatus"])
-    store.append_publish_event(
-        conn,
-        job["id"],
-        outcome["attemptStatus"],
-        outcome["summary"],
-        "facebook_publisher",
-        attempt_number,
-    )
+    if manual_fallback:
+        store.append_publish_event(
+            conn,
+            job["id"],
+            outcome["attemptStatus"],
+            outcome["summary"],
+            "facebook_publisher",
+            attempt_number,
+        )
+        store.mark_publish_job_manual_fallback(conn, job["id"], error_class, outcome["summary"])
+    else:
+        store.update_publish_job_status(conn, job["id"], outcome["terminalStatus"])
+        store.append_publish_event(
+            conn,
+            job["id"],
+            outcome["attemptStatus"],
+            outcome["summary"],
+            "facebook_publisher",
+            attempt_number,
+        )
     conn.commit()
     return {"status": "ok", "ctaCopy": CTA_COPY, "job": store.get_serialized_publish_job(conn, job["id"])}
 
@@ -193,11 +207,18 @@ def retry_facebook_publish(conn, job_id, graph_base=GRAPH_API_BASE, opener=None)
         store.record_publish_outcome(conn, job_id, attempt["id"], snapshot, provider="facebook", provider_result_ref=provider_ref)
 
     error_class = (outcome.get("diagnostics") or {}).get("errorClass")
+    manual_fallback = outcome["attemptStatus"] == "failed" and store.should_manual_fallback(error_class)
+    if manual_fallback:
+        outcome["terminalStatus"] = "manual_fallback_required"
     if error_class == "authentication":
         facebook_token_vault.mark_reconnect_required(str(page_id), conn=conn)
 
-    store.update_publish_job_status(conn, job_id, outcome["terminalStatus"])
-    store.append_publish_event(conn, job_id, outcome["attemptStatus"], outcome["summary"], "facebook_publisher", attempt_number)
+    if manual_fallback:
+        store.append_publish_event(conn, job_id, outcome["attemptStatus"], outcome["summary"], "facebook_publisher", attempt_number)
+        store.mark_publish_job_manual_fallback(conn, job_id, error_class, outcome["summary"])
+    else:
+        store.update_publish_job_status(conn, job_id, outcome["terminalStatus"])
+        store.append_publish_event(conn, job_id, outcome["attemptStatus"], outcome["summary"], "facebook_publisher", attempt_number)
     conn.commit()
     return {"status": "ok", "ctaCopy": CTA_COPY, "job": store.get_serialized_publish_job(conn, job_id)}
 

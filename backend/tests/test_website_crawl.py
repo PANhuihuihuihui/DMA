@@ -189,6 +189,44 @@ class TestExtractBrandProfile(unittest.TestCase):
         self.assertEqual(profile["target_audience"], "Owners")
 
 
+class TestCarouselStoryExtraction(unittest.TestCase):
+    def _mock_llm_response(self, payload):
+        body = json.dumps({"choices": [{"message": {"content": json.dumps(payload)}}]}).encode("utf-8")
+        return FakeResponse(body)
+
+    def test_extract_carousel_story_brief_returns_content_only_fields(self):
+        payload = {
+            "sourceTitle": "Nike Running",
+            "sourceDomain": "www.nike.com",
+            "summary": "Public running collection page.",
+            "sourceHealth": "ready",
+            "slideSeeds": {
+                "cover": "Nike running update",
+                "problem": "Runners need the right daily shoe.",
+                "proof": "Highlight one source-backed proof cue.",
+                "offer": "Show the current collection value.",
+                "cta": "Shop the collection.",
+            },
+        }
+        with patch("backend.app.website_crawl.request.urlopen", return_value=self._mock_llm_response(payload)):
+            brief = website_crawl.extract_carousel_story_brief("Title: Nike\nBody: Running", api_key="test-key")
+        self.assertEqual("Nike Running", brief["sourceTitle"])
+        self.assertEqual("www.nike.com", brief["sourceDomain"])
+        self.assertEqual("ready", brief["sourceHealth"])
+        self.assertEqual("Nike running update", brief["slideSeeds"]["cover"])
+
+    def test_fallback_carousel_story_brief_uses_domain_and_cleaned_text(self):
+        brief = website_crawl.fallback_carousel_story_brief(
+            "https://www.nike.com/",
+            "Title: Nike Running\nBody: Public running collection page.",
+            {"offer": "Seasonal running collection"},
+        )
+        self.assertEqual("Nike Running", brief["sourceTitle"])
+        self.assertEqual("www.nike.com", brief["sourceDomain"])
+        self.assertEqual("limited", brief["sourceHealth"])
+        self.assertIn("Seasonal running collection", brief["slideSeeds"]["cover"])
+
+
 class TestOnboardingRoutes(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()

@@ -351,10 +351,19 @@ def queue_tiktok_publish(conn, approval_id, payload=None, opener=None):
         provider_ref = diagnostics.get("providerResultRef") or diagnostics.get("publishId")
         store.record_publish_outcome(conn, job["id"], attempt["id"], snapshot, provider="tiktok", provider_result_ref=provider_ref)
 
-    store.update_publish_job_status(conn, job["id"], outcome["terminalStatus"])
-    store.append_publish_event(
-        conn, job["id"], outcome["attemptStatus"], outcome["summary"], "tiktok_publisher", attempt_number
-    )
+    error_class = (outcome.get("diagnostics") or {}).get("errorClass")
+    manual_fallback = outcome["attemptStatus"] == "failed" and store.should_manual_fallback(error_class)
+    if manual_fallback:
+        outcome["terminalStatus"] = "manual_fallback_required"
+        store.append_publish_event(
+            conn, job["id"], outcome["attemptStatus"], outcome["summary"], "tiktok_publisher", attempt_number
+        )
+        store.mark_publish_job_manual_fallback(conn, job["id"], error_class, outcome["summary"])
+    else:
+        store.update_publish_job_status(conn, job["id"], outcome["terminalStatus"])
+        store.append_publish_event(
+            conn, job["id"], outcome["attemptStatus"], outcome["summary"], "tiktok_publisher", attempt_number
+        )
     conn.commit()
     return {
         "status": "ok",

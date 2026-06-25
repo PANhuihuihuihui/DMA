@@ -59,7 +59,7 @@ class TiktokFailureTaxonomyTest(unittest.TestCase):
                 self.assertEqual("retry_needed", job["status"])
                 self.assertEqual("automatic_retry_needed", job["attempts"][0]["retryClassification"])
             else:
-                self.assertEqual("failed", job["status"])
+                self.assertEqual("manual_fallback_required", job["status"])
                 self.assertEqual("manual_review", job["attempts"][0]["retryClassification"])
             # reset for the next class (FK-safe order)
             self.conn.execute("delete from publish_outcomes")

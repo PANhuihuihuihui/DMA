@@ -1,15 +1,21 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { chromium } from "playwright";
 
 const tempDir = await mkdtemp(join(tmpdir(), "localpilot-phase3-screens-"));
 const dbPath = join(tempDir, "phase3.sqlite");
-const apiPort = Number(process.env.PHASE3_SCREEN_API_PORT || 8798);
-const webPort = Number(process.env.PHASE3_SCREEN_WEB_PORT || 5193);
+const portOffset = Number(process.env.PHASE3_SCREEN_PORT_OFFSET || Math.floor(Math.random() * 1000));
+const apiPort = Number(process.env.PHASE3_SCREEN_API_PORT || 18000 + portOffset);
+const webPort = Number(process.env.PHASE3_SCREEN_WEB_PORT || 5200 + portOffset);
 const apiUrl = `http://127.0.0.1:${apiPort}`;
 const webUrl = `http://127.0.0.1:${webPort}`;
+const realCarouselMode = process.env.PHASE3_SCREEN_REAL_CAROUSEL === "1";
+const realCarouselUrl = process.env.PHASE3_SCREEN_REAL_CAROUSEL_URL || "https://www.nike.com/";
+const carouselOutputTimeoutMs = Number(
+  process.env.PHASE3_SCREEN_CAROUSEL_TIMEOUT_MS || (realCarouselMode ? 180000 : 10000),
+);
 const children = [];
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -87,6 +93,15 @@ const clickNav = async (page, label) => {
   await page.locator(".app-nav button", { hasText: label }).click();
 };
 
+const apiEnv = {
+  LOCALPILOT_DEV_LOGIN: "1",
+  GOOGLE_CLIENT_ID: "",
+};
+
+if (!realCarouselMode) {
+  apiEnv.LOCALPILOT_FAKE_MINIMAX = "1";
+}
+
 const api = start("api", "python3", [
   "-m",
   "backend.app.server",
@@ -96,7 +111,7 @@ const api = start("api", "python3", [
   String(apiPort),
   "--db",
   dbPath,
-]);
+], { env: apiEnv });
 
 const web = start(
   "web",
@@ -109,10 +124,57 @@ let browser;
 
 try {
   await waitForOk(`${apiUrl}/api/v1/health`, "Backend");
-  await waitForOk(`${webUrl}/app?module=dashboard`, "Vite app");
+  await waitForOk(`${webUrl}/`, "Vite app");
+
+  const login = spawnSync(
+    "curl",
+    [
+      "-i",
+      "-sS",
+      "-X",
+      "POST",
+      `${apiUrl}/api/v1/auth/google`,
+      "-H",
+      "Content-Type: application/json",
+      "-H",
+      "Accept: application/json",
+      "--data",
+      "{\"devLogin\":true}",
+    ],
+    {
+      env: {
+        ...process.env,
+        NO_PROXY: "127.0.0.1,localhost",
+      },
+      encoding: "utf-8",
+    },
+  );
+  const loginOutput = `${login.stdout || ""}${login.stderr || ""}`;
+  const sessionToken = /set-cookie:\s*lp_session=([^;]+)/i.exec(loginOutput)?.[1];
+  if (login.status !== 0 || !/HTTP\/1\.[01] 200/.test(loginOutput) || !sessionToken) {
+    throw new Error(`Dev login failed: ${loginOutput.slice(0, 800)}`);
+  }
+  let creditsBefore = null;
+  if (realCarouselMode) {
+    const creditsResponse = await fetch(`${apiUrl}/api/v1/generation/credits?session=${sessionToken}`);
+    if (!creditsResponse.ok) {
+      throw new Error(`Real carousel preflight credits failed: ${creditsResponse.status}`);
+    }
+    creditsBefore = await creditsResponse.json();
+  }
 
   browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1050 } });
+  await context.addCookies([
+    {
+      name: "lp_session",
+      value: sessionToken,
+      url: webUrl,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+  const page = await context.newPage();
   const consoleErrors = [];
   const pageErrors = [];
   page.on("console", (message) => {
@@ -125,6 +187,7 @@ try {
   });
 
   await page.goto(`${webUrl}/app?module=dashboard`, { waitUntil: "networkidle" });
+  await page.locator(".app-nav").waitFor({ timeout: 10000 });
   await page.locator(".content-card-grid article").first().waitFor({ timeout: 10000 });
 
   const navModules = (await page.locator(".app-nav button").allTextContents()).map((item) => item.trim());
@@ -227,16 +290,53 @@ try {
   await page.locator(".create-format-grid button", { hasText: "Carousel" }).click();
   const carouselText = await page.locator(".carousel-config-panel").innerText();
   textIncludes("Carousel configuration", carouselText, [
-    "Storytelling",
-    "Promotional",
-    "Motivational",
-    "Exploratory",
-    "1:1",
-    "9:16",
+    "carousel_canonical_v1",
+    "5 slides",
+    "cover -> problem -> proof -> offer -> CTA",
     "Brand linked",
   ]);
   await page.locator(".create-flow-footer .primary-action").click();
-  await page.locator(".content-card-grid article").first().waitFor({ timeout: 10000 });
+  await page.locator(".generation-workspace").waitFor({ timeout: 10000 });
+  textIncludes("AI Studio carousel flow", await page.locator(".generation-workspace").innerText(), [
+    "AI Studio",
+    "Write idea",
+    "Paste public URL",
+    "Generate carousel",
+    "Brand locked from saved kit",
+    "MiniMax",
+  ]);
+  if (realCarouselMode) {
+    await page.locator(".carousel-source-tabs button", { hasText: "Paste public URL" }).click();
+    await page.locator(".gen-url-input").fill(realCarouselUrl);
+  } else {
+    await page.locator(".carousel-source-tabs button", { hasText: "Write idea" }).click();
+    await page.locator(".gen-prompt-input").fill("Build a five-slide local sneaker story with proof, offer, and CTA.");
+  }
+  await page.locator(".gen-launch-btn").click();
+  await page.locator(".carousel-output-card").first().waitFor({ timeout: carouselOutputTimeoutMs });
+  textIncludes("Carousel output card", await page.locator(".carousel-output-card").first().innerText(), [
+    "Open in Creative Editor",
+  ]);
+  if (realCarouselMode) {
+    const creditsResponse = await fetch(`${apiUrl}/api/v1/generation/credits?session=${sessionToken}`);
+    if (!creditsResponse.ok) {
+      throw new Error(`Real carousel postflight credits failed: ${creditsResponse.status}`);
+    }
+    const creditsAfter = await creditsResponse.json();
+    const beforeAvailable = creditsBefore?.credits?.availableCredits;
+    const afterAvailable = creditsAfter?.credits?.availableCredits;
+    if (typeof beforeAvailable !== "number" || typeof afterAvailable !== "number" || afterAvailable >= beforeAvailable) {
+      throw new Error(
+        `Real carousel expected session-backed credit usage. before=${beforeAvailable} after=${afterAvailable}`,
+      );
+    }
+  }
+  await page.locator(".carousel-output-card button", { hasText: "Open in Creative Editor" }).first().click();
+  await page.locator("text=Slide-locked Creative Editor").waitFor({ state: "attached", timeout: 10000 });
+  textIncludes("Carousel editor inspector", await page.locator(".creative-editor-card").last().innerText(), [
+    "Slide-locked Creative Editor",
+    "Save slide edits",
+  ]);
 
   await page.goto(`${webUrl}/app?module=ad-inspirations`, { waitUntil: "networkidle" });
   await page.locator(".inspiration-grid article").first().waitFor({ timeout: 10000 });
@@ -262,7 +362,7 @@ try {
   await page.getByRole("button", { name: "Maybe later" }).click();
   textIncludes("Trending collection view", await page.locator(".primary-panel").innerText(), [
     "Trending collection",
-    "Travel inspirations",
+    "UGC video",
     "Consumer Electronic",
   ]);
   await page.getByLabel("Back to Inspirations").click();
@@ -468,7 +568,7 @@ try {
   ]);
   await page.locator(".exports-table-row").first().getByRole("button", { name: /Download/ }).click();
 
-  await clickNav(page, "Competitor Analysis");
+  await page.goto(`${webUrl}/app?module=competitor-analysis`, { waitUntil: "networkidle" });
   await page.locator(".competitor-link-gate").waitFor({ timeout: 10000 });
   const competitorText = await page.locator(".predis-surface").innerText();
   textIncludes("Competitor Analysis account gate", competitorText, [
@@ -517,9 +617,9 @@ try {
     "Book a Demo",
   ]);
   textIncludes("Analytics remains visible behind help flyout", await page.locator(".analytics-workspace").innerText(), [
-    "Posting activity",
-    "Post engagement",
-    "Follower growth",
+    "Your Posting Activity",
+    "Your Posts' Engagement",
+    "Your Followers' Growth",
   ]);
   await page.locator(".sidebar-help-flyout").getByRole("button", { name: "Chat Support" }).click();
   await page.waitForTimeout(400);

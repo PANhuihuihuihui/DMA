@@ -2,7 +2,33 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from backend.app import store
+from backend.app import generation_dispatch, store
+
+
+class CarouselStubAdapter:
+    def __init__(self):
+        self.calls = 0
+
+    def submit(self, job, model, output_dir):
+        self.calls += 1
+        return {
+            "job_status": "succeeded",
+            "provider_task_ref": f"stub-carousel-{self.calls}",
+            "diagnostics": {"providerStatus": "completed"},
+            "outputs": [
+                {
+                    "output_kind": "image",
+                    "file_extension": "svg",
+                    "mime_type": "image/svg+xml",
+                    "content_bytes": f"<svg xmlns='http://www.w3.org/2000/svg'><text>{self.calls}</text></svg>".encode("utf-8"),
+                    "preview_ref": f"data:image/svg+xml;charset=utf-8,slide-{self.calls}",
+                    "metadata": {"stub": True},
+                }
+            ],
+        }
+
+    def poll(self, job, model, provider_task_ref, output_dir):
+        raise AssertionError("Carousel stub adapter should not poll.")
 
 
 class Phase3WorkspaceTest(unittest.TestCase):
@@ -376,6 +402,117 @@ class Phase3WorkspaceTest(unittest.TestCase):
         self.assertEqual("edited_preview", payload["asset"]["status"])
         self.assertEqual("Move CTA above the service-area footer.", payload["asset"]["metadata"]["lastLayerEdit"])
         self.assertGreaterEqual(len(payload["asset"]["metadata"]["layerEdits"]), 1)
+
+    def test_phase11_carousel_editor_lock_persists_copy_edits_without_unlocking_layout(self):
+        job_id = store.create_generation_job(
+            self.conn,
+            store.DEMO_MERCHANT_ID,
+            {
+                "modelId": store.MINIMAX_IMAGE_MODEL_ID,
+                "prompt": "Turn one sneaker offer into a five-slide carousel.",
+                "workflowType": "carousel",
+                "sourceKind": "idea",
+                "sourceText": "Turn one sneaker offer into a five-slide carousel.",
+                "settings": {"aspectRatio": "4:5"},
+                "dispatch": False,
+            },
+        )["job"]["id"]
+        job = generation_dispatch.dispatch_generation_job(
+            self.db_path,
+            job_id,
+            adapter_registry={("minimax", "image"): CarouselStubAdapter()},
+            poll_interval_seconds=0,
+        )
+        creative = next(
+            item for item in store.get_phase3_workspace(self.conn)["generatedCreatives"] if item["id"] == job["creativeId"]
+        )
+        asset = creative["mediaAssets"][0]
+        original_slide = asset["metadata"]["carouselSlide"]
+        original_layout = asset["metadata"]["lockedLayout"]
+
+        payload = store.update_creative_media_asset(
+            self.conn,
+            asset["id"],
+            {
+                "status": "edited_preview",
+                "metadata": {
+                    **asset["metadata"],
+                    "lockedLayout": {
+                        **original_layout,
+                        "slideCount": 2,
+                        "aspectRatio": "1:1",
+                    },
+                    "composedPayload": {
+                        **asset["metadata"]["composedPayload"],
+                        "headline": "Edited carousel headline",
+                        "body": "Edited carousel body",
+                        "ctaLabel": "Edited CTA",
+                        "imageUrl": "https://attacker.example/override.png",
+                        "thumbnailRender": "https://attacker.example/thumb.png",
+                        "editorPreview": "https://attacker.example/preview.png",
+                        "layout": {
+                            **asset["metadata"]["composedPayload"]["layout"],
+                            "aspectRatio": "1:1",
+                            "brandLock": False,
+                        },
+                    },
+                    "carouselSlide": {
+                        **original_slide,
+                        "role": "offer",
+                        "index": 99,
+                        "composedPayload": {
+                            **asset["metadata"]["composedPayload"],
+                            "headline": "Edited carousel headline",
+                            "body": "Edited carousel body",
+                            "ctaLabel": "Edited CTA",
+                            "imageUrl": "https://attacker.example/override-slide.png",
+                            "thumbnailRender": "https://attacker.example/thumb-slide.png",
+                            "editorPreview": "https://attacker.example/preview-slide.png",
+                            "layout": {
+                                **asset["metadata"]["composedPayload"]["layout"],
+                                "aspectRatio": "1:1",
+                                "brandLock": False,
+                            },
+                        },
+                    },
+                },
+            },
+        )
+
+        updated = payload["asset"]["metadata"]
+        refreshed = store.get_phase3_workspace(self.conn)["generatedCreatives"]
+        refreshed_asset = next(
+            item["mediaAssets"][0]
+            for item in refreshed
+            if item["id"] == job["creativeId"]
+        )
+        self.assertEqual("carousel_slide_edit", updated["editorMode"])
+        self.assertEqual(5, updated["lockedLayout"]["slideCount"])
+        self.assertEqual("4:5", updated["lockedLayout"]["aspectRatio"])
+        self.assertEqual(original_slide["role"], updated["carouselSlide"]["role"])
+        self.assertEqual(original_slide["index"], updated["carouselSlide"]["index"])
+        self.assertEqual("Edited carousel headline", updated["composedPayload"]["headline"])
+        self.assertEqual("Edited carousel body", updated["composedPayload"]["body"])
+        self.assertEqual("Edited CTA", updated["composedPayload"]["ctaLabel"])
+        self.assertEqual(asset["metadata"]["composedPayload"]["imageUrl"], updated["composedPayload"]["imageUrl"])
+        self.assertEqual(
+            asset["metadata"]["composedPayload"]["thumbnailRender"],
+            updated["composedPayload"]["thumbnailRender"],
+        )
+        self.assertEqual(
+            asset["metadata"]["composedPayload"]["editorPreview"],
+            updated["composedPayload"]["editorPreview"],
+        )
+        self.assertEqual(
+            asset["metadata"]["composedPayload"]["layout"]["aspectRatio"],
+            updated["composedPayload"]["layout"]["aspectRatio"],
+        )
+        self.assertTrue(updated["composedPayload"]["layout"]["brandLock"])
+        self.assertEqual(
+            asset["metadata"]["composedPayload"]["layout"]["aspectRatio"],
+            refreshed_asset["metadata"]["composedPayload"]["layout"]["aspectRatio"],
+        )
+        self.assertTrue(refreshed_asset["metadata"]["composedPayload"]["layout"]["brandLock"])
 
     def test_update_creative_media_asset_persists_structured_layer_control(self):
         workspace = store.get_phase3_workspace(self.conn)

@@ -169,7 +169,7 @@ class FacebookPublisherTest(unittest.TestCase):
         self.assertEqual(f"{PAGE_ID}_122105698989358443", diagnostics["postId"])
         self.assert_tokens_not_persisted(payload)
 
-    def test_missing_pages_manage_posts_records_redacted_failed_attempt(self):
+    def test_missing_pages_manage_posts_records_redacted_manual_fallback_attempt(self):
         approval = self.approve_facebook()
 
         payload = facebook_publisher.queue_facebook_publish(
@@ -181,10 +181,14 @@ class FacebookPublisherTest(unittest.TestCase):
         )
 
         self.assertEqual("ok", payload["status"])
-        self.assertEqual("failed", payload["job"]["status"])
+        self.assertEqual("manual_fallback_required", payload["job"]["status"])
         diagnostics = payload["job"]["attempts"][0]["diagnostics"]
         self.assertEqual("missing_permission", diagnostics["errorClass"])
         self.assertIn("pages_manage_posts", diagnostics["message"])
+        self.assertEqual(
+            ["approved", "queued", "publishing", "failed", "manual_fallback_required"],
+            [event["status"] for event in payload["job"]["events"]],
+        )
         self.assert_tokens_not_persisted(payload)
 
     def test_non_facebook_approval_cannot_use_live_facebook_publish(self):

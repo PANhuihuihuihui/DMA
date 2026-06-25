@@ -38,6 +38,8 @@ Phase 11 extends the existing Phase 13 generation platform so a merchant can gen
 - **D-16:** First Phase 11 handoff supports slide-level editing only; deep layer-level tooling is not a requirement of this phase.
 - **D-17:** The editor should open with all five generated slides loaded as one editable carousel package.
 - **D-18:** Carousel outputs still go through the normal owner approval flow before publishing or downstream use.
+- **D-19:** MiniMax should be the default merchant-facing carousel image model for Phase 11.
+- **D-20:** The first Creative Editor handoff should use one `generated_creative` plus five `creative_media_assets`; no dedicated carousel package table is required in this phase.
 
 ### the agent's Discretion
 - Exact backend schema names, job payload shapes, and prompt-planning internals, as long as they respect the locked five-slide structure and reuse the Phase 13 generation framework.

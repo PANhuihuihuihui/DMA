@@ -93,6 +93,9 @@ const creatorAvatarPreviewPositions = [
   "82% 36%",
 ];
 const creatorAvatarPreviewScales = ["1", "1", "-1", "1", "-1", "1", "1", "-1", "1", "-1", "1", "1"];
+const MINIMAX_CAROUSEL_MODEL_ID = "genmodel_minimax_carousel_primary";
+const CAROUSEL_PRESET_ID = "carousel_canonical_v1";
+const CAROUSEL_ROLE_ORDER = ["cover", "problem", "proof", "offer", "cta"];
 
 const creatorAvatarPreviewStyle = (index) => ({
   "--reference-preview-image": `url(${creatorAvatarPreviewImages[index % creatorAvatarPreviewImages.length]})`,
@@ -3465,7 +3468,7 @@ function OnboardingCard({ onConfirmed, onResolved, showToast }) {
       setError("Enter a valid http:// or https:// website URL.");
       return;
     }
-    if (profile?.status === "draft" && profile.crawlUrl && profile.crawlUrl !== normalizedUrl) {
+    if (profile?.status === "draft" && profile.crawlUrl) {
       setPendingUrl(normalizedUrl);
       setShowReplaceWarning(true);
       return;
@@ -3661,7 +3664,7 @@ function OnboardingCard({ onConfirmed, onResolved, showToast }) {
           }}
         >
           <div className="onboarding-modal-copy">
-            <p>This will replace your current profile draft with data from the new website URL.</p>
+            <p>This will replace your current profile draft with fresh website crawl data.</p>
             <div className="onboarding-actions">
               <button
                 className="secondary-action"
@@ -3781,6 +3784,11 @@ export function AppDemo() {
   const [creatorScriptRewritePrompt, setCreatorScriptRewritePrompt] = useState("");
   const [carouselStyle, setCarouselStyle] = useState("storytelling");
   const [carouselAspectRatio, setCarouselAspectRatio] = useState("1:1");
+  const [carouselSourceMode, setCarouselSourceMode] = useState("idea");
+  const [carouselIdeaText, setCarouselIdeaText] = useState("Turn one timely local offer into a five-slide owner-ready carousel.");
+  const [carouselSourceUrl, setCarouselSourceUrl] = useState("https://www.nike.com/");
+  const [selectedCarouselSlideId, setSelectedCarouselSlideId] = useState("");
+  const [carouselSlideDraft, setCarouselSlideDraft] = useState({ headline: "", body: "", ctaLabel: "" });
   const [activeInspirationCategory, setActiveInspirationCategory] = useState("All");
   const [activeInspirationCollection, setActiveInspirationCollection] = useState("");
   const [pendingInspirationCollection, setPendingInspirationCollection] = useState("");
@@ -4078,10 +4086,18 @@ export function AppDemo() {
   const selectedPhase3UgcPackages = Array.isArray(selectedPhase3Creative?.ugcVoiceoverPackages)
     ? selectedPhase3Creative.ugcVoiceoverPackages
     : [];
+  const isCarouselEditor = selectedPhase3Creative?.editorMode === "carousel_slide_edit";
+  const selectedCarouselAssets = selectedPhase3MediaAssets.filter((asset) => asset?.metadata?.carouselSlide);
+  const activeCarouselAsset =
+    selectedCarouselAssets.find((asset) => asset.id === selectedCarouselSlideId) ||
+    selectedCarouselAssets[0] ||
+    null;
+  const activeCarouselPayload = activeCarouselAsset?.metadata?.composedPayload || {};
   const creativePreviewImage = (creative, index = 0) => {
     const mediaAsset = creative?.mediaAssets?.[0];
     return (
       creative?.previewDataUrl ||
+      mediaAsset?.metadata?.composedPayload?.thumbnailRender ||
       mediaAsset?.previewDataUrl ||
       mediaAsset?.renderedOutputs?.[0]?.previewDataUrl ||
       referencePreviewImages[index % referencePreviewImages.length]
@@ -4267,9 +4283,11 @@ export function AppDemo() {
         ...workspace,
       });
       setPhase3Status("ready");
+      return workspace;
     } catch (error) {
       setPhase3Status("error");
       setPhase3Error(error instanceof Error ? error.message : "Phase 3 workspace could not load.");
+      return null;
     }
   }, []);
 
@@ -4318,11 +4336,76 @@ export function AppDemo() {
       setGenCredits(normalizeCreditSummary(creditsPayload?.credits));
       setGenJobs(normalizeGenerationJobsList(jobsPayload));
       if (!genSelectedModel && catalog.models.length) {
-        setGenSelectedModel(catalog.models[0].id);
+        const defaultModel = catalog.models.find((model) => model.id === MINIMAX_CAROUSEL_MODEL_ID) || catalog.models[0];
+        setGenSelectedModel(defaultModel.id);
       }
       setGenStatus("ready");
     } catch {
       setGenStatus("error");
+    }
+  };
+
+  const openCarouselEditor = async (creativeId) => {
+    if (!creativeId) return;
+    const refreshedWorkspace = await reloadPhase3Workspace({ silent: true });
+    const refreshedCreatives = Array.isArray(refreshedWorkspace?.generatedCreatives)
+      ? refreshedWorkspace.generatedCreatives
+      : phase3Creatives;
+    const creativeIndex = refreshedCreatives.findIndex((creative) => creative.id === creativeId);
+    if (creativeIndex >= 0) {
+      setSelectedPost(creativeIndex);
+      setLibraryDetailCreativeId(creativeId);
+    }
+    selectModule("Content Library");
+    showAppToast("Carousel package opened in Creative Editor.");
+  };
+
+  const handleCarouselLaunch = async () => {
+    if (!carouselModel) {
+      showAppToast("Carousel model is not available.");
+      return;
+    }
+    if (!carouselBrandReady) {
+      showAppToast("Finish the brand kit before generating a carousel.");
+      return;
+    }
+    if (!carouselSourceValue) {
+      showAppToast(carouselSourceMode === "url" ? "Paste one public URL first." : "Write one idea first.");
+      return;
+    }
+    if (!carouselUrlValidity) {
+      showAppToast("Enter one valid public URL.");
+      return;
+    }
+    if (carouselCreditCost > genCredits.available) {
+      showAppToast("Not enough credits for this carousel run.");
+      return;
+    }
+    setGenLaunchPending(true);
+    try {
+      const payload = await launchGenerationJob({
+        modelId: carouselModel.id,
+        prompt: carouselSourceValue,
+        workflowType: "carousel",
+        carouselPresetId: CAROUSEL_PRESET_ID,
+        sourceKind: carouselSourceMode,
+        sourceText: carouselSourceMode === "idea" ? carouselSourceValue : "",
+        sourceUrl: carouselSourceMode === "url" ? carouselSourceValue : "",
+        slideRoles: CAROUSEL_ROLE_ORDER,
+        settings: {
+          aspectRatio: "4:5",
+        },
+      });
+      const newJob = normalizeGenerationJob(payload?.job);
+      setGenSelectedModel(carouselModel.id);
+      setGenJobs((prev) => [newJob, ...prev.filter((job) => job.id !== newJob.id)]);
+      setGenDetailJobId(newJob.id);
+      await reloadGenerationWorkspace();
+      showAppToast("Carousel generation launched on the normal credit ledger.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Carousel launch failed.");
+    } finally {
+      setGenLaunchPending(false);
     }
   };
 
@@ -4365,6 +4448,40 @@ export function AppDemo() {
   const genInsufficientCredits = genEstimatedCost > genCredits.available;
   const genSucceededJobs = genJobs.filter((j) => j.status === "succeeded");
   const genActiveJobs = genJobs.filter((j) => j.status === "queued" || j.status === "running");
+  const carouselModel = genCatalog.find((model) => model.id === MINIMAX_CAROUSEL_MODEL_ID) || genCatalog.find((model) => model.capability === "image") || null;
+  const carouselJobs = genJobs.filter((job) => job.workflowType === "carousel");
+  const carouselActiveJobs = carouselJobs.filter((job) => job.status === "queued" || job.status === "running");
+  const latestCarouselJob = carouselJobs[0] || null;
+  const carouselCreditCost = carouselModel ? carouselModel.creditCost : 0;
+  const carouselBrandReady = Boolean(phase3BrandKit?.id);
+  const carouselSourceValue = carouselSourceMode === "url" ? carouselSourceUrl.trim() : carouselIdeaText.trim();
+  const carouselUrlValidity = (() => {
+    if (carouselSourceMode !== "url") return true;
+    try {
+      const candidate = new URL(carouselSourceUrl.trim());
+      const hostname = (candidate.hostname || "").toLowerCase();
+      return ["http:", "https:"].includes(candidate.protocol) && hostname && !["localhost", "127.0.0.1"].includes(hostname);
+    } catch {
+      return false;
+    }
+  })();
+  const carouselLaunchBlocked =
+    genLaunchPending ||
+    !carouselModel ||
+    !carouselBrandReady ||
+    !carouselSourceValue ||
+    !carouselUrlValidity ||
+    carouselCreditCost > genCredits.available ||
+    carouselActiveJobs.length > 0;
+
+  const carouselStageLabel = (job) => {
+    if (!job) return "No carousel generated yet";
+    if (job.status === "failed") return "Failed";
+    if (job.status === "succeeded") return "Ready in editor";
+    if (job.carouselStage === "packaging") return "Packaging";
+    if (job.carouselStage === "generating_slides") return `Generating slides ${job.completedSlides || 0}/5`;
+    return "Planning";
+  };
 
   useEffect(() => {
     reloadWorkflow();
@@ -4372,6 +4489,43 @@ export function AppDemo() {
     reloadFacebookConnection();
     reloadGenerationWorkspace();
   }, []);
+
+  useEffect(() => {
+    if (!genCatalog.length) return;
+    if (genSelectedModel && genCatalog.some((model) => model.id === genSelectedModel)) return;
+    const nextModel = genCatalog.find((model) => model.id === MINIMAX_CAROUSEL_MODEL_ID) || genCatalog[0];
+    if (nextModel?.id) {
+      setGenSelectedModel(nextModel.id);
+    }
+  }, [genCatalog, genSelectedModel]);
+
+  useEffect(() => {
+    if (!selectedCarouselAssets.length) {
+      setSelectedCarouselSlideId("");
+      return;
+    }
+    if (selectedCarouselAssets.some((asset) => asset.id === selectedCarouselSlideId)) return;
+    setSelectedCarouselSlideId(selectedCarouselAssets[0].id);
+  }, [selectedCarouselAssets, selectedCarouselSlideId]);
+
+  useEffect(() => {
+    const composed = activeCarouselAsset?.metadata?.composedPayload;
+    if (!composed) return;
+    setCarouselSlideDraft({
+      headline: composed.headline || "",
+      body: composed.body || "",
+      ctaLabel: composed.ctaLabel || "",
+    });
+  }, [activeCarouselAsset?.id]);
+
+  useEffect(() => {
+    if (!carouselActiveJobs.length) return undefined;
+    const timer = window.setTimeout(() => {
+      reloadGenerationWorkspace();
+      reloadPhase3Workspace({ silent: true });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [carouselActiveJobs.length]);
 
   useEffect(() => {
     const queryModule = moduleFromSlug(new URLSearchParams(location.search).get("module"));
@@ -4665,6 +4819,12 @@ export function AppDemo() {
   const submitCreateFlow = async () => {
     if (!activeCreateFormat) {
       showAppToast("Choose a format before generating.");
+      return;
+    }
+    if (activeCreateFormat === "carousel") {
+      setGenSelectedModel(carouselModel?.id || MINIMAX_CAROUSEL_MODEL_ID);
+      selectModule("AI Studio");
+      showAppToast("Carousel creation continues in AI Studio.");
       return;
     }
     if (activeCreateFormat === "ugc") {
@@ -5670,6 +5830,48 @@ export function AppDemo() {
     }
   };
 
+  const saveCarouselSlideEdit = async () => {
+    if (!activeCarouselAsset?.id) {
+      showAppToast("Select a carousel slide before saving edits.");
+      return;
+    }
+    const currentMetadata = activeCarouselAsset.metadata || {};
+    const currentSlide = currentMetadata.carouselSlide || {};
+    const nextComposedPayload = {
+      ...(currentMetadata.composedPayload || {}),
+      headline: carouselSlideDraft.headline,
+      body: carouselSlideDraft.body,
+      ctaLabel: carouselSlideDraft.ctaLabel,
+      thumbnailRender: currentMetadata.composedPayload?.thumbnailRender || currentMetadata.composedPayload?.editorPreview || "",
+      editorPreview: currentMetadata.composedPayload?.editorPreview || currentMetadata.composedPayload?.thumbnailRender || "",
+    };
+    setMediaAssetPending(activeCarouselAsset.id);
+    try {
+      const payload = await updatePhase3MediaAsset(activeCarouselAsset.id, {
+        status: "edited_preview",
+        metadata: {
+          ...currentMetadata,
+          composedPayload: nextComposedPayload,
+          carouselSlide: {
+            ...currentSlide,
+            composedPayload: nextComposedPayload,
+          },
+        },
+      });
+      if (payload?.workspace) {
+        setPhase3Workspace({
+          ...emptyPhase3Workspace,
+          ...payload.workspace,
+        });
+      }
+      showAppToast("Carousel slide edits saved to backend.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Carousel slide edit failed.");
+    } finally {
+      setMediaAssetPending("");
+    }
+  };
+
   const saveMediaLayerEdit = async (asset) => {
     if (!asset?.id) {
       showAppToast("Select a generated media asset before saving a layer edit.");
@@ -6141,36 +6343,19 @@ export function AppDemo() {
                   <section className="carousel-config-panel" aria-label="Carousel configuration">
                     <div>
                       <span>Carousel setup</span>
-                      <h3>Confirm style, aspect ratio, and brand settings before generation.</h3>
+                      <h3>Open the canonical carousel flow in AI Studio.</h3>
                       <p>
-                        Carousel generation uses the backend brand kit and stores approval-ready cards
-                        as LocalPilot creative records.
+                        Phase 11 uses one package-level carousel flow only: MiniMax default model, fixed 4:5,
+                        five locked slides, and direct Creative Editor handoff.
                       </p>
                     </div>
-                    <div className="carousel-style-grid">
-                      {carouselStylePresets.map(([id, title, body]) => (
-                        <button
-                          className={carouselStyle === id ? "active" : ""}
-                          type="button"
-                          key={id}
-                          onClick={() => setCarouselStyle(id)}
-                        >
-                          <strong>{title}</strong>
-                          <small>{body}</small>
-                        </button>
-                      ))}
-                    </div>
-                    <div className="ratio-picker" aria-label="Carousel aspect ratios">
-                      {aspectRatioOptions.map((ratio) => (
-                        <button
-                          className={carouselAspectRatio === ratio ? "active" : ""}
-                          type="button"
-                          key={ratio}
-                          onClick={() => setCarouselAspectRatio(ratio)}
-                        >
-                          {ratio}
-                        </button>
-                      ))}
+                    <div className="carousel-style-grid carousel-canonical-grid">
+                      <article className="carousel-canonical-card">
+                        <strong>carousel_canonical_v1</strong>
+                        <small>5 slides</small>
+                        <p>cover -&gt; problem -&gt; proof -&gt; offer -&gt; CTA</p>
+                        <em>Brand locked from saved kit · MiniMax default model · 4:5 portrait</em>
+                      </article>
                     </div>
                     <article className="brand-confirmation-card">
                       <span>Brand linked</span>
@@ -6892,12 +7077,50 @@ export function AppDemo() {
                 {selectedPlan && (
                   <section className={`creative-editor-card ${selectedPlan.tone}`}>
                     <div className="creative-canvas">
-                      <img src={selectedPlan.asset} alt={`${selectedPlan.name} creative mockup`} />
-                      <div>
-                        <span>{selectedPlan.name}</span>
-                        <strong>{safeText(selectedPlan.nativeCreative?.cover)}</strong>
-                        <p>{safeText(selectedPlan.nativeCreative?.hook)}</p>
-                      </div>
+                      {isCarouselEditor && activeCarouselAsset ? (
+                        <div className="carousel-editor-shell">
+                          <aside className="carousel-slide-rail">
+                            {selectedCarouselAssets.map((asset, index) => {
+                              const slide = asset.metadata?.carouselSlide || {};
+                              const preview = asset.metadata?.composedPayload?.thumbnailRender;
+                              return (
+                                <button
+                                  type="button"
+                                  key={asset.id}
+                                  className={asset.id === activeCarouselAsset.id ? "active" : ""}
+                                  onClick={() => setSelectedCarouselSlideId(asset.id)}
+                                >
+                                  <span>{index + 1}</span>
+                                  {preview ? <img src={preview} alt={`${slide.role || "slide"} thumbnail`} /> : <strong>{slide.role || `Slide ${index + 1}`}</strong>}
+                                  <small>{slide.role || `Slide ${index + 1}`}</small>
+                                </button>
+                              );
+                            })}
+                          </aside>
+                          <div className="carousel-slide-canvas">
+                            {activeCarouselPayload.editorPreview ? (
+                              <img src={activeCarouselPayload.editorPreview} alt={`${activeCarouselPayload.layout?.role || "carousel"} preview`} />
+                            ) : (
+                              <img src={selectedPlan.asset} alt={`${selectedPlan.name} creative mockup`} />
+                            )}
+                            <div>
+                              <span>{activeCarouselPayload.layout?.role || "carousel slide"}</span>
+                              <strong>{safeText(activeCarouselPayload.headline, safeText(selectedPlan.nativeCreative?.cover))}</strong>
+                              <p>{safeText(activeCarouselPayload.body, safeText(selectedPlan.nativeCreative?.hook))}</p>
+                              {activeCarouselPayload.ctaLabel && <small>{activeCarouselPayload.ctaLabel}</small>}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <img src={selectedPlan.asset} alt={`${selectedPlan.name} creative mockup`} />
+                          <div>
+                            <span>{selectedPlan.name}</span>
+                            <strong>{safeText(selectedPlan.nativeCreative?.cover)}</strong>
+                            <p>{safeText(selectedPlan.nativeCreative?.hook)}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className="creative-fields">
                       {selectedPhase3Creative && (
@@ -6907,6 +7130,51 @@ export function AppDemo() {
                           <small>{selectedPhase3Creative.id}</small>
                         </div>
                       )}
+                      {isCarouselEditor && activeCarouselAsset && (
+                        <section className="carousel-slide-inspector" aria-label="Carousel slide inspector">
+                          <div>
+                            <span>Slide-locked Creative Editor</span>
+                            <strong>Five slides stay in order with brand lock enabled</strong>
+                            <p>
+                              Edit headline, body, and CTA only. Aspect ratio, preset, logo placement,
+                              slide count, and brand styling stay fixed for this package.
+                            </p>
+                          </div>
+                          <label>
+                            Headline
+                            <input
+                              type="text"
+                              value={carouselSlideDraft.headline}
+                              onChange={(event) => setCarouselSlideDraft((current) => ({ ...current, headline: event.target.value }))}
+                            />
+                          </label>
+                          <label>
+                            Body
+                            <textarea
+                              value={carouselSlideDraft.body}
+                              onChange={(event) => setCarouselSlideDraft((current) => ({ ...current, body: event.target.value }))}
+                            />
+                          </label>
+                          <label>
+                            CTA
+                            <input
+                              type="text"
+                              value={carouselSlideDraft.ctaLabel}
+                              onChange={(event) => setCarouselSlideDraft((current) => ({ ...current, ctaLabel: event.target.value }))}
+                            />
+                          </label>
+                          <div className="media-asset-actions carousel-inspector-actions">
+                            <button
+                              type="button"
+                              disabled={mediaAssetPending === activeCarouselAsset.id}
+                              onClick={saveCarouselSlideEdit}
+                            >
+                              {mediaAssetPending === activeCarouselAsset.id ? "Saving slide..." : "Save slide edits"}
+                            </button>
+                          </div>
+                        </section>
+                      )}
+                      {!isCarouselEditor && (
                       <section className="idea-lab-panel" aria-label="Idea Lab AI scoring">
                         <div>
                           <span>Idea Labs</span>
@@ -6945,6 +7213,8 @@ export function AppDemo() {
                           ))}
                         </div>
                       </section>
+                      )}
+                      {!isCarouselEditor && (
                       <section className="bulk-variation-panel" aria-label="Bulk creative variations">
                         <div>
                           <span>Bulk variations</span>
@@ -6977,6 +7247,8 @@ export function AppDemo() {
                           ))}
                         </div>
                       </section>
+                      )}
+                      {!isCarouselEditor && (
                       <section className="ugc-package-panel" aria-label="UGC voiceover packages">
                         <div>
                           <span>UGC voiceover</span>
@@ -7020,6 +7292,8 @@ export function AppDemo() {
                           ))}
                         </div>
                       </section>
+                      )}
+                      {!isCarouselEditor && (
                       <section className="language-variant-panel" aria-label="Multilingual creative variants">
                         <div>
                           <span>Multilingual variants</span>
@@ -7049,6 +7323,8 @@ export function AppDemo() {
                           ))}
                         </div>
                       </section>
+                      )}
+                      {!isCarouselEditor && (
                       <section className="template-import-panel" aria-label="Template import and asset library">
                         <div>
                           <span>Template import</span>
@@ -7100,9 +7376,26 @@ export function AppDemo() {
                           ))}
                         </div>
                       </section>
+                      )}
                       <section className="media-asset-panel" aria-label="Generated media assets">
                         <span>Generated media assets</span>
                         {selectedPhase3MediaAssets.length ? (
+                          isCarouselEditor ? (
+                            selectedCarouselAssets.map((asset, index) => (
+                              <article key={asset.id} className="carousel-slide-asset-card">
+                                <div>
+                                  <strong>Slide {index + 1} · {asset.metadata?.carouselSlide?.role}</strong>
+                                  <small>{asset.assetType} · {asset.aspectRatio} · {asset.status}</small>
+                                </div>
+                                {asset.metadata?.composedPayload?.thumbnailRender && (
+                                  <img src={asset.metadata.composedPayload.thumbnailRender} alt={`${asset.metadata?.carouselSlide?.role || "carousel"} thumbnail`} />
+                                )}
+                                <p>{safeText(asset.metadata?.composedPayload?.headline)}</p>
+                                <small>{safeText(asset.metadata?.composedPayload?.body)}</small>
+                                <em>{safeText(asset.metadata?.composedPayload?.ctaLabel || "No CTA on this slide")}</em>
+                              </article>
+                            ))
+                          ) : (
                           selectedPhase3MediaAssets.map((asset) => (
                             <article key={asset.id}>
                               <div>
@@ -7203,6 +7496,7 @@ export function AppDemo() {
                               <em>{asset.storageRef}</em>
                             </article>
                           ))
+                          )
                         ) : (
                           <p>Generate a backend weekly batch to create image, carousel, or video storyboard assets.</p>
                         )}
@@ -8257,38 +8551,90 @@ export function AppDemo() {
                   <div className="generation-studio">
                     <section className="gen-prompt-section">
                       <div className="gen-cost-strip">
-                        <span>Estimated cost</span>
-                        <strong>{genEstimatedCost} credits</strong>
-                        {genInsufficientCredits && (
+                        <span>Canonical carousel package</span>
+                        <strong>{carouselCreditCost} credits</strong>
+                        {(carouselCreditCost > genCredits.available) && (
                           <span className="gen-insufficient">You do not have enough credits for this run.</span>
                         )}
                       </div>
-                      <textarea
-                        className="gen-prompt-input"
-                        placeholder="Describe what you want to generate..."
-                        value={genPrompt}
-                        onChange={(e) => setGenPrompt(e.target.value)}
-                        rows={4}
-                      />
+                      <div className="carousel-source-tabs" role="tablist" aria-label="Carousel source">
+                        <button
+                          className={carouselSourceMode === "idea" ? "active" : ""}
+                          type="button"
+                          onClick={() => setCarouselSourceMode("idea")}
+                        >
+                          Write idea
+                        </button>
+                        <button
+                          className={carouselSourceMode === "url" ? "active" : ""}
+                          type="button"
+                          onClick={() => setCarouselSourceMode("url")}
+                        >
+                          Paste public URL
+                        </button>
+                      </div>
+                      {carouselSourceMode === "idea" ? (
+                        <textarea
+                          className="gen-prompt-input"
+                          placeholder="Describe the offer, proof, and CTA you want in the carousel..."
+                          value={carouselIdeaText}
+                          onChange={(e) => setCarouselIdeaText(e.target.value)}
+                          rows={4}
+                        />
+                      ) : (
+                        <div className="carousel-url-entry">
+                          <input
+                            className="gen-url-input"
+                            type="url"
+                            placeholder="https://www.nike.com/"
+                            value={carouselSourceUrl}
+                            onChange={(e) => setCarouselSourceUrl(e.target.value)}
+                          />
+                          {!carouselUrlValidity && carouselSourceUrl.trim() && (
+                            <p className="gen-blocked-helper">Enter one valid public URL. Local and private hosts are blocked.</p>
+                          )}
+                          {latestCarouselJob?.sourcePreview?.domain && (
+                            <div className="carousel-source-preview">
+                              <strong>{latestCarouselJob.sourcePreview.title || latestCarouselJob.sourcePreview.domain}</strong>
+                              <small>{latestCarouselJob.sourcePreview.domain}</small>
+                              {latestCarouselJob.sourceHealth === "limited" && (
+                                <span>Source limited; using fallback storyline</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <article className="carousel-package-card">
+                        <span>carousel_canonical_v1</span>
+                        <h3>5 slides · cover -&gt; problem -&gt; proof -&gt; offer -&gt; CTA</h3>
+                        <p>Brand locked from saved kit. Aspect ratio stays fixed at 4:5. MiniMax is the default merchant-facing model.</p>
+                        <div className="carousel-package-meta">
+                          <small>{carouselBrandReady ? "Brand locked from saved kit" : "Finish brand kit first"}</small>
+                          <small>{carouselModel?.displayName || "MiniMax default model"}</small>
+                          <small>{carouselStageLabel(latestCarouselJob)}</small>
+                        </div>
+                      </article>
                       <div className="gen-launch-row">
-                        {genActiveModel && (
-                          <span className="gen-model-context">{genActiveModel.displayName} &middot; {genActiveModel.capability}</span>
+                        {carouselModel && (
+                          <span className="gen-model-context">{carouselModel.displayName} &middot; {carouselModel.capability}</span>
                         )}
                         <button
                           className="primary-action gen-launch-btn"
                           type="button"
-                          disabled={genLaunchPending || genInsufficientCredits || !genPrompt.trim() || !genSelectedModel}
-                          onClick={handleGenLaunch}
+                          disabled={carouselLaunchBlocked}
+                          onClick={handleCarouselLaunch}
                         >
-                          {genLaunchPending
-                            ? "Launching..."
-                            : genActiveModel
-                            ? `Generate ${genActiveModel.capability}`
-                            : "Generate"}
+                          {genLaunchPending ? "Launching..." : "Generate carousel"}
                         </button>
                       </div>
-                      {genInsufficientCredits && (
-                        <p className="gen-blocked-helper">Choose a lower-cost model or add credits before launching.</p>
+                      {!carouselBrandReady && (
+                        <p className="gen-blocked-helper">Finish the saved brand kit before generating a carousel package.</p>
+                      )}
+                      {carouselActiveJobs.length > 0 && (
+                        <p className="gen-blocked-helper">One carousel package is already running. Wait for it to finish before launching another.</p>
+                      )}
+                      {(carouselCreditCost > genCredits.available) && (
+                        <p className="gen-blocked-helper">Add credits before launching this carousel package.</p>
                       )}
                     </section>
 
@@ -8306,10 +8652,15 @@ export function AppDemo() {
                           className={`gen-job-row gen-status-${job.status}`}
                           onClick={() => setGenDetailJobId(genDetailJobId === job.id ? "" : job.id)}
                         >
-                          <span className={`gen-status-chip ${job.status}`}>{job.status === "succeeded" ? "Ready" : job.status}</span>
+                          <span className={`gen-status-chip ${job.status}`}>
+                            {job.workflowType === "carousel" ? carouselStageLabel(job) : job.status === "succeeded" ? "Ready" : job.status}
+                          </span>
                           <div className="gen-job-meta">
                             <strong>{job.modelDisplayName || job.modelId}</strong>
-                            <small>{job.capability} &middot; {job.creditCost} credits &middot; {job.createdAt ? new Date(job.createdAt).toLocaleString() : ""}</small>
+                            <small>
+                              {job.workflowType === "carousel" ? "carousel package" : job.capability}
+                              {" "}· {job.creditCost} credits · {job.createdAt ? new Date(job.createdAt).toLocaleString() : ""}
+                            </small>
                           </div>
                           {job.status === "failed" && (
                             <button
@@ -8325,17 +8676,31 @@ export function AppDemo() {
                       ))}
                     </section>
 
-                    {genSucceededJobs.length > 0 && (
+                    {carouselJobs.filter((job) => job.status === "succeeded").length > 0 && (
                       <section className="gen-outputs-section" aria-label="Generated outputs">
-                        <h3>Generated outputs</h3>
+                        <h3>Generated carousel packages</h3>
                         <div className="gen-output-grid">
-                          {genSucceededJobs.map((job) => (
-                            <article key={job.id} className="gen-output-card">
-                              <div className="gen-output-preview">
-                                <span>{job.capability}</span>
+                          {carouselJobs.filter((job) => job.status === "succeeded").map((job) => (
+                            <article key={job.id} className="gen-output-card carousel-output-card">
+                              <div className="carousel-output-preview-grid">
+                                {job.slideCompositions.slice(0, 5).map((slide, index) => (
+                                  <div key={`${job.id}-slide-${index}`} className="carousel-output-thumb">
+                                    {slide.thumbnailRender ? (
+                                      <img src={slide.thumbnailRender} alt={`${slide.layout?.role || "slide"} thumbnail`} />
+                                    ) : (
+                                      <span>{slide.layout?.role || `Slide ${index + 1}`}</span>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
                               <strong>{job.modelDisplayName || job.modelId}</strong>
-                              <small>{job.prompt.length > 60 ? job.prompt.slice(0, 60) + "..." : job.prompt}</small>
+                              <small>{job.prompt.length > 80 ? job.prompt.slice(0, 80) + "..." : job.prompt}</small>
+                              <p className="carousel-output-summary">
+                                {job.slideCompositions[0]?.headline || "Carousel package ready"} · {job.slideCompositions[0]?.body || ""}
+                              </p>
+                              <button className="primary-action" type="button" onClick={() => openCarouselEditor(job.creativeId)}>
+                                Open in Creative Editor
+                              </button>
                             </article>
                           ))}
                         </div>
@@ -8364,6 +8729,10 @@ export function AppDemo() {
                             <dd>{detailJob.prompt}</dd>
                             <dt>Attempts</dt>
                             <dd>{detailJob.attemptCount}</dd>
+                            {detailJob.workflowType === "carousel" && <>
+                              <dt>Package stage</dt>
+                              <dd>{carouselStageLabel(detailJob)}</dd>
+                            </>}
                             {detailJob.errorMessage && <>
                               <dt>Error</dt>
                               <dd className="gen-detail-error">{detailJob.errorMessage}</dd>
@@ -8376,11 +8745,16 @@ export function AppDemo() {
                               <h4>Outputs</h4>
                               {detailJob.outputs.map((output) => (
                                 <div key={output.id} className="gen-detail-output-row">
-                                  <span>{output.outputType}</span>
-                                  <small>{output.storagePath || output.providerRef}</small>
+                                  <span>{output.metadata?.carouselSlide?.role || output.outputType}</span>
+                                  <small>{output.previewRef || output.storagePath || output.providerRef}</small>
                                 </div>
                               ))}
                             </div>
+                          )}
+                          {detailJob.workflowType === "carousel" && detailJob.creativeId && (
+                            <button className="primary-action" type="button" onClick={() => openCarouselEditor(detailJob.creativeId)}>
+                              Open in Creative Editor
+                            </button>
                           )}
                         </aside>
                       );

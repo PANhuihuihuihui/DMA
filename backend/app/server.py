@@ -1,10 +1,27 @@
 import argparse
 import json
+import os
+import traceback
 from contextlib import closing
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+
+def _load_env_local():
+    env_file = Path(__file__).resolve().parents[2] / ".env.local"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        if key and key not in os.environ:
+            os.environ[key] = value.strip()
+
+_load_env_local()
 
 from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher, website_crawl
 from backend.app.contracts import serialize_session
@@ -17,7 +34,10 @@ class JsonHandler(BaseHTTPRequestHandler):
     db_path = DEFAULT_DB_PATH
 
     def log_message(self, fmt, *args):
-        return
+        print(
+            f'{self.address_string()} - - [{self.log_date_time_string()}] {fmt % args}',
+            flush=True,
+        )
 
     def do_GET(self):
         self.route_request("GET")
@@ -89,7 +109,8 @@ class JsonHandler(BaseHTTPRequestHandler):
                 return
             if method == "GET" and path == "/api/v1/phase3/workspace":
                 with closing(store.connect(self.db_path)) as conn:
-                    self.send_json(store.get_phase3_workspace(conn))
+                    merchant_id = self.resolve_merchant_id(conn, parsed)
+                    self.send_json(store.get_phase3_workspace(conn, merchant_id))
                 return
             if method == "GET" and path == "/api/v1/generation/models":
                 with closing(store.connect(self.db_path)) as conn:
@@ -498,6 +519,8 @@ class JsonHandler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             self.send_error_json(400, "Request body must be valid JSON.")
         except Exception:
+            print(f"[backend] {method} {path} -> 500 unexpected error", flush=True)
+            traceback.print_exc()
             self.send_error_json(500, "Unexpected backend error.")
 
     def match_draft_action(self, path):
@@ -672,7 +695,11 @@ def create_app(host="127.0.0.1", port=8787, db_path=DEFAULT_DB_PATH):
 
 def run(host="127.0.0.1", port=8787, db_path=DEFAULT_DB_PATH):
     server = create_app(host=host, port=port, db_path=db_path)
-    print(f"LocalPilot backend listening at http://{host}:{server.server_address[1]}")
+    print(
+        f"LocalPilot backend listening at http://{host}:{server.server_address[1]} "
+        f"(db: {db_path})",
+        flush=True,
+    )
     try:
         server.serve_forever()
     except KeyboardInterrupt:

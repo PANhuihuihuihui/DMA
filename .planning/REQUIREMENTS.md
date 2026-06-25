@@ -121,7 +121,7 @@ Requirements for milestone v2.0. Each maps to exactly one v2.0 phase (7–12). B
 - [x] **ONBOARD-01**: Merchant can enter a website URL during onboarding and the backend crawls public information to auto-generate a business profile (name, description, digital presence).
 - [x] **ONBOARD-02**: System extracts brand style (logo, colors, fonts/typography) from the website to seed the brand kit.
 - [x] **ONBOARD-03**: System populates content-setting defaults (tonality, language, timezone, voiceover, avatar) that the merchant can edit before saving.
-- [ ] **ONBOARD-04**: Merchant can review and edit the auto-generated profile before confirming, and a re-fetch replaces details only after an explicit confirmation warning.
+- [x] **ONBOARD-04**: Merchant can review and edit the auto-generated profile before confirming, and a re-fetch replaces details only after an explicit confirmation warning.
 - [x] **ONBOARD-05**: Website crawl fetches public information only, stores no site credentials, and sanitizes untrusted crawled content before use or display.
 
 ### Google Login
@@ -271,7 +271,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBOARD-01 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | ONBOARD-02 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | ONBOARD-03 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
-| ONBOARD-04 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| ONBOARD-04 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | ONBOARD-05 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | GEN-01 | Phase 9 - Generation Engine And Image Generation | Pending |
 | GEN-02 | Phase 9 - Generation Engine And Image Generation | Pending |

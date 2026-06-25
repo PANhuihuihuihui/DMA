@@ -263,42 +263,45 @@ def clean_html_for_llm(html_text):
     return "\n\n".join(section for section in sections if section)[:MAX_LLM_CHARS]
 
 
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+_CODE_FENCE_RE = re.compile(r"^```[a-zA-Z]*\s*|\s*```$", re.MULTILINE)
+
+
+def _strip_think(text):
+    text = _THINK_RE.sub("", text).strip()
+    text = _CODE_FENCE_RE.sub("", text).strip()
+    return text
+
+
 def _content_to_json(content):
     if isinstance(content, str):
-        return json_loads(content, {})
+        return json_loads(_strip_think(content), {})
     if isinstance(content, list):
         text_parts = []
         for item in content:
             if isinstance(item, dict) and item.get("type") == "text":
                 text_parts.append(item.get("text") or "")
-        return json_loads("".join(text_parts), {})
+        return json_loads(_strip_think("".join(text_parts)), {})
     if isinstance(content, dict):
         return content
     return {}
 
 
-def extract_brand_profile(cleaned_text, *, api_key=None):
-    api_key = api_key or os.environ.get("MINIMAX_API_KEY")
-    if not cleaned_text or not api_key:
-        return _empty_profile()
+def _minimax_chat_json(system_prompt, user_content, *, api_key=None):
+    resolved_key = api_key or os.environ.get("MINIMAX_API_KEY")
+    if not user_content or not resolved_key:
+        return {}
     payload = {
         "model": "MiniMax-M3",
         "response_format": {"type": "json_object"},
         "messages": [
             {
                 "role": "system",
-                "content": (
-                "Extract a business brand profile from website content. "
-                "Return one JSON object with exactly these string keys: "
-                "name, description, industry, logo_url, primary_color, secondary_color, "
-                "accent_color, font_family, language, timezone, tonality, voiceover, avatar, "
-                "target_audience. "
-                "Use empty strings when the website does not provide enough evidence."
-            ),
+                "content": system_prompt,
             },
             {
                 "role": "user",
-                "content": cleaned_text,
+                "content": user_content,
             },
         ],
     }
@@ -307,7 +310,7 @@ def extract_brand_profile(cleaned_text, *, api_key=None):
         data=json.dumps(payload).encode("utf-8"),
         method="POST",
         headers={
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {resolved_key}",
             "Content-Type": "application/json",
         },
     )
@@ -315,12 +318,89 @@ def extract_brand_profile(cleaned_text, *, api_key=None):
         with request.urlopen(req, timeout=60) as response:
             body = json.loads(response.read().decode("utf-8"))
     except (error.HTTPError, error.URLError, socket.timeout, TimeoutError, ValueError, OSError):
-        return _empty_profile()
+        return {}
     try:
         message = ((body.get("choices") or [{}])[0].get("message") or {})
         raw_extraction = _content_to_json(message.get("content"))
-        if not isinstance(raw_extraction, dict):
-            return _empty_profile()
-        return _sanitize_profile(raw_extraction, raw_extraction=raw_extraction)
+        return raw_extraction if isinstance(raw_extraction, dict) else {}
     except (AttributeError, IndexError, TypeError, json.JSONDecodeError):
+        return {}
+
+
+def extract_brand_profile(cleaned_text, *, api_key=None):
+    api_key = api_key or os.environ.get("MINIMAX_API_KEY")
+    if not cleaned_text or not api_key:
         return _empty_profile()
+    raw_extraction = _minimax_chat_json(
+        (
+            "Extract a business brand profile from website content. "
+            "Return one JSON object with exactly these string keys: "
+            "name, description, industry, logo_url, primary_color, secondary_color, "
+            "accent_color, font_family, language, timezone, tonality, voiceover, avatar, "
+            "target_audience. "
+            "Use empty strings when the website does not provide enough evidence."
+        ),
+        cleaned_text,
+        api_key=api_key,
+    )
+    if not isinstance(raw_extraction, dict) or not raw_extraction:
+        return _empty_profile()
+    return _sanitize_profile(raw_extraction, raw_extraction=raw_extraction)
+
+
+def _first_cleaned_line(cleaned_text, prefix):
+    for line in str(cleaned_text or "").splitlines():
+        line = line.strip()
+        if line.startswith(prefix):
+            return line[len(prefix) :].strip()
+    return ""
+
+
+def fallback_carousel_story_brief(source_url, cleaned_text="", merchant_context=None):
+    merchant_context = merchant_context or {}
+    parsed = urlparse(str(source_url or ""))
+    title = _first_cleaned_line(cleaned_text, "Title: ")
+    summary = _first_cleaned_line(cleaned_text, "Body: ")
+    if not summary:
+        summary = " ".join(str(cleaned_text or "").split())[:280]
+    summary = summary or f"Public website source from {parsed.netloc or 'the provided domain'}."
+    focus = (merchant_context.get("focus") or merchant_context.get("offer") or title or parsed.netloc or "this offer").strip()
+    return {
+        "sourceTitle": title or parsed.netloc or "Public website",
+        "sourceDomain": parsed.netloc or "",
+        "summary": summary[:280],
+        "sourceHealth": "limited",
+        "slideSeeds": {
+            "cover": focus,
+            "problem": f"What the audience needs to understand about {focus}.",
+            "proof": "Use a credible proof point from the available source details.",
+            "offer": f"Clarify the main offer around {focus}.",
+            "cta": "Close with one clear next step.",
+        },
+    }
+
+
+def extract_carousel_story_brief(cleaned_text, *, api_key=None):
+    raw_extraction = _minimax_chat_json(
+        (
+            "Extract content-only carousel story inputs from website text. "
+            "Return one JSON object with these keys: sourceTitle, sourceDomain, summary, "
+            "sourceHealth, slideSeeds. slideSeeds must be an object with string keys "
+            "cover, problem, proof, offer, cta. Do not infer or return brand colors, "
+            "fonts, logos, or styling."
+        ),
+        cleaned_text,
+        api_key=api_key,
+    )
+    if not isinstance(raw_extraction, dict) or not raw_extraction:
+        return {}
+    slide_seeds = raw_extraction.get("slideSeeds")
+    if not isinstance(slide_seeds, dict):
+        slide_seeds = {}
+    return {
+        "sourceTitle": _sanitize_text(raw_extraction.get("sourceTitle")),
+        "sourceDomain": _sanitize_text(raw_extraction.get("sourceDomain")),
+        "summary": _sanitize_text(raw_extraction.get("summary")),
+        "sourceHealth": _sanitize_text(raw_extraction.get("sourceHealth") or "ready") or "ready",
+        "slideSeeds": {key: _sanitize_text(slide_seeds.get(key)) for key in ("cover", "problem", "proof", "offer", "cta")},
+    }
