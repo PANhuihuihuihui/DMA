@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** A local business owner can go from one marketing idea to approved, platform-native Facebook and TikTok posts published through their own official accounts with minimal effort.
-**Current focus:** Phase 07 — google-login-and-auth
+**Current focus:** Phase 08 — website-crawl-smart-onboarding
 
 ## Current Position
 
-Phase: 07 (google-login-and-auth) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 07
-Last activity: 2026-06-25 -- Phase 07 execution started
+Phase: 08 (website-crawl-smart-onboarding) — PLANNED
+Plan: 0 of 2
+Status: Planning complete for Phase 08; ready for execution
+Last activity: 2026-06-25 -- Phase 08 planning complete (2 plans: 08-01 backend crawl + LLM extraction, 08-02 frontend onboarding card)
 
 ## Performance Metrics
 
@@ -96,5 +96,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-06-25T19:05:00.000Z
-Stopped at: Phase 13 complete; Phase 7 (Google login port from AiToEarn) is next
-Resume file: .planning/phases/07-google-login-and-auth/07-01-PLAN.md
+Stopped at: Phase 08 planning complete; ready for execution
+Resume file: .planning/phases/08-website-crawl-smart-onboarding/08-01-PLAN.md
