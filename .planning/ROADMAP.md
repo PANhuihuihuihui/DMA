@@ -177,7 +177,7 @@ Plans:
 
 ### Phase 7: Google Login And Auth
 
-**Goal**: A user can sign in with Google, and the backend verifies the Google ID token and issues a LocalPilot session linked to a user and merchant.
+**Goal**: As a LocalPilot user, I want to sign in with Google and receive a verified LocalPilot session linked to my user and merchant, so that I can enter the authenticated workspace without relying on fake browser identity state.
 **Mode:** mvp
 **Depends on**: Phase 5 (sessions/auth foundation)
 **Requirements**: GAUTH-01, GAUTH-02
@@ -188,7 +188,13 @@ Plans:
   3. The system uses the Google `sub` as the stable user key and links or creates the user and merchant.
   4. Provider secrets (Google client secret) stay server-side and never reach the browser or committed files.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+
+- [x] 07-01-PLAN.md — Google auth identity module and cookie-session endpoints
+- [x] 07-02-PLAN.md — Google sign-in UI and cookie-session app wiring
+- [x] 07-03-PLAN.md — Dev-login gate closure via backend auth capabilities
 **UI hint**: yes
 
 ### Phase 8: Website-Crawl Smart Onboarding
@@ -245,7 +251,12 @@ See `.planning/phases/13-aitoearn-inspired-credits-and-multi-provider-generation
   3. Carousel generation is metered through the Phase 13 credit system.
 
 **Reuse strategy**: Extend the existing Phase 13 generation job framework (catalog + jobs + credit ledger + AI Studio workspace) with a carousel capability rather than building a new engine. Reference AiToEarn `apps/aitoearn-ai/src/core/draft-generation/` and the `POST /ai/draft-generation/image-text` flow for the multi-image planner/prompt pattern.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+
+- [ ] 11-01-PLAN.md — Idea-to-editor MiniMax carousel slice through the Phase 13 generation job and Creative Editor seams
+- [ ] 11-02-PLAN.md — Public URL carousel source with content-only extraction and graceful fallback
+- [ ] 11-03-PLAN.md — Slide-locked editor and approval continuity plus the Nike/MiniMax/ledger smoke gate
 **UI hint**: yes
 
 ### Phase 12: Text-To-Video And UGC Avatar
