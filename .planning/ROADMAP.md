@@ -283,7 +283,7 @@ v2.0 order (re-sequenced 2026-06-25): 13 (done) -> 7 -> 8 -> 11 -> 12. Phases 9 
 | 5. TikTok Upload And Direct-Post Gates | 5/5 | Complete    | 2026-06-24 |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
 | 7. Google Login And Auth (v2.0) | 2/2 | Complete   | 2026-06-25 |
-| 8. Website-Crawl Smart Onboarding (v2.0) | 0/TBD | Not started (self-built) | - |
+| 8. Website-Crawl Smart Onboarding (v2.0) | 1/2 | In Progress|  |
 | 9. Generation Engine And Image Generation (v2.0) | - | Absorbed by Phase 13 | 2026-06-25 |
 | 10. Credit Metering And Model Selection (v2.0) | - | Absorbed by Phase 13 | 2026-06-25 |
 | 11. Carousel Generation (v2.0) | 0/TBD | Not started (extends Phase 13) | - |

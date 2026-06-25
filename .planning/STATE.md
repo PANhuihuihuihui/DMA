@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Phase Details
-status: executing
-stopped_at: Phase 13 complete; Phase 7 (Google login port from AiToEarn) is next
-last_updated: "2026-06-25T07:15:25.434Z"
-last_activity: 2026-06-25 -- Phase 07 execution started
+status: planning
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-06-25T16:12:27.917Z"
+last_activity: "2026-06-25 -- Phase 08 planning complete (2 plans: 08-01 backend crawl + LLM extraction, 08-02 frontend onboarding card)"
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 3
-  percent: 14
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 6
+  percent: 29
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 ## Current Position
 
 Phase: 08 (website-crawl-smart-onboarding) — PLANNED
-Plan: 0 of 2
+Plan: 1 of 2
 Status: Planning complete for Phase 08; ready for execution
 Last activity: 2026-06-25 -- Phase 08 planning complete (2 plans: 08-01 backend crawl + LLM extraction, 08-02 frontend onboarding card)
 
@@ -52,6 +52,7 @@ Last activity: 2026-06-25 -- Phase 08 planning complete (2 plans: 08-01 backend 
 - Trend: Phase 02 complete, Phase 03 Predis replica demo surface and backend product records implemented with committed screen smoke coverage, AI Generator assistant reply-to-post conversion, source URL and image import, Creative Editor Idea Lab scoring/apply, bulk creative variations, UGC voiceover packages, multilingual creative variants, layer layout moves, backend approval review links, notification outbox, public review route feedback loop, backend competitor source analysis, template import records, asset library records, media/storyboard asset records, structured layer controls, layer edits, resize variants, rendered preview outputs, and performance analytics dashboard
 
 *Updated after each plan completion*
+| Phase 08 P01 | 6min | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [Roadmap]: Phase 1 preserves the current frontend demo while moving publish-critical state to backend-owned records.
 - [Plan 01-07]: Debug publishing diagnostics are exposed through a read-only support endpoint with redacted token-boundary refs and provider diagnostics.
 - [Plan 01-09]: Browser localStorage is limited to allowlisted preferences and final gates cover backend workflow, debug, storage, build, and packaging.
+- [Phase 08]: Used stdlib urllib for homepage fetch and MiniMax chat completions to avoid new dependencies.
+- [Phase 08]: Onboarding routes require an authenticated merchant session instead of the demo fallback path.
+- [Phase 08]: Confirmed onboarding profiles seed brand_kits in place for downstream generation flows.
 
 ### Pending Todos
 
@@ -95,6 +99,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-25T19:05:00.000Z
-Stopped at: Phase 08 planning complete; ready for execution
-Resume file: .planning/phases/08-website-crawl-smart-onboarding/08-01-PLAN.md
+Last session: 2026-06-25T16:12:27.913Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None

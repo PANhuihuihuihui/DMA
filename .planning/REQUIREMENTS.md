@@ -92,7 +92,7 @@ Requirements for the first real publishing milestone. Each requirement should ma
 
 - [x] **STATUS-01**: Merchant can see a timeline for each platform publish job from approval through terminal status.
 - [x] **STATUS-02**: System can retry transient publish failures without duplicating successful posts.
-- [ ] **STATUS-03**: System can mark a platform draft as manual fallback required when official API access, review status, account eligibility, or media constraints block direct publishing.
+- [x] **STATUS-03**: System can mark a platform draft as manual fallback required when official API access, review status, account eligibility, or media constraints block direct publishing.
 - [ ] **STATUS-04**: Merchant can download or copy a manual publishing package containing caption, hashtags, CTA, media checklist, disclosure notes, and platform instructions. _(Deferred post-v1.0 — descoped from Phase 6 on 2026-06-24.)_
 - [ ] **STATUS-05**: Merchant can mark a manual fallback package as manually completed. _(Deferred post-v1.0 — descoped from Phase 6 on 2026-06-24.)_
 
@@ -107,10 +107,10 @@ Requirements for the first real publishing milestone. Each requirement should ma
 
 ### Admin And Pilot Support
 
-- [ ] **ADMIN-01**: Internal operator can inspect merchant, connected-channel, publish-job, attempt, and error status for pilot support.
-- [ ] **ADMIN-02**: Internal operator can see redacted provider IDs, trace IDs, error classes, and next recommended action without viewing tokens or secrets.
-- [ ] **ADMIN-03**: Internal operator can trigger safe retry or mark a manual support path for blocked publish jobs.
-- [ ] **ADMIN-04**: System records enough diagnostics to prepare Meta/TikTok app review evidence and troubleshoot pilot merchant failures.
+- [x] **ADMIN-01**: Internal operator can inspect merchant, connected-channel, publish-job, attempt, and error status for pilot support.
+- [x] **ADMIN-02**: Internal operator can see redacted provider IDs, trace IDs, error classes, and next recommended action without viewing tokens or secrets.
+- [x] **ADMIN-03**: Internal operator can trigger safe retry or mark a manual support path for blocked publish jobs.
+- [x] **ADMIN-04**: System records enough diagnostics to prepare Meta/TikTok app review evidence and troubleshoot pilot merchant failures.
 
 ## Milestone v2.0 Requirements (Generative Engine + Smart Onboarding)
 
@@ -118,11 +118,11 @@ Requirements for milestone v2.0. Each maps to exactly one v2.0 phase (7–12). B
 
 ### Smart Onboarding
 
-- [ ] **ONBOARD-01**: Merchant can enter a website URL during onboarding and the backend crawls public information to auto-generate a business profile (name, description, digital presence).
-- [ ] **ONBOARD-02**: System extracts brand style (logo, colors, fonts/typography) from the website to seed the brand kit.
-- [ ] **ONBOARD-03**: System populates content-setting defaults (tonality, language, timezone, voiceover, avatar) that the merchant can edit before saving.
+- [x] **ONBOARD-01**: Merchant can enter a website URL during onboarding and the backend crawls public information to auto-generate a business profile (name, description, digital presence).
+- [x] **ONBOARD-02**: System extracts brand style (logo, colors, fonts/typography) from the website to seed the brand kit.
+- [x] **ONBOARD-03**: System populates content-setting defaults (tonality, language, timezone, voiceover, avatar) that the merchant can edit before saving.
 - [ ] **ONBOARD-04**: Merchant can review and edit the auto-generated profile before confirming, and a re-fetch replaces details only after an explicit confirmation warning.
-- [ ] **ONBOARD-05**: Website crawl fetches public information only, stores no site credentials, and sanitizes untrusted crawled content before use or display.
+- [x] **ONBOARD-05**: Website crawl fetches public information only, stores no site credentials, and sanitizes untrusted crawled content before use or display.
 
 ### Google Login
 
@@ -253,7 +253,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TT-07 | Phase 5 - TikTok Upload And Direct-Post Gates | Complete |
 | STATUS-01 | Phase 1 - Backend Publishing Foundation | Complete |
 | STATUS-02 | Phase 1 - Backend Publishing Foundation | Complete |
-| STATUS-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| STATUS-03 | Phase 6 - Manual Fallback And Pilot Support | Complete |
 | STATUS-04 | Deferred (post-v1.0) | Deferred |
 | STATUS-05 | Deferred (post-v1.0) | Deferred |
 | LOCAL-01 | Phase 3 - Facebook Customer Demo Loop | Pending |
@@ -262,17 +262,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOCAL-04 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | LOCAL-05 | Phase 3 - Facebook Customer Demo Loop | Pending |
 | LOCAL-06 | Phase 3 - Facebook Customer Demo Loop | Pending |
-| ADMIN-01 | Phase 6 - Manual Fallback And Pilot Support | Pending |
-| ADMIN-02 | Phase 6 - Manual Fallback And Pilot Support | Pending |
-| ADMIN-03 | Phase 6 - Manual Fallback And Pilot Support | Pending |
-| ADMIN-04 | Phase 6 - Manual Fallback And Pilot Support | Pending |
+| ADMIN-01 | Phase 6 - Manual Fallback And Pilot Support | Complete |
+| ADMIN-02 | Phase 6 - Manual Fallback And Pilot Support | Complete |
+| ADMIN-03 | Phase 6 - Manual Fallback And Pilot Support | Complete |
+| ADMIN-04 | Phase 6 - Manual Fallback And Pilot Support | Complete |
 | GAUTH-01 | Phase 7 - Google Login And Auth | Pending |
 | GAUTH-02 | Phase 7 - Google Login And Auth | Pending |
-| ONBOARD-01 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
-| ONBOARD-02 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
-| ONBOARD-03 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| ONBOARD-01 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
+| ONBOARD-02 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
+| ONBOARD-03 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | ONBOARD-04 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
-| ONBOARD-05 | Phase 8 - Website-Crawl Smart Onboarding | Pending |
+| ONBOARD-05 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | GEN-01 | Phase 9 - Generation Engine And Image Generation | Pending |
 | GEN-02 | Phase 9 - Generation Engine And Image Generation | Pending |
 | GEN-03 | Phase 9 - Generation Engine And Image Generation | Pending |
