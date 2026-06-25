@@ -1,12 +1,13 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.0
-milestone_name: Predis-style Generative Engine + Smart Onboarding
-status: planning
-last_updated: "2026-06-24T21:25:41.754Z"
-last_activity: 2026-06-24
+milestone_name: Phase Details
+status: Defining requirements
+stopped_at: Phase 7 context gathered
+last_updated: "2026-06-25T04:21:52.384Z"
+last_activity: 2026-06-24 — Milestone v2.0 started
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -94,6 +95,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-24T18:59:12.233Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-manual-fallback-and-pilot-support/06-CONTEXT.md
+Last session: 2026-06-25T04:21:52.380Z
+Stopped at: Phase 7 context gathered
+Resume file: .planning/phases/07-google-login-and-auth/07-CONTEXT.md
