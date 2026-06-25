@@ -1,4 +1,5 @@
 import html
+import re
 import sqlite3
 from urllib.parse import quote, urlparse
 
@@ -187,6 +188,28 @@ def initialize_database(conn):
           location text not null,
           audience text not null,
           tone text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists merchant_profiles (
+          id text primary key,
+          merchant_id text not null references merchants(id),
+          status text not null default 'draft',
+          crawl_url text,
+          name text not null default '',
+          description text not null default '',
+          industry text not null default '',
+          logo_url text not null default '',
+          primary_color text not null default '',
+          secondary_color text not null default '',
+          accent_color text not null default '',
+          font_family text not null default '',
+          language text not null default '',
+          timezone text not null default '',
+          tonality text not null default '',
+          target_audience text not null default '',
+          raw_extraction_json text not null default '{}',
           created_at text not null,
           updated_at text not null
         );
@@ -1990,6 +2013,7 @@ def insert_boundary(conn, boundary):
 def seed_demo_data(conn):
     existing = conn.execute("select count(*) from merchants").fetchone()[0]
     if existing:
+        ensure_phase8_onboarding_seed(conn)
         ensure_phase5_foundation_seed(conn)
         ensure_phase13_generation_seed(conn)
         conn.commit()
@@ -2191,6 +2215,7 @@ def seed_demo_data(conn):
         },
         now=now,
     )
+    ensure_phase8_onboarding_seed(conn)
     ensure_phase5_foundation_seed(conn)
     ensure_phase13_generation_seed(conn)
     conn.commit()
@@ -3931,6 +3956,324 @@ def serialize_brand_kit(row):
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
     }
+
+
+MERCHANT_PROFILE_FIELDS = (
+    "name",
+    "description",
+    "industry",
+    "logo_url",
+    "primary_color",
+    "secondary_color",
+    "accent_color",
+    "font_family",
+    "language",
+    "timezone",
+    "tonality",
+    "target_audience",
+)
+
+_MERCHANT_PROFILE_COLOR_FIELDS = {"primary_color", "secondary_color", "accent_color"}
+_MERCHANT_PROFILE_URL_FIELDS = {"crawl_url", "logo_url"}
+_HEX_COLOR_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
+
+
+def _sanitize_profile_text(value):
+    text = html.unescape(str(value or ""))
+    text = re.sub(r"<[^>]+>", " ", text)
+    return html.escape(" ".join(text.split()), quote=False)
+
+
+def _sanitize_profile_url(value):
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    parsed = urlparse(text)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc or parsed.username or parsed.password:
+        return ""
+    return text
+
+
+def _sanitize_profile_color(value):
+    text = str(value or "").strip()
+    if not text or not _HEX_COLOR_RE.match(text):
+        return ""
+    return text.lower()
+
+
+def _sanitize_profile_value(field, value):
+    if field in _MERCHANT_PROFILE_COLOR_FIELDS:
+        return _sanitize_profile_color(value)
+    if field in _MERCHANT_PROFILE_URL_FIELDS:
+        return _sanitize_profile_url(value)
+    return _sanitize_profile_text(value)
+
+
+def serialize_merchant_profile(row):
+    if row is None:
+        return None
+    return {
+        "id": row["id"],
+        "merchantId": row["merchant_id"],
+        "status": row["status"],
+        "crawlUrl": row["crawl_url"] or "",
+        "name": row["name"],
+        "description": row["description"],
+        "industry": row["industry"],
+        "logoUrl": row["logo_url"],
+        "primaryColor": row["primary_color"],
+        "secondaryColor": row["secondary_color"],
+        "accentColor": row["accent_color"],
+        "fontFamily": row["font_family"],
+        "language": row["language"],
+        "timezone": row["timezone"],
+        "tonality": row["tonality"],
+        "targetAudience": row["target_audience"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def get_merchant_profile(conn, merchant_id):
+    return conn.execute(
+        "select * from merchant_profiles where merchant_id = ? order by updated_at desc limit 1",
+        (merchant_id,),
+    ).fetchone()
+
+
+def upsert_merchant_profile(conn, merchant_id, profile_data):
+    existing = get_merchant_profile(conn, merchant_id)
+    now = utc_now()
+    payload = {field: _sanitize_profile_value(field, profile_data.get(field)) for field in MERCHANT_PROFILE_FIELDS}
+    crawl_url = _sanitize_profile_value("crawl_url", profile_data.get("crawl_url") or profile_data.get("crawlUrl"))
+    raw_extraction = profile_data.get("raw_extraction_json")
+    if not isinstance(raw_extraction, (dict, list)):
+        raw_extraction = {}
+    if existing is None:
+        conn.execute(
+            """
+            insert into merchant_profiles (
+              id, merchant_id, status, crawl_url, name, description, industry, logo_url,
+              primary_color, secondary_color, accent_color, font_family, language, timezone,
+              tonality, target_audience, raw_extraction_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                new_id("mprofile"),
+                merchant_id,
+                "draft",
+                crawl_url,
+                payload["name"],
+                payload["description"],
+                payload["industry"],
+                payload["logo_url"],
+                payload["primary_color"],
+                payload["secondary_color"],
+                payload["accent_color"],
+                payload["font_family"],
+                payload["language"],
+                payload["timezone"],
+                payload["tonality"],
+                payload["target_audience"],
+                json_dumps(raw_extraction),
+                now,
+                now,
+            ),
+        )
+    else:
+        conn.execute(
+            """
+            update merchant_profiles
+            set status = ?, crawl_url = ?, name = ?, description = ?, industry = ?, logo_url = ?,
+                primary_color = ?, secondary_color = ?, accent_color = ?, font_family = ?,
+                language = ?, timezone = ?, tonality = ?, target_audience = ?,
+                raw_extraction_json = ?, updated_at = ?
+            where id = ?
+            """,
+            (
+                "draft",
+                crawl_url,
+                payload["name"],
+                payload["description"],
+                payload["industry"],
+                payload["logo_url"],
+                payload["primary_color"],
+                payload["secondary_color"],
+                payload["accent_color"],
+                payload["font_family"],
+                payload["language"],
+                payload["timezone"],
+                payload["tonality"],
+                payload["target_audience"],
+                json_dumps(raw_extraction),
+                now,
+                existing["id"],
+            ),
+        )
+    conn.commit()
+    return get_merchant_profile(conn, merchant_id)
+
+
+def update_merchant_profile(conn, merchant_id, updates):
+    current = get_merchant_profile(conn, merchant_id)
+    if current is None:
+        raise StoreError(404, "Merchant profile not found.")
+    if current["status"] != "draft":
+        raise StoreError(409, "Confirmed profiles cannot be edited.")
+    fields = []
+    values = []
+    for field in ("crawl_url", *MERCHANT_PROFILE_FIELDS):
+        if field in updates:
+            fields.append(f"{field} = ?")
+            values.append(_sanitize_profile_value(field, updates.get(field)))
+            continue
+        camel_case = "".join(part.title() if idx else part for idx, part in enumerate(field.split("_")))
+        if camel_case in updates:
+            fields.append(f"{field} = ?")
+            values.append(_sanitize_profile_value(field, updates.get(camel_case)))
+    if not fields:
+        return current
+    values.extend((utc_now(), current["id"]))
+    conn.execute(
+        f"update merchant_profiles set {', '.join(fields)}, updated_at = ? where id = ?",
+        tuple(values),
+    )
+    conn.commit()
+    return get_merchant_profile(conn, merchant_id)
+
+
+def confirm_merchant_profile(conn, merchant_id):
+    profile = get_merchant_profile(conn, merchant_id)
+    if profile is None:
+        raise StoreError(404, "Merchant profile not found.")
+    now = utc_now()
+    conn.execute(
+        "update merchant_profiles set status = ?, updated_at = ? where id = ?",
+        ("confirmed", now, profile["id"]),
+    )
+    refreshed = get_merchant_profile(conn, merchant_id)
+    colors = [value for value in (refreshed["primary_color"], refreshed["secondary_color"], refreshed["accent_color"]) if value]
+    brand = conn.execute(
+        "select * from brand_kits where merchant_id = ? order by updated_at desc limit 1",
+        (merchant_id,),
+    ).fetchone()
+    voice = json_loads(brand["voice_json"], {}) if brand else {}
+    voice.update(
+        {
+            "tone": refreshed["tonality"],
+            "audience": refreshed["target_audience"],
+            "language": refreshed["language"],
+            "description": refreshed["description"],
+        }
+    )
+    typography = json_loads(brand["typography_json"], {}) if brand else {}
+    if refreshed["font_family"]:
+        typography.update(
+            {
+                "title": refreshed["font_family"],
+                "body": refreshed["font_family"],
+                "fontFamily": refreshed["font_family"],
+            }
+        )
+    logos = json_loads(brand["logos_json"], {}) if brand else {}
+    if refreshed["logo_url"]:
+        logos.update(
+            {
+                "light": refreshed["logo_url"],
+                "dark": refreshed["logo_url"],
+                "sourceUrl": refreshed["logo_url"],
+            }
+        )
+    if brand is None:
+        conn.execute(
+            """
+            insert into brand_kits (
+              id, merchant_id, logo_ref, website, social_handle, colors_json, voice_json,
+              hashtags_json, typography_json, logos_json, integrations_json, approved_terms_json,
+              avoid_terms_json, examples_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                new_id("brandkit"),
+                merchant_id,
+                refreshed["logo_url"],
+                refreshed["crawl_url"] or "",
+                "",
+                json_dumps(colors),
+                json_dumps(voice),
+                json_dumps([]),
+                json_dumps(typography),
+                json_dumps(logos),
+                json_dumps([]),
+                json_dumps([]),
+                json_dumps([]),
+                json_dumps([]),
+                now,
+                now,
+            ),
+        )
+    else:
+        conn.execute(
+            """
+            update brand_kits
+            set logo_ref = ?, website = ?, colors_json = ?, voice_json = ?, typography_json = ?,
+                logos_json = ?, updated_at = ?
+            where id = ?
+            """,
+            (
+                refreshed["logo_url"] or brand["logo_ref"],
+                refreshed["crawl_url"] or brand["website"],
+                json_dumps(colors or json_loads(brand["colors_json"], [])),
+                json_dumps(voice),
+                json_dumps(typography),
+                json_dumps(logos),
+                now,
+                brand["id"],
+            ),
+        )
+    conn.commit()
+    return get_merchant_profile(conn, merchant_id)
+
+
+def ensure_phase8_onboarding_seed(conn):
+    if get_merchant_profile(conn, DEMO_MERCHANT_ID) is not None:
+        return
+    now = utc_now()
+    conn.execute(
+        """
+        insert into merchant_profiles (
+          id, merchant_id, status, crawl_url, name, description, industry, logo_url,
+          primary_color, secondary_color, accent_color, font_family, language, timezone,
+          tonality, target_audience, raw_extraction_json, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            "mprofile_demo_aurora",
+            DEMO_MERCHANT_ID,
+            "confirmed",
+            "https://auroraheatcool.example",
+            "Aurora Heating & Cooling",
+            "Local HVAC service for homeowners and property managers who need tune-ups, repairs, and fast scheduling.",
+            "home_services",
+            "https://auroraheatcool.example/logo.svg",
+            "#172033",
+            "#2563eb",
+            "#f4a62a",
+            "Sora",
+            "en",
+            "America/Detroit",
+            "professional",
+            "Washtenaw County homeowners and property managers",
+            json_dumps(
+                {
+                    "name": "Aurora Heating & Cooling",
+                    "description": "Local HVAC service for homeowners and property managers who need tune-ups, repairs, and fast scheduling.",
+                }
+            ),
+            now,
+            now,
+        ),
+    )
 
 
 def serialize_content_batch(conn, batch_id):
