@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./styles.css";
@@ -19,11 +19,15 @@ import {
   createPhase3ReviewNotification,
   createPhase3TemplateImport,
   createPhase3UgcVoiceoverPackage,
+  devLogin,
   generatePhase3CreatorStyleVideo,
+  googleLogin,
   loadFacebookConnection,
   loadPhase3Workspace,
   loadPublishJob,
   loadPublishingWorkflow,
+  loadSession,
+  logout as logoutSession,
   publishFacebookPost,
   queueFakePublish,
   recordPhase3ProofEvent,
@@ -43,6 +47,19 @@ import {
   normalizePublishJob,
   normalizeWorkflow,
 } from "./models/publishing.js";
+import {
+  loadGenerationCredits,
+  loadGenerationJobs,
+  loadGenerationModels,
+  launchGenerationJob,
+  retryGenerationJob,
+} from "./api/generationClient.js";
+import {
+  normalizeCreditSummary,
+  normalizeGenerationCatalog,
+  normalizeGenerationJob,
+  normalizeGenerationJobsList,
+} from "./models/generation.js";
 import { AppRoutes } from "./routes/AppRoutes.jsx";
 import { clearDemoWorkspacePreferences, readPreference, writePreference } from "./storage/preferences.js";
 
@@ -1084,6 +1101,7 @@ const modules = [
   "Ad Inspirations",
   "Content Library",
   "Content Calendar",
+  "AI Studio",
   "Brand & Social Accounts",
   "Competitor Analysis",
   "Analytics",
@@ -1096,6 +1114,7 @@ const moduleIcons = {
   "Ad Inspirations": "◐",
   "Content Library": "▰",
   "Content Calendar": "▦",
+  "AI Studio": "◈",
   "Brand & Social Accounts": "▣",
   "Competitor Analysis": "▥",
   Analytics: "▤",
@@ -1110,7 +1129,8 @@ const moduleAliases = {
   "brand-kit": "Brand & Social Accounts",
   "brand-and-social-accounts": "Brand & Social Accounts",
   "ai-generator": "Create New",
-  "ai-studio": "Create New",
+  "ai-studio": "AI Studio",
+  "generation": "AI Studio",
   "creative-editor": "Content Library",
   "content-library": "Content Library",
   publish: "Content Library",
@@ -1166,6 +1186,12 @@ const moduleDetails = {
     title: "Content Calendar",
     summary: "Pick the next slot, review the copy, and keep the week moving.",
     view: "calendar",
+  },
+  "AI Studio": {
+    kicker: "Generation workspace",
+    title: "AI Studio",
+    summary: "Choose a model, see the cost, and launch work you can actually track.",
+    view: "generation",
   },
   "Approval Queue": {
     kicker: "Owner approval",
@@ -2689,14 +2715,25 @@ export function LandingPage() {
     showToast("Thanks. Your pilot request is ready for this prototype.");
   };
 
-  const submitLogin = (event) => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    writePreference(
-      "localpilot-demo-session",
-      JSON.stringify({ ...data, loggedInAt: new Date().toISOString() }),
-    );
+  const [loginError, setLoginError] = useState("");
+
+  const handleLoginSuccess = useCallback(() => {
+    setLoginOpen(false);
     navigate("/app");
+  }, [navigate]);
+
+  const handleLoginError = useCallback((err) => {
+    setLoginError(err?.message || "Login failed. Please try again.");
+  }, []);
+
+  const handleDevLogin = async () => {
+    setLoginError("");
+    try {
+      await devLogin();
+      handleLoginSuccess();
+    } catch (err) {
+      handleLoginError(err);
+    }
   };
 
   return (
@@ -3035,35 +3072,70 @@ export function LandingPage() {
       )}
 
       {loginOpen && (
-        <Modal title="Log in to the LocalPilot AI app demo" eyebrow="Demo workspace" onClose={() => setLoginOpen(false)}>
-          <p className="modal-copy">Use any name and email. This is a local prototype session with fake client and campaign data.</p>
-          <form className="pilot-form" onSubmit={submitLogin}>
-            <label>
-              Name
-              <input name="name" type="text" placeholder="Alex Morgan" required />
-            </label>
-            <label>
-              Work email
-              <input name="email" type="email" placeholder="alex@agency.com" required />
-            </label>
-            <label className="full">
-              Workspace
-              <select name="workspace">
-                <option>Northstar Local Growth</option>
-                <option>Brightside Agency Demo</option>
-                <option>LocalPilot Customer Preview</option>
-              </select>
-            </label>
-            <button className="primary-button full" type="submit">
-              Enter app demo
-            </button>
-          </form>
+        <Modal title="Log in to LocalPilot AI" eyebrow="Sign in" onClose={() => { setLoginOpen(false); setLoginError(""); }}>
+          {loginError && <p className="modal-copy" style={{ color: "var(--red)" }}>{loginError}</p>}
+          {GOOGLE_CLIENT_ID ? (
+            <GoogleSignInButton onSuccess={handleLoginSuccess} onError={handleLoginError} />
+          ) : (
+            <>
+              <p className="modal-copy">Development mode — no Google Client ID configured.</p>
+              <button className="primary-button full" type="button" onClick={handleDevLogin}>
+                Dev Login
+              </button>
+            </>
+          )}
         </Modal>
       )}
 
       {toast && <div className="toast">{toast}</div>}
     </div>
   );
+}
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+function GoogleSignInButton({ onSuccess, onError }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const render = () => {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async (response) => {
+          try {
+            await googleLogin(response.credential);
+            onSuccess();
+          } catch (err) {
+            onError?.(err);
+          }
+        },
+      });
+      window.google.accounts.id.renderButton(containerRef.current, {
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        width: 320,
+      });
+    };
+
+    if (window.google?.accounts?.id) {
+      render();
+      return;
+    }
+
+    const poll = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(poll);
+        render();
+      }
+    }, 150);
+    return () => clearInterval(poll);
+  }, [onSuccess, onError]);
+
+  return <div ref={containerRef} style={{ display: "flex", justifyContent: "center", minHeight: 44 }} />;
 }
 
 function Modal({ eyebrow, title, children, onClose }) {
@@ -3084,13 +3156,26 @@ function Modal({ eyebrow, title, children, onClose }) {
 export function AppDemo() {
   const navigate = useNavigate();
   const location = useLocation();
-  const session = useMemo(() => {
-    try {
-      return JSON.parse(readPreference("localpilot-demo-session", "null"));
-    } catch {
-      return null;
-    }
-  }, []);
+  const [session, setSession] = useState(null);
+  const [authStatus, setAuthStatus] = useState("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    loadSession()
+      .then((data) => {
+        if (!cancelled) {
+          setSession(data);
+          setAuthStatus("authenticated");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAuthStatus("unauthenticated");
+          navigate("/");
+        }
+      });
+    return () => { cancelled = true; };
+  }, [navigate]);
   const initialModule = useMemo(() => {
     const queryModule = moduleFromSlug(new URLSearchParams(location.search).get("module"));
     return queryModule || loadStoredModule();
@@ -3206,6 +3291,15 @@ export function AppDemo() {
     "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
   );
   const [appToast, setAppToast] = useState("");
+  const [genCatalog, setGenCatalog] = useState([]);
+  const [genCredits, setGenCredits] = useState({ accountId: "", balance: 0, reserved: 0, available: 0 });
+  const [genJobs, setGenJobs] = useState([]);
+  const [genSelectedModel, setGenSelectedModel] = useState("");
+  const [genPrompt, setGenPrompt] = useState("");
+  const [genLaunchPending, setGenLaunchPending] = useState(false);
+  const [genRetryPending, setGenRetryPending] = useState("");
+  const [genDetailJobId, setGenDetailJobId] = useState("");
+  const [genStatus, setGenStatus] = useState("idle");
   const campaignInput = workflowCampaignInput(workflow);
   const phase3Creatives = Array.isArray(phase3Workspace.generatedCreatives)
     ? phase3Workspace.generatedCreatives
@@ -3666,10 +3760,72 @@ export function AppDemo() {
     }
   };
 
+  const reloadGenerationWorkspace = async () => {
+    setGenStatus("loading");
+    try {
+      const [catalogPayload, creditsPayload, jobsPayload] = await Promise.all([
+        loadGenerationModels(),
+        loadGenerationCredits(),
+        loadGenerationJobs(),
+      ]);
+      const catalog = normalizeGenerationCatalog(catalogPayload);
+      setGenCatalog(catalog.models);
+      setGenCredits(normalizeCreditSummary(creditsPayload?.credits));
+      setGenJobs(normalizeGenerationJobsList(jobsPayload));
+      if (!genSelectedModel && catalog.models.length) {
+        setGenSelectedModel(catalog.models[0].id);
+      }
+      setGenStatus("ready");
+    } catch {
+      setGenStatus("error");
+    }
+  };
+
+  const handleGenLaunch = async () => {
+    if (!genSelectedModel || !genPrompt.trim()) return;
+    setGenLaunchPending(true);
+    try {
+      const result = await launchGenerationJob({
+        modelId: genSelectedModel,
+        prompt: genPrompt.trim(),
+        settings: {},
+      });
+      const newJob = normalizeGenerationJob(result?.job);
+      setGenJobs((prev) => [newJob, ...prev]);
+      setGenPrompt("");
+      await reloadGenerationWorkspace();
+      showAppToast("Generation job launched.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Launch failed.");
+    } finally {
+      setGenLaunchPending(false);
+    }
+  };
+
+  const handleGenRetry = async (jobId) => {
+    setGenRetryPending(jobId);
+    try {
+      await retryGenerationJob(jobId);
+      await reloadGenerationWorkspace();
+      showAppToast("Retry launched.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Retry failed.");
+    } finally {
+      setGenRetryPending("");
+    }
+  };
+
+  const genActiveModel = genCatalog.find((m) => m.id === genSelectedModel) || null;
+  const genEstimatedCost = genActiveModel ? genActiveModel.creditCost : 0;
+  const genInsufficientCredits = genEstimatedCost > genCredits.available;
+  const genSucceededJobs = genJobs.filter((j) => j.status === "succeeded");
+  const genActiveJobs = genJobs.filter((j) => j.status === "queued" || j.status === "running");
+
   useEffect(() => {
     reloadWorkflow();
     reloadPhase3Workspace();
     reloadFacebookConnection();
+    reloadGenerationWorkspace();
   }, []);
 
   useEffect(() => {
@@ -4131,8 +4287,14 @@ export function AppDemo() {
     setHelpDraft("");
   };
 
-  const logout = () => {
-    writePreference("localpilot-demo-session", null);
+  const logout = async () => {
+    try {
+      await logoutSession();
+    } catch {
+      // best-effort
+    }
+    setSession(null);
+    setAuthStatus("unauthenticated");
     navigate("/");
   };
 
@@ -5177,6 +5339,14 @@ export function AppDemo() {
 
   const activeInspirationSection =
     inspirationSections.find((section) => section.title === activeInspirationCollection) || null;
+
+  if (authStatus === "loading") {
+    return (
+      <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p>Loading…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -7482,6 +7652,178 @@ export function AppDemo() {
                     Generate weekly batch
                   </button>
                 </form>
+              </div>
+            )}
+
+            {config.view === "generation" && (
+              <div className="generation-workspace">
+                <section className="generation-header">
+                  <div>
+                    <p className="app-kicker">Generation workspace</p>
+                    <h2>AI Studio</h2>
+                    <p className="panel-subtitle">Choose a model, see the cost, and launch work you can actually track.</p>
+                  </div>
+                  <div className="generation-balance-strip">
+                    <span className="gen-balance-label">Available credits</span>
+                    <strong className="gen-balance-value">{genCredits.available}</strong>
+                    {genCredits.reserved > 0 && <small className="gen-balance-reserved">{genCredits.reserved} reserved</small>}
+                  </div>
+                </section>
+
+                <div className="generation-layout">
+                  <aside className="generation-catalog-rail" aria-label="Models">
+                    <h3>Models</h3>
+                    {genCatalog.map((model) => (
+                      <button
+                        type="button"
+                        key={model.id}
+                        className={`gen-model-card ${genSelectedModel === model.id ? "active" : ""}`}
+                        onClick={() => setGenSelectedModel(model.id)}
+                      >
+                        <span className="gen-model-capability">{model.capability}</span>
+                        <strong>{model.displayName}</strong>
+                        <small>{model.creditCost} credits &middot; {model.provider}</small>
+                      </button>
+                    ))}
+                    {genCatalog.length === 0 && genStatus === "ready" && (
+                      <p className="gen-empty-hint">No models available.</p>
+                    )}
+                    {genStatus === "loading" && <p className="gen-empty-hint">Loading models...</p>}
+                  </aside>
+
+                  <div className="generation-studio">
+                    <section className="gen-prompt-section">
+                      <div className="gen-cost-strip">
+                        <span>Estimated cost</span>
+                        <strong>{genEstimatedCost} credits</strong>
+                        {genInsufficientCredits && (
+                          <span className="gen-insufficient">You do not have enough credits for this run.</span>
+                        )}
+                      </div>
+                      <textarea
+                        className="gen-prompt-input"
+                        placeholder="Describe what you want to generate..."
+                        value={genPrompt}
+                        onChange={(e) => setGenPrompt(e.target.value)}
+                        rows={4}
+                      />
+                      <div className="gen-launch-row">
+                        {genActiveModel && (
+                          <span className="gen-model-context">{genActiveModel.displayName} &middot; {genActiveModel.capability}</span>
+                        )}
+                        <button
+                          className="primary-action gen-launch-btn"
+                          type="button"
+                          disabled={genLaunchPending || genInsufficientCredits || !genPrompt.trim() || !genSelectedModel}
+                          onClick={handleGenLaunch}
+                        >
+                          {genLaunchPending
+                            ? "Launching..."
+                            : genActiveModel
+                            ? `Generate ${genActiveModel.capability}`
+                            : "Generate"}
+                        </button>
+                      </div>
+                      {genInsufficientCredits && (
+                        <p className="gen-blocked-helper">Choose a lower-cost model or add credits before launching.</p>
+                      )}
+                    </section>
+
+                    <section className="gen-jobs-section" aria-label="Job activity">
+                      <h3>Job activity</h3>
+                      {genJobs.length === 0 && (
+                        <div className="gen-empty-jobs">
+                          <p>No generation jobs yet</p>
+                          <small>Pick a model and launch your first run.</small>
+                        </div>
+                      )}
+                      {genJobs.map((job) => (
+                        <article
+                          key={job.id}
+                          className={`gen-job-row gen-status-${job.status}`}
+                          onClick={() => setGenDetailJobId(genDetailJobId === job.id ? "" : job.id)}
+                        >
+                          <span className={`gen-status-chip ${job.status}`}>{job.status === "succeeded" ? "Ready" : job.status}</span>
+                          <div className="gen-job-meta">
+                            <strong>{job.modelDisplayName || job.modelId}</strong>
+                            <small>{job.capability} &middot; {job.creditCost} credits &middot; {job.createdAt ? new Date(job.createdAt).toLocaleString() : ""}</small>
+                          </div>
+                          {job.status === "failed" && (
+                            <button
+                              className="gen-retry-btn"
+                              type="button"
+                              disabled={genRetryPending === job.id}
+                              onClick={(e) => { e.stopPropagation(); handleGenRetry(job.id); }}
+                            >
+                              {genRetryPending === job.id ? "Retrying..." : "Retry job"}
+                            </button>
+                          )}
+                        </article>
+                      ))}
+                    </section>
+
+                    {genSucceededJobs.length > 0 && (
+                      <section className="gen-outputs-section" aria-label="Generated outputs">
+                        <h3>Generated outputs</h3>
+                        <div className="gen-output-grid">
+                          {genSucceededJobs.map((job) => (
+                            <article key={job.id} className="gen-output-card">
+                              <div className="gen-output-preview">
+                                <span>{job.capability}</span>
+                              </div>
+                              <strong>{job.modelDisplayName || job.modelId}</strong>
+                              <small>{job.prompt.length > 60 ? job.prompt.slice(0, 60) + "..." : job.prompt}</small>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {genDetailJobId && (() => {
+                      const detailJob = genJobs.find((j) => j.id === genDetailJobId);
+                      if (!detailJob) return null;
+                      return (
+                        <aside className="gen-detail-drawer" aria-label="Job details">
+                          <div className="gen-detail-header">
+                            <h3>Job details</h3>
+                            <button type="button" onClick={() => setGenDetailJobId("")}>&times;</button>
+                          </div>
+                          <dl className="gen-detail-fields">
+                            <dt>Status</dt>
+                            <dd><span className={`gen-status-chip ${detailJob.status}`}>{detailJob.status}</span></dd>
+                            <dt>Model</dt>
+                            <dd>{detailJob.modelDisplayName || detailJob.modelId}</dd>
+                            <dt>Capability</dt>
+                            <dd>{detailJob.capability}</dd>
+                            <dt>Credits</dt>
+                            <dd>{detailJob.creditCost}</dd>
+                            <dt>Prompt</dt>
+                            <dd>{detailJob.prompt}</dd>
+                            <dt>Attempts</dt>
+                            <dd>{detailJob.attemptCount}</dd>
+                            {detailJob.errorMessage && <>
+                              <dt>Error</dt>
+                              <dd className="gen-detail-error">{detailJob.errorMessage}</dd>
+                            </>}
+                            <dt>Created</dt>
+                            <dd>{detailJob.createdAt ? new Date(detailJob.createdAt).toLocaleString() : "—"}</dd>
+                          </dl>
+                          {detailJob.outputs.length > 0 && (
+                            <div className="gen-detail-outputs">
+                              <h4>Outputs</h4>
+                              {detailJob.outputs.map((output) => (
+                                <div key={output.id} className="gen-detail-output-row">
+                                  <span>{output.outputType}</span>
+                                  <small>{output.storagePath || output.providerRef}</small>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </aside>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
             )}
 
