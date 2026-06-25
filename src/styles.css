@@ -11822,6 +11822,12 @@ h3 {
   color: var(--ink);
 }
 
+.onboarding-field small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .onboarding-field-full {
   grid-column: 1 / -1;
 }

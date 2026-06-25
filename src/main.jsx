@@ -99,6 +99,16 @@ const creatorAvatarPreviewStyle = (index) => ({
   "--reference-preview-scale-x": creatorAvatarPreviewScales[index % creatorAvatarPreviewScales.length],
 });
 
+const onboardingVoiceoverOptions = [
+  ["Warm owner voice", "Warm owner voice"],
+  ["Clear service narrator", "Clear service narrator"],
+];
+
+const onboardingAvatarOptions = [
+  ["Owner-style avatar", "Owner-style avatar"],
+  ["Service expert avatar", "Service expert avatar"],
+];
+
 const zhTranslations = {
   Product: "产品",
   Solutions: "解决方案",
@@ -3248,6 +3258,22 @@ const onboardingFieldRows = [
   ],
   [
     {
+      key: "voiceover",
+      label: "Voiceover",
+      type: "select",
+      options: onboardingVoiceoverOptions,
+      helpText: "Used in all voiceover videos.",
+    },
+    {
+      key: "avatar",
+      label: "Avatar",
+      type: "select",
+      options: onboardingAvatarOptions,
+      helpText: "Used in UGC-style videos and avatar-led explainers.",
+    },
+  ],
+  [
+    {
       key: "targetAudience",
       label: "Target audience",
       type: "textarea",
@@ -3270,6 +3296,8 @@ const defaultOnboardingProfile = {
   language: "en",
   timezone: "",
   tonality: "professional",
+  voiceover: "Warm owner voice",
+  avatar: "Owner-style avatar",
   targetAudience: "",
   status: "draft",
 };
@@ -3520,6 +3548,7 @@ function OnboardingCard({ onConfirmed, onResolved, showToast }) {
                       value={value}
                       onChange={(event) => handleFieldChange(field.key, event.target.value)}
                     />
+                    {field.helpText ? <small>{field.helpText}</small> : null}
                   </label>
                 );
               }
@@ -3534,6 +3563,7 @@ function OnboardingCard({ onConfirmed, onResolved, showToast }) {
                         </option>
                       ))}
                     </select>
+                    {field.helpText ? <small>{field.helpText}</small> : null}
                   </label>
                 );
               }
@@ -3554,6 +3584,7 @@ function OnboardingCard({ onConfirmed, onResolved, showToast }) {
                         onChange={(event) => handleFieldChange(field.key, event.target.value)}
                       />
                     </div>
+                    {field.helpText ? <small>{field.helpText}</small> : null}
                   </label>
                 );
               }
@@ -3566,6 +3597,7 @@ function OnboardingCard({ onConfirmed, onResolved, showToast }) {
                     value={value}
                     onChange={(event) => handleFieldChange(field.key, event.target.value)}
                   />
+                  {field.helpText ? <small>{field.helpText}</small> : null}
                 </label>
               );
             })}
