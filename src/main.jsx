@@ -19,10 +19,13 @@ import {
   createPhase3ReviewNotification,
   createPhase3TemplateImport,
   createPhase3UgcVoiceoverPackage,
+  crawlWebsite,
   devLogin,
   generatePhase3CreatorStyleVideo,
   googleLogin,
+  confirmOnboardingProfile,
   loadFacebookConnection,
+  loadOnboardingProfile,
   loadPhase3Workspace,
   loadPublishJob,
   loadPublishingWorkflow,
@@ -32,6 +35,7 @@ import {
   queueFakePublish,
   recordPhase3ProofEvent,
   renderPhase3MediaAsset,
+  updateOnboardingProfile,
   updatePhase3BrandKit,
   updatePhase3CalendarSlot,
   updatePhase3Creative,
@@ -3153,11 +3157,471 @@ function Modal({ eyebrow, title, children, onClose }) {
   );
 }
 
+const onboardingFieldRows = [
+  [
+    {
+      key: "name",
+      label: "Business name",
+      type: "text",
+      placeholder: "Business name",
+    },
+    {
+      key: "industry",
+      label: "Industry",
+      type: "text",
+      placeholder: "e.g. Restaurant, Salon, Retail",
+    },
+  ],
+  [
+    {
+      key: "description",
+      label: "Description",
+      type: "textarea",
+      placeholder: "Brief description (1-2 sentences)",
+      fullWidth: true,
+    },
+  ],
+  [
+    {
+      key: "logoUrl",
+      label: "Logo URL",
+      type: "url",
+      placeholder: "https://example.com/logo.png",
+    },
+    {
+      key: "fontFamily",
+      label: "Font family",
+      type: "text",
+      placeholder: "e.g. Inter, Roboto",
+    },
+  ],
+  [
+    {
+      key: "primaryColor",
+      label: "Primary color",
+      type: "color",
+      placeholder: "#1f2937",
+    },
+    {
+      key: "secondaryColor",
+      label: "Secondary color",
+      type: "color",
+      placeholder: "#2563eb",
+    },
+  ],
+  [
+    {
+      key: "accentColor",
+      label: "Accent color",
+      type: "color",
+      placeholder: "#f97316",
+    },
+    {
+      key: "language",
+      label: "Language",
+      type: "select",
+      options: [
+        ["en", "English"],
+        ["zh", "Chinese"],
+        ["es", "Spanish"],
+      ],
+    },
+  ],
+  [
+    {
+      key: "timezone",
+      label: "Timezone",
+      type: "text",
+      placeholder: "e.g. America/Chicago",
+    },
+    {
+      key: "tonality",
+      label: "Tonality",
+      type: "select",
+      options: [
+        ["formal", "Formal"],
+        ["casual", "Casual"],
+        ["playful", "Playful"],
+        ["professional", "Professional"],
+      ],
+    },
+  ],
+  [
+    {
+      key: "targetAudience",
+      label: "Target audience",
+      type: "textarea",
+      placeholder: "Describe your target customers",
+      fullWidth: true,
+    },
+  ],
+];
+
+const defaultOnboardingProfile = {
+  crawlUrl: "",
+  name: "",
+  description: "",
+  industry: "",
+  logoUrl: "",
+  primaryColor: "#1f2937",
+  secondaryColor: "#2563eb",
+  accentColor: "#f97316",
+  fontFamily: "",
+  language: "en",
+  timezone: "",
+  tonality: "professional",
+  targetAudience: "",
+  status: "draft",
+};
+
+const normalizeOnboardingProfile = (profile) => ({
+  ...defaultOnboardingProfile,
+  ...(profile || {}),
+  status: profile?.status || "draft",
+});
+
+const isValidOnboardingUrl = (value) => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+const normalizeColorInputValue = (value, fallback) =>
+  /^#[0-9a-f]{6}$/i.test(safeText(value)) ? safeText(value) : fallback;
+
+function OnboardingCard({ onConfirmed, onResolved, showToast }) {
+  const [urlInput, setUrlInput] = useState("");
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
+  const [onboardingStatus, setOnboardingStatus] = useState("idle");
+  const [showReplaceWarning, setShowReplaceWarning] = useState(false);
+  const [editedFields, setEditedFields] = useState({});
+  const [pendingUrl, setPendingUrl] = useState("");
+
+  const applyProfile = useCallback(
+    (nextProfile, nextWarning = "") => {
+      const normalized = normalizeOnboardingProfile(nextProfile);
+      setProfile(normalized);
+      setEditedFields({});
+      setWarning(nextWarning);
+      setUrlInput(normalized.crawlUrl || "");
+      setOnboardingStatus(normalized.status === "confirmed" ? "confirmed" : "editing");
+      onResolved?.(normalized);
+      return normalized;
+    },
+    [onResolved],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    loadOnboardingProfile()
+      .then((payload) => {
+        if (cancelled) {
+          return;
+        }
+        const nextProfile = applyProfile(payload?.profile);
+        if (nextProfile.status === "confirmed") {
+          onConfirmed?.(nextProfile);
+        }
+      })
+      .catch((loadError) => {
+        if (cancelled) {
+          return;
+        }
+        if (loadError instanceof Error && /not found/i.test(loadError.message)) {
+          setProfile(null);
+          setEditedFields({});
+          setOnboardingStatus("idle");
+          onResolved?.(null);
+          return;
+        }
+        setError(loadError instanceof Error ? loadError.message : "Onboarding profile could not load.");
+        setProfile(null);
+        setEditedFields({});
+        setOnboardingStatus("idle");
+        onResolved?.(null);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [applyProfile, onConfirmed, onResolved]);
+
+  const mergedProfile = normalizeOnboardingProfile({
+    ...profile,
+    ...editedFields,
+    crawlUrl: editedFields.crawlUrl ?? profile?.crawlUrl ?? urlInput,
+  });
+
+  const handleFieldChange = (field, value) => {
+    setEditedFields((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleCrawl = async (nextUrl) => {
+    setLoading(true);
+    setError("");
+    setWarning("");
+    setShowReplaceWarning(false);
+    setPendingUrl("");
+    setOnboardingStatus("crawling");
+    try {
+      const payload = await crawlWebsite(nextUrl);
+      const nextProfile = applyProfile(payload?.profile, payload?.warning || "");
+      setUrlInput(nextProfile.crawlUrl || nextUrl);
+      if (payload?.warning) {
+        showToast?.("Website crawl was partial. Fill in anything the parser missed.");
+      } else {
+        showToast?.("Website details loaded.");
+      }
+    } catch (crawlError) {
+      setError(crawlError instanceof Error ? crawlError.message : "Website crawl failed.");
+      setOnboardingStatus(profile ? "editing" : "idle");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFetch = async () => {
+    const normalizedUrl = urlInput.trim();
+    if (!isValidOnboardingUrl(normalizedUrl)) {
+      setError("Enter a valid http:// or https:// website URL.");
+      return;
+    }
+    if (profile?.status === "draft" && profile.crawlUrl && profile.crawlUrl !== normalizedUrl) {
+      setPendingUrl(normalizedUrl);
+      setShowReplaceWarning(true);
+      return;
+    }
+    await handleCrawl(normalizedUrl);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!profile || !Object.keys(editedFields).length) {
+      showToast?.("No draft changes to save.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const payload = await updateOnboardingProfile(editedFields);
+      applyProfile(payload?.profile, warning);
+      showToast?.("Onboarding draft saved.");
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Draft save failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!profile) {
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      if (Object.keys(editedFields).length) {
+        const updatedPayload = await updateOnboardingProfile(editedFields);
+        applyProfile(updatedPayload?.profile, warning);
+      }
+      const confirmedPayload = await confirmOnboardingProfile();
+      const confirmedProfile = applyProfile(confirmedPayload?.profile);
+      showToast?.("Brand profile confirmed.");
+      onConfirmed?.(confirmedProfile);
+    } catch (confirmError) {
+      setError(confirmError instanceof Error ? confirmError.message : "Profile confirmation failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const canSave = Boolean(profile) && Boolean(Object.keys(editedFields).length) && !loading;
+  const canConfirm = Boolean(profile) && !loading;
+  const showForm = Boolean(profile) && onboardingStatus !== "confirmed";
+
+  return (
+    <section className="onboarding-card" aria-label="Website onboarding">
+      <div className="onboarding-card-head">
+        <p className="eyebrow">Smart onboarding</p>
+        <h2>Fetch your website and confirm your brand profile</h2>
+        <p>
+          Paste your homepage URL, review the draft, then confirm once everything looks right. Until
+          then, the profile stays in draft and does not change generation.
+        </p>
+      </div>
+
+      <div className="onboarding-url-input">
+        <label className="onboarding-field onboarding-field-full">
+          Website URL
+          <input
+            type="url"
+            placeholder="https://yourbusiness.com"
+            value={urlInput}
+            onChange={(event) => {
+              setUrlInput(event.target.value);
+              setError("");
+            }}
+          />
+        </label>
+        <button className="primary-action" type="button" onClick={handleFetch} disabled={loading}>
+          {profile?.crawlUrl ? "Re-fetch" : "Fetch"}
+        </button>
+      </div>
+
+      {loading && (
+        <div className="onboarding-spinner" role="status" aria-live="polite">
+          <span aria-label="Loading" />
+          <p>{onboardingStatus === "crawling" ? "Analyzing your website..." : "Loading your onboarding draft..."}</p>
+        </div>
+      )}
+
+      {warning && (
+        <div className="onboarding-warning" role="status">
+          We couldn't fully analyze your website. Fill in the missing fields manually.
+        </div>
+      )}
+
+      {error && (
+        <div className="onboarding-warning onboarding-warning-error" role="alert">
+          {error}
+        </div>
+      )}
+
+      {showForm && (
+        <>
+          <div className="onboarding-status-row">
+            <span className="status-pill">{safeText(profile?.status, "draft")}</span>
+            <small>Review everything on one card, save if needed, then confirm at the bottom.</small>
+          </div>
+          <div className="onboarding-form">
+            {onboardingFieldRows.flat().map((field) => {
+              const value = mergedProfile[field.key] || "";
+              const className = `onboarding-field${field.fullWidth ? " onboarding-field-full" : ""}`;
+              if (field.type === "textarea") {
+                return (
+                  <label className={className} key={field.key}>
+                    {field.label}
+                    <textarea
+                      rows={4}
+                      placeholder={field.placeholder}
+                      value={value}
+                      onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                    />
+                  </label>
+                );
+              }
+              if (field.type === "select") {
+                return (
+                  <label className={className} key={field.key}>
+                    {field.label}
+                    <select value={value} onChange={(event) => handleFieldChange(field.key, event.target.value)}>
+                      {field.options.map(([optionValue, optionLabel]) => (
+                        <option value={optionValue} key={optionValue}>
+                          {optionLabel}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                );
+              }
+              if (field.type === "color") {
+                return (
+                  <label className={`${className} onboarding-color-field`} key={field.key}>
+                    {field.label}
+                    <div className="onboarding-color-control">
+                      <input
+                        type="color"
+                        value={normalizeColorInputValue(value, field.placeholder)}
+                        onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder={field.placeholder}
+                        value={value}
+                        onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                      />
+                    </div>
+                  </label>
+                );
+              }
+              return (
+                <label className={className} key={field.key}>
+                  {field.label}
+                  <input
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    value={value}
+                    onChange={(event) => handleFieldChange(field.key, event.target.value)}
+                  />
+                </label>
+              );
+            })}
+          </div>
+
+          <div className="onboarding-actions">
+            <button className="secondary-action" type="button" onClick={handleSaveChanges} disabled={!canSave}>
+              Save changes
+            </button>
+            <button className="primary-action" type="button" onClick={handleConfirm} disabled={!canConfirm}>
+              Confirm profile
+            </button>
+          </div>
+        </>
+      )}
+
+      {showReplaceWarning && (
+        <Modal
+          eyebrow="Replace draft"
+          title="Replace your current onboarding draft?"
+          onClose={() => {
+            setShowReplaceWarning(false);
+            setPendingUrl("");
+          }}
+        >
+          <div className="onboarding-modal-copy">
+            <p>This will replace your current profile draft with data from the new website URL.</p>
+            <div className="onboarding-actions">
+              <button
+                className="secondary-action"
+                type="button"
+                onClick={() => {
+                  setShowReplaceWarning(false);
+                  setPendingUrl("");
+                }}
+              >
+                Keep current draft
+              </button>
+              <button className="primary-action" type="button" onClick={() => handleCrawl(pendingUrl)}>
+                Replace draft
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </section>
+  );
+}
+
 export function AppDemo() {
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState(null);
   const [authStatus, setAuthStatus] = useState("loading");
+  const [onboardingProfile, setOnboardingProfile] = useState(null);
+  const [onboardingResolved, setOnboardingResolved] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -3446,6 +3910,7 @@ export function AppDemo() {
   const selectedHelpAction =
     helpActions.find(([title]) => title === activeHelpAction) ||
     helpActions[0] || ["FAQs", "Find answers about generation, publishing, and account setup."];
+  const onboardingRequired = !onboardingResolved || onboardingProfile?.status !== "confirmed";
   const phase3CreativesByPlatform = useMemo(
     () =>
       phase3Creatives.reduce((byPlatform, creative) => {
@@ -3721,7 +4186,7 @@ export function AppDemo() {
     }
   };
 
-  const reloadPhase3Workspace = async ({ silent = false } = {}) => {
+  const reloadPhase3Workspace = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
       setPhase3Status("loading");
     }
@@ -3737,7 +4202,18 @@ export function AppDemo() {
       setPhase3Status("error");
       setPhase3Error(error instanceof Error ? error.message : "Phase 3 workspace could not load.");
     }
-  };
+  }, []);
+
+  const handleOnboardingResolved = useCallback((nextProfile) => {
+    setOnboardingProfile(nextProfile);
+    setOnboardingResolved(true);
+  }, []);
+
+  const handleOnboardingConfirmed = useCallback(async (nextProfile) => {
+    setOnboardingProfile(nextProfile);
+    setOnboardingResolved(true);
+    await reloadPhase3Workspace({ silent: true });
+  }, [reloadPhase3Workspace]);
 
   const reloadFacebookConnection = async () => {
     setFacebookConnectionStatus("loading");
@@ -5422,28 +5898,36 @@ export function AppDemo() {
         <header className="app-topbar">
           <div>
             <p className="app-kicker">Customer demo workspace</p>
-            <h1>{config.title}</h1>
-            {config.summary && <p className="topbar-summary">{config.summary}</p>}
+            <h1>{onboardingRequired ? "Website onboarding" : config.title}</h1>
+            <p className="topbar-summary">
+              {onboardingRequired
+                ? "Fetch your website, review the extracted brand draft, and confirm it before generation starts."
+                : config.summary}
+            </p>
           </div>
           <div className="topbar-actions">
             <LanguageToggle compact />
-            <select
-              aria-label="Selected client"
-              value={campaignInput.businessType}
-              onChange={(event) => applyBusinessType(event.target.value)}
-            >
-              {businessOptions.map((option) => (
-                <option value={option.value} key={option.value}>
-                  {option.business}
-                </option>
-              ))}
-            </select>
-            <button className="primary-action" type="button" onClick={topbarPrimaryAction.handler}>
-              {topbarPrimaryAction.label}
-            </button>
-            <button className="secondary-action" type="button" onClick={topbarSecondaryAction.handler}>
-              {topbarSecondaryAction.label}
-            </button>
+            {!onboardingRequired && (
+              <>
+                <select
+                  aria-label="Selected client"
+                  value={campaignInput.businessType}
+                  onChange={(event) => applyBusinessType(event.target.value)}
+                >
+                  {businessOptions.map((option) => (
+                    <option value={option.value} key={option.value}>
+                      {option.business}
+                    </option>
+                  ))}
+                </select>
+                <button className="primary-action" type="button" onClick={topbarPrimaryAction.handler}>
+                  {topbarPrimaryAction.label}
+                </button>
+                <button className="secondary-action" type="button" onClick={topbarSecondaryAction.handler}>
+                  {topbarSecondaryAction.label}
+                </button>
+              </>
+            )}
             <button className="secondary-action" type="button" onClick={resetDemo}>
               Reset demo
             </button>
@@ -5453,17 +5937,27 @@ export function AppDemo() {
           </div>
         </header>
 
-        <section className="hero-metrics" aria-label="Workspace summary">
-          {workspaceMetrics.map(([label, value, note]) => (
-            <article key={label}>
-              <span>{label}</span>
-              <strong>{value}</strong>
-              <small>{note}</small>
-            </article>
-          ))}
-        </section>
+        {onboardingRequired ? (
+          <section className="onboarding-shell">
+            <OnboardingCard
+              onResolved={handleOnboardingResolved}
+              onConfirmed={handleOnboardingConfirmed}
+              showToast={showAppToast}
+            />
+          </section>
+        ) : (
+          <>
+            <section className="hero-metrics" aria-label="Workspace summary">
+              {workspaceMetrics.map(([label, value, note]) => (
+                <article key={label}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                  <small>{note}</small>
+                </article>
+              ))}
+            </section>
 
-        <section className="app-grid">
+            <section className="app-grid">
           <section className="primary-panel" aria-label="Primary demo panel">
             <div className="panel-head">
               <div>
@@ -8937,6 +9431,8 @@ export function AppDemo() {
             </section>
           </aside>
         </section>
+          </>
+        )}
       </main>
       {appToast && <div className="app-toast">{appToast}</div>}
     </div>
