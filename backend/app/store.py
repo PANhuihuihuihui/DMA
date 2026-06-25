@@ -2,6 +2,7 @@ import html
 import sqlite3
 from urllib.parse import quote, urlparse
 
+from backend.app import sessions
 from backend.app.contracts import (
     build_approval_snapshot,
     json_dumps,
@@ -29,6 +30,9 @@ TIKTOK_CHANNEL_ID = "channel-tiktok-business"
 INSTAGRAM_CHANNEL_ID = "channel-instagram-assist"
 GOOGLE_BUSINESS_CHANNEL_ID = "channel-google-business-assist"
 DEMO_SESSION_ID = "session_demo_karen"
+OPENAI_IMAGE_MODEL_ID = "genmodel_openai_image_primary"
+OPENAI_VIDEO_MODEL_ID = "genmodel_openai_video_primary"
+CCDANCE_AVATAR_MODEL_ID = "genmodel_ccdance_avatar_preview"
 
 CHANNEL_HEALTH_STATES = (
     "connected",
@@ -57,6 +61,8 @@ _CHANNEL_HEALTH_ALIASES = {
     "pending_review": "review_blocked",
     "app_review": "review_blocked",
 }
+
+MANUAL_FALLBACK_RETRYABLE_CLASSES = {"rate_limit", "platform_transient"}
 
 
 def review_url_for_token(token):
@@ -98,6 +104,79 @@ def initialize_database(conn):
           expires_at text not null,
           user_agent text,
           ip_hash text
+        );
+
+        create table if not exists generation_model_catalog (
+          id text primary key,
+          provider_key text not null,
+          model_key text not null,
+          capability text not null,
+          display_name text not null,
+          credit_cost integer not null,
+          readiness_status text not null,
+          settings_schema_json text not null,
+          limits_json text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists generation_jobs (
+          id text primary key,
+          merchant_id text not null references merchants(id),
+          model_catalog_id text not null references generation_model_catalog(id),
+          provider_key text not null,
+          model_key text not null,
+          capability text not null,
+          prompt text not null,
+          request_json text not null,
+          settings_json text not null,
+          status text not null,
+          reserved_credits integer not null default 0,
+          failure_reason text,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists generation_attempts (
+          id text primary key,
+          generation_job_id text not null references generation_jobs(id),
+          attempt_number integer not null,
+          status text not null,
+          diagnostics_json text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists generation_outputs (
+          id text primary key,
+          generation_job_id text not null references generation_jobs(id),
+          output_kind text not null,
+          storage_ref text not null,
+          preview_ref text not null,
+          metadata_json text not null,
+          status text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists credit_accounts (
+          id text primary key,
+          merchant_id text not null unique references merchants(id),
+          plan_name text not null,
+          monthly_credits integer not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists credit_ledger (
+          id text primary key,
+          merchant_id text not null references merchants(id),
+          generation_job_id text references generation_jobs(id),
+          entry_type text not null,
+          amount_delta integer not null,
+          balance_after integer not null,
+          metadata_json text not null,
+          created_at text not null
         );
 
         create table if not exists business_profiles (
@@ -1045,8 +1124,41 @@ def migrate_database(conn):
         )
         """
     )
+    user_columns = column_names(conn, "users")
+    if "google_sub" not in user_columns:
+        conn.execute("alter table users add column google_sub text")
+    if "email_verified" not in user_columns:
+        conn.execute("alter table users add column email_verified integer")
+    conn.execute(
+        "create unique index if not exists idx_users_google_sub on users(google_sub) where google_sub is not null"
+    )
+
     seed_channel_registry(conn)
     migrate_demo_seed_to_aurora(conn)
+
+
+def get_user_by_google_sub(conn, sub):
+    return conn.execute("select * from users where google_sub = ?", (sub,)).fetchone()
+
+
+def get_user_by_email(conn, email):
+    return conn.execute("select * from users where email = ?", (email,)).fetchone()
+
+
+def create_merchant_and_user(conn, *, name, email, google_sub, email_verified):
+    now = utc_now()
+    merchant_id = new_id("merchant")
+    user_id = new_id("user")
+    conn.execute(
+        "insert into merchants values (?, ?, ?)",
+        (merchant_id, name or email, now),
+    )
+    conn.execute(
+        "insert into users (id, merchant_id, name, email, role, created_at, google_sub, email_verified) values (?, ?, ?, ?, ?, ?, ?, ?)",
+        (user_id, merchant_id, name or email, email, "owner", now, google_sub, 1 if email_verified else 0),
+    )
+    conn.commit()
+    return conn.execute("select * from users where id = ?", (user_id,)).fetchone()
 
 
 def seed_channel_registry(conn):
@@ -1118,6 +1230,145 @@ def seed_channel_registry(conn):
                 now,
             ),
         )
+
+
+def seed_generation_model_catalog(conn):
+    now = utc_now()
+    rows = [
+        (
+            OPENAI_IMAGE_MODEL_ID,
+            "openai",
+            "gpt-image-2",
+            "image",
+            "GPT Image 2",
+            40,
+            "ready",
+            {
+                "fields": [
+                    "prompt",
+                    "brandContext",
+                    "aspectRatio",
+                    "styleHint",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "aspectRatios": ["1:1", "4:5", "16:9"],
+            },
+        ),
+        (
+            OPENAI_VIDEO_MODEL_ID,
+            "openai",
+            "sora-2",
+            "video",
+            "Sora 2",
+            180,
+            "ready",
+            {
+                "fields": [
+                    "prompt",
+                    "brandContext",
+                    "aspectRatio",
+                    "durationSeconds",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "durations": [5, 10, 15],
+                "aspectRatios": ["9:16", "16:9"],
+            },
+        ),
+        (
+            CCDANCE_AVATAR_MODEL_ID,
+            "ccdance_stub",
+            "ccdance-avatar",
+            "avatar_video",
+            "CCDance Avatar Preview",
+            220,
+            "preview",
+            {
+                "fields": [
+                    "prompt",
+                    "avatar",
+                    "voiceover",
+                    "script",
+                    "durationSeconds",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "durations": [10, 15, 20],
+                "avatars": ["female_host", "male_owner", "creator_style"],
+            },
+        ),
+    ]
+    for row in rows:
+        conn.execute(
+            """
+            insert or ignore into generation_model_catalog (
+              id, provider_key, model_key, capability, display_name, credit_cost,
+              readiness_status, settings_schema_json, limits_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                json_dumps(row[7]),
+                json_dumps(row[8]),
+                now,
+                now,
+            ),
+        )
+        conn.execute(
+            """
+            update generation_model_catalog
+            set provider_key = ?, model_key = ?, capability = ?, display_name = ?,
+                credit_cost = ?, readiness_status = ?, settings_schema_json = ?,
+                limits_json = ?, updated_at = ?
+            where id = ?
+            """,
+            (
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                json_dumps(row[7]),
+                json_dumps(row[8]),
+                now,
+                row[0],
+            ),
+        )
+
+
+def ensure_generation_credit_account(conn, merchant_id, plan_name="Growth Demo", monthly_credits=3200):
+    now = utc_now()
+    conn.execute(
+        """
+        insert or ignore into credit_accounts (
+          id, merchant_id, plan_name, monthly_credits, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            new_id("credit_account"),
+            merchant_id,
+            plan_name,
+            monthly_credits,
+            now,
+            now,
+        ),
+    )
+
+
+def ensure_phase13_generation_seed(conn):
+    seed_generation_model_catalog(conn)
+    ensure_generation_credit_account(conn, DEMO_MERCHANT_ID)
 
 
 def ensure_phase5_foundation_seed(conn):
@@ -1740,13 +1991,14 @@ def seed_demo_data(conn):
     existing = conn.execute("select count(*) from merchants").fetchone()[0]
     if existing:
         ensure_phase5_foundation_seed(conn)
+        ensure_phase13_generation_seed(conn)
         conn.commit()
         return
 
     now = utc_now()
     conn.execute("insert into merchants values (?, ?, ?)", (DEMO_MERCHANT_ID, "Aurora Heating & Cooling", now))
     conn.execute(
-        "insert into users values (?, ?, ?, ?, ?, ?)",
+        "insert into users (id, merchant_id, name, email, role, created_at) values (?, ?, ?, ?, ?, ?)",
         (DEMO_USER_ID, DEMO_MERCHANT_ID, "Karen Li", "karen@example.com", "owner", now),
     )
     conn.execute(
@@ -1940,6 +2192,7 @@ def seed_demo_data(conn):
         now=now,
     )
     ensure_phase5_foundation_seed(conn)
+    ensure_phase13_generation_seed(conn)
     conn.commit()
 
 
@@ -5118,6 +5371,309 @@ def get_phase3_usage_summary(conn):
     }
 
 
+def serialize_generation_model(row):
+    return {
+        "id": row["id"],
+        "providerKey": row["provider_key"],
+        "modelKey": row["model_key"],
+        "capability": row["capability"],
+        "displayName": row["display_name"],
+        "creditCost": row["credit_cost"],
+        "readinessStatus": row["readiness_status"],
+        "settingsSchema": json_loads(row["settings_schema_json"], {}),
+        "limits": json_loads(row["limits_json"], {}),
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def serialize_credit_ledger_entry(row):
+    return {
+        "id": row["id"],
+        "merchantId": row["merchant_id"],
+        "generationJobId": row["generation_job_id"],
+        "entryType": row["entry_type"],
+        "amountDelta": row["amount_delta"],
+        "balanceAfter": row["balance_after"],
+        "metadata": safe_diagnostics(json_loads(row["metadata_json"], {})),
+        "createdAt": row["created_at"],
+    }
+
+
+def serialize_generation_attempt(row):
+    return {
+        "id": row["id"],
+        "generationJobId": row["generation_job_id"],
+        "attemptNumber": row["attempt_number"],
+        "status": row["status"],
+        "diagnostics": safe_diagnostics(json_loads(row["diagnostics_json"], {})),
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def serialize_generation_output(row):
+    return {
+        "id": row["id"],
+        "generationJobId": row["generation_job_id"],
+        "outputKind": row["output_kind"],
+        "storageRef": row["storage_ref"],
+        "previewRef": row["preview_ref"],
+        "metadata": safe_diagnostics(json_loads(row["metadata_json"], {})),
+        "status": row["status"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def get_generation_model_row(conn, model_id):
+    row = conn.execute("select * from generation_model_catalog where id = ?", (model_id,)).fetchone()
+    if row is None:
+        raise StoreError(404, "Generation model not found.")
+    return row
+
+
+def list_generation_models(conn):
+    return [
+        serialize_generation_model(row)
+        for row in conn.execute(
+            "select * from generation_model_catalog order by capability, credit_cost, display_name, id"
+        ).fetchall()
+    ]
+
+
+def get_credit_account_row(conn, merchant_id):
+    row = conn.execute("select * from credit_accounts where merchant_id = ?", (merchant_id,)).fetchone()
+    if row is None:
+        raise StoreError(404, "Credit account not configured.")
+    return row
+
+
+def current_credit_balance(conn, merchant_id):
+    account = get_credit_account_row(conn, merchant_id)
+    ledger_delta = conn.execute(
+        "select coalesce(sum(amount_delta), 0) from credit_ledger where merchant_id = ?",
+        (merchant_id,),
+    ).fetchone()[0]
+    return account["monthly_credits"] + ledger_delta
+
+
+def current_reserved_credits(conn, merchant_id):
+    return conn.execute(
+        """
+        select coalesce(sum(reserved_credits), 0)
+        from generation_jobs
+        where merchant_id = ? and status in ('queued', 'running')
+        """,
+        (merchant_id,),
+    ).fetchone()[0]
+
+
+def get_generation_credit_summary(conn, merchant_id):
+    account = get_credit_account_row(conn, merchant_id)
+    ledger_entries = conn.execute(
+        "select count(*) from credit_ledger where merchant_id = ?",
+        (merchant_id,),
+    ).fetchone()[0]
+    return {
+        "merchantId": merchant_id,
+        "planName": account["plan_name"],
+        "monthlyCredits": account["monthly_credits"],
+        "availableCredits": current_credit_balance(conn, merchant_id),
+        "reservedCredits": current_reserved_credits(conn, merchant_id),
+        "ledgerEntries": ledger_entries,
+        "createdAt": account["created_at"],
+        "updatedAt": account["updated_at"],
+    }
+
+
+def append_credit_ledger_entry(conn, merchant_id, generation_job_id, entry_type, amount_delta, metadata=None):
+    balance_after = current_credit_balance(conn, merchant_id) + amount_delta
+    row_id = new_id("credit_entry")
+    conn.execute(
+        """
+        insert into credit_ledger (
+          id, merchant_id, generation_job_id, entry_type, amount_delta, balance_after, metadata_json, created_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            row_id,
+            merchant_id,
+            generation_job_id,
+            entry_type,
+            amount_delta,
+            balance_after,
+            json_dumps(metadata or {}),
+            utc_now(),
+        ),
+    )
+    return conn.execute("select * from credit_ledger where id = ?", (row_id,)).fetchone()
+
+
+def reserve_generation_credits(conn, merchant_id, generation_job_id, amount):
+    return append_credit_ledger_entry(
+        conn,
+        merchant_id,
+        generation_job_id,
+        "reserve",
+        -abs(amount),
+        {"reservedCredits": abs(amount)},
+    )
+
+
+def settle_generation_credits(conn, merchant_id, generation_job_id, amount):
+    return append_credit_ledger_entry(
+        conn,
+        merchant_id,
+        generation_job_id,
+        "settle",
+        0,
+        {"finalizedCredits": abs(amount)},
+    )
+
+
+def release_generation_credits(conn, merchant_id, generation_job_id, amount):
+    return append_credit_ledger_entry(
+        conn,
+        merchant_id,
+        generation_job_id,
+        "release",
+        abs(amount),
+        {"releasedCredits": abs(amount)},
+    )
+
+
+def get_generation_job(conn, merchant_id, job_id):
+    row = conn.execute(
+        "select * from generation_jobs where id = ? and merchant_id = ?",
+        (job_id, merchant_id),
+    ).fetchone()
+    if row is None:
+        raise StoreError(404, "Generation job not found.")
+    return row
+
+
+def serialize_generation_job(conn, row):
+    model = get_generation_model_row(conn, row["model_catalog_id"])
+    attempts = [
+        serialize_generation_attempt(attempt)
+        for attempt in conn.execute(
+            "select * from generation_attempts where generation_job_id = ? order by attempt_number, created_at, id",
+            (row["id"],),
+        ).fetchall()
+    ]
+    outputs = [
+        serialize_generation_output(output)
+        for output in conn.execute(
+            "select * from generation_outputs where generation_job_id = ? order by created_at, id",
+            (row["id"],),
+        ).fetchall()
+    ]
+    return {
+        "id": row["id"],
+        "merchantId": row["merchant_id"],
+        "model": serialize_generation_model(model),
+        "providerKey": row["provider_key"],
+        "modelKey": row["model_key"],
+        "capability": row["capability"],
+        "prompt": row["prompt"],
+        "request": safe_diagnostics(json_loads(row["request_json"], {})),
+        "settings": safe_diagnostics(json_loads(row["settings_json"], {})),
+        "status": row["status"],
+        "reservedCredits": row["reserved_credits"],
+        "failureReason": row["failure_reason"],
+        "attempts": attempts,
+        "outputs": outputs,
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def list_generation_jobs(conn, merchant_id):
+    rows = conn.execute(
+        "select * from generation_jobs where merchant_id = ? order by updated_at desc, created_at desc, id desc",
+        (merchant_id,),
+    ).fetchall()
+    return [serialize_generation_job(conn, row) for row in rows]
+
+
+def create_generation_job(conn, merchant_id, payload):
+    model_id = (payload.get("modelId") or "").strip()
+    prompt = (payload.get("prompt") or "").strip()
+    settings = payload.get("settings") or {}
+    if not model_id:
+        raise StoreError(400, "modelId is required.")
+    if not prompt:
+        raise StoreError(400, "Prompt is required.")
+    model = get_generation_model_row(conn, model_id)
+    if model["readiness_status"] not in {"ready", "preview"}:
+        raise StoreError(409, "Selected generation model is not available.")
+
+    cost = model["credit_cost"]
+    if current_credit_balance(conn, merchant_id) < cost:
+        raise StoreError(409, "Insufficient generation credits.")
+
+    now = utc_now()
+    job_id = new_id("generation_job")
+    conn.execute("savepoint generation_admission")
+    try:
+        conn.execute(
+            """
+            insert into generation_jobs (
+              id, merchant_id, model_catalog_id, provider_key, model_key, capability,
+              prompt, request_json, settings_json, status, reserved_credits, failure_reason,
+              created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                job_id,
+                merchant_id,
+                model["id"],
+                model["provider_key"],
+                model["model_key"],
+                model["capability"],
+                prompt,
+                json_dumps(payload),
+                json_dumps(settings),
+                "queued",
+                cost,
+                None,
+                now,
+                now,
+            ),
+        )
+        conn.execute(
+            """
+            insert into generation_attempts (
+              id, generation_job_id, attempt_number, status, diagnostics_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                new_id("generation_attempt"),
+                job_id,
+                1,
+                "queued",
+                "{}",
+                now,
+                now,
+            ),
+        )
+        reservation = reserve_generation_credits(conn, merchant_id, job_id, cost)
+        conn.execute("release savepoint generation_admission")
+    except Exception:
+        conn.execute("rollback to savepoint generation_admission")
+        conn.execute("release savepoint generation_admission")
+        raise
+
+    conn.commit()
+    return {
+        "job": serialize_generation_job(conn, get_generation_job(conn, merchant_id, job_id)),
+        "reservation": serialize_credit_ledger_entry(reservation),
+        "credits": get_generation_credit_summary(conn, merchant_id),
+        "model": serialize_generation_model(model),
+    }
+
+
 def get_phase3_workspace(conn):
     brand = conn.execute("select * from brand_kits where merchant_id = ? order by updated_at desc limit 1", (DEMO_MERCHANT_ID,)).fetchone()
     batches = [serialize_content_batch(conn, row["id"]) for row in conn.execute("select * from content_batches where merchant_id = ? order by created_at desc", (DEMO_MERCHANT_ID,))]
@@ -6032,6 +6588,37 @@ def update_publish_job_status(conn, job_id, status):
     )
 
 
+def should_manual_fallback(error_class):
+    normalized = str(error_class or "").strip().lower()
+    return bool(normalized) and normalized != "none" and normalized not in MANUAL_FALLBACK_RETRYABLE_CLASSES
+
+
+def resolve_operator(conn, token, *, allow_localhost=False):
+    if not token:
+        if not allow_localhost:
+            raise StoreError(401, "Operator session is required.")
+        token = DEMO_SESSION_ID
+
+    try:
+        resolved = sessions.resolve_session(conn, token)
+    except sessions.SessionError as exc:
+        raise StoreError(401, str(exc)) from exc
+
+    user = conn.execute("select * from users where id = ?", (resolved["user_id"],)).fetchone()
+    if user is None or user["merchant_id"] != resolved["merchant_id"]:
+        raise StoreError(403, "Operator account not found for this tenant.")
+    if user["role"] not in {"owner", "operator"}:
+        raise StoreError(403, "Operator access is restricted to owner/operator roles.")
+
+    return {
+        "userId": user["id"],
+        "merchantId": user["merchant_id"],
+        "role": user["role"],
+        "name": user["name"],
+        "email": user["email"],
+    }
+
+
 def append_publish_event(conn, job_id, status, summary, source_actor, attempt_number):
     now = utc_now()
     safe_summary = safe_diagnostics({"summary": summary}).get("summary") or "Publish event recorded."
@@ -6053,6 +6640,48 @@ def append_publish_event(conn, job_id, status, summary, source_actor, attempt_nu
             attempt_number,
             now,
         ),
+    )
+
+
+def mark_publish_job_manual_fallback(conn, job_id, error_class, summary):
+    if not should_manual_fallback(error_class):
+        return False
+
+    failure_label = str(error_class or "").strip().lower() or "blocked"
+    parts = [f"Manual fallback required after {failure_label} failure."]
+    if summary:
+        parts.append(str(summary).strip())
+    attempt_number = conn.execute(
+        "select max(attempt_number) from publish_attempts where publish_job_id = ?",
+        (job_id,),
+    ).fetchone()[0] or next_attempt_number(conn, job_id)
+    update_publish_job_status(conn, job_id, "manual_fallback_required")
+    append_publish_event(
+        conn,
+        job_id,
+        "manual_fallback_required",
+        " ".join(part for part in parts if part),
+        "system",
+        attempt_number,
+    )
+    return True
+
+
+def mark_publish_job_support_path(conn, job_id, note):
+    attempt_number = conn.execute(
+        "select max(attempt_number) from publish_attempts where publish_job_id = ?",
+        (job_id,),
+    ).fetchone()[0] or 1
+    parts = ["Operator opened a manual support path for this publish job."]
+    if note:
+        parts.append(str(note).strip())
+    append_publish_event(
+        conn,
+        job_id,
+        "manual_support",
+        " ".join(part for part in parts if part),
+        "operator",
+        attempt_number,
     )
 
 
@@ -6299,6 +6928,65 @@ def list_debug_publish_jobs(conn):
         serialize_debug_publish_job(conn, row)
         for row in conn.execute("select * from publish_jobs order by updated_at desc, created_at desc, id")
     ]
+
+
+def build_publish_job_evidence(conn, job_id):
+    job_row = conn.execute("select * from publish_jobs where id = ?", (job_id,)).fetchone()
+    if job_row is None:
+        raise StoreError(404, "Publish job not found.")
+
+    job = serialize_debug_publish_job(conn, job_row)
+    approval = conn.execute("select * from approvals where id = ?", (job_row["approval_id"],)).fetchone()
+    if approval is None:
+        raise StoreError(400, "Publish job has no approval snapshot.")
+    snapshot = json_loads(approval["snapshot_json"], {})
+    latest_attempt = job["attempts"][-1] if job["attempts"] else {}
+    diagnostics = safe_diagnostics(latest_attempt.get("diagnostics") or {})
+
+    connected_channel_row = conn.execute(
+        "select * from connected_channels where id = ?",
+        (approval["connected_channel_id"],),
+    ).fetchone()
+    connected_channel = (
+        serialize_channel_health(conn, connected_channel_row)
+        if connected_channel_row is not None
+        else safe_diagnostics(snapshot.get("connectedChannelRef") or {})
+    )
+
+    required_scopes = []
+    if connected_channel_row is not None:
+        registry_id = connected_channel_row["channel_registry_id"] or connected_channel_row["platform"]
+        registry = conn.execute(
+            "select required_scopes_json from channel_registry where id = ?",
+            (registry_id,),
+        ).fetchone()
+        if registry is not None:
+            required_scopes = json_loads(registry["required_scopes_json"], [])
+
+    app_review = {
+        "requiredScopes": required_scopes,
+        "grantedScopesSatisfied": ((diagnostics.get("directPost") or {}).get("checks") or {}).get("requiredScopesGranted"),
+        "route": diagnostics.get("route"),
+        "requestedRoute": diagnostics.get("requestedRoute"),
+        "deliveryMode": diagnostics.get("deliveryMode") or diagnostics.get("result"),
+        "directPost": diagnostics.get("directPost"),
+        "creatorInfoSnapshot": snapshot.get("creatorInfoSnapshot") or {},
+        "tiktokConfirmations": snapshot.get("tiktokConfirmations") or {},
+        "terminalErrorClass": debug_error_class(diagnostics),
+        "nextRecommendedAction": debug_next_action(diagnostics),
+    }
+
+    return safe_diagnostics(
+        {
+            "job": job,
+            "merchant": job["merchant"],
+            "connectedChannel": connected_channel,
+            "attempts": job["attempts"],
+            "events": job["events"],
+            "appReview": app_review,
+            "exportedAt": utc_now(),
+        }
+    )
 
 
 def get_serialized_draft(conn, draft_id):
