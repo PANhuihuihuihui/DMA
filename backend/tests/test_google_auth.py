@@ -161,6 +161,16 @@ class AuthEndpointTest(unittest.TestCase):
                 return c.value
         return None
 
+    def test_auth_capability_reports_dev_login_disabled(self):
+        with patch.dict(os.environ, {}, clear=True):
+            payload, _ = self._request("GET", "/api/v1/auth")
+        self.assertFalse(payload["devLoginEnabled"])
+
+    def test_auth_capability_reports_dev_login_enabled(self):
+        with patch.dict(os.environ, {"LOCALPILOT_DEV_LOGIN": "1"}, clear=True):
+            payload, _ = self._request("GET", "/api/v1/auth")
+        self.assertTrue(payload["devLoginEnabled"])
+
     @patch.dict(os.environ, {"LOCALPILOT_DEV_LOGIN": "1"}, clear=False)
     def test_dev_login_sets_cookie_and_returns_session(self):
         env = os.environ.copy()

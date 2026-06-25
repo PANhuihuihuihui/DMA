@@ -35,6 +35,9 @@ class JsonHandler(BaseHTTPRequestHandler):
             if method == "GET" and path == "/api/v1/health":
                 self.send_json({"status": "ok", "service": "localpilot-backend"})
                 return
+            if method == "GET" and path == "/api/v1/auth":
+                self.send_json({"devLoginEnabled": google_auth.dev_login_enabled()})
+                return
             if method == "POST" and path == "/api/v1/auth/google":
                 body = self.read_json()
                 with closing(store.connect(self.db_path)) as conn:
