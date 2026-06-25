@@ -193,7 +193,7 @@ Plans:
 
 ### Phase 8: Website-Crawl Smart Onboarding
 
-**Goal**: A merchant can enter a website URL and the backend crawls public info to auto-generate a brand/business profile, style, and content-setting defaults they can review and edit.
+**Goal**: As a merchant, I want to enter my website URL and get an auto-generated brand/business profile, style, and content-setting defaults I can review and edit, so that I can confirm my setup quickly before LocalPilot starts generating content.
 **Mode:** mvp
 **Depends on**: Phase 7
 **Requirements**: ONBOARD-01, ONBOARD-02, ONBOARD-03, ONBOARD-04, ONBOARD-05
