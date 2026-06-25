@@ -126,8 +126,8 @@ Requirements for milestone v2.0. Each maps to exactly one v2.0 phase (7–12). B
 
 ### Google Login
 
-- [ ] **GAUTH-01**: User can sign in with Google, and the backend verifies the Google ID token (signature, `aud`, `exp`, `iss`) rather than trusting client-sent identifiers.
-- [ ] **GAUTH-02**: System uses the Google `sub` claim as the stable user identifier, links or creates the user and merchant, and issues a LocalPilot session.
+- [x] **GAUTH-01**: User can sign in with Google, and the backend verifies the Google ID token (signature, `aud`, `exp`, `iss`) rather than trusting client-sent identifiers.
+- [x] **GAUTH-02**: System uses the Google `sub` claim as the stable user identifier, links or creates the user and merchant, and issues a LocalPilot session.
 
 ### Generation Engine
 
@@ -266,8 +266,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADMIN-02 | Phase 6 - Manual Fallback And Pilot Support | Complete |
 | ADMIN-03 | Phase 6 - Manual Fallback And Pilot Support | Complete |
 | ADMIN-04 | Phase 6 - Manual Fallback And Pilot Support | Complete |
-| GAUTH-01 | Phase 7 - Google Login And Auth | Pending |
-| GAUTH-02 | Phase 7 - Google Login And Auth | Pending |
+| GAUTH-01 | Phase 7 - Google Login And Auth | Complete |
+| GAUTH-02 | Phase 7 - Google Login And Auth | Complete |
 | ONBOARD-01 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | ONBOARD-02 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
 | ONBOARD-03 | Phase 8 - Website-Crawl Smart Onboarding | Complete |
