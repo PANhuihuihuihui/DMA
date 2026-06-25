@@ -22,12 +22,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Milestone v2.0 — Predis-style Generative Engine + Smart Onboarding:**
 
-- [ ] **Phase 7: Google Login And Auth** - Adds real Google OAuth sign-in with backend ID-token verification on top of the v1.0 sessions foundation.
-- [ ] **Phase 8: Website-Crawl Smart Onboarding** - Crawls a merchant's website to auto-generate a brand/business profile, style, and content-setting defaults.
-- [ ] **Phase 9: Generation Engine And Image Generation** - Adds a provider-agnostic async generation contract and real image/ad-creative generation.
-- [ ] **Phase 10: Credit Metering And Model Selection** - Meters generation credits per model/type/duration, exposes model selection, and enforces plan limits.
-- [ ] **Phase 11: Carousel Generation** - Generates multi-slide carousels from an idea/URL using real image generation and brand layout.
-- [ ] **Phase 12: Text-To-Video And UGC Avatar** - Generates short videos and UGC avatar videos through video-model providers with voiceover.
+- [x] **Phase 7: Google Login And Auth** - Adds real Google OAuth sign-in with backend ID-token verification on top of the v1.0 sessions foundation. Ports the proven login from the AiToEarn reference repo rather than building from scratch. (completed 2026-06-25)
+- [ ] **Phase 8: Website-Crawl Smart Onboarding** - Crawls a merchant's website to auto-generate a brand/business profile, style, and content-setting defaults. (Self-built: AiToEarn has no equivalent.)
+- [x] **Phase 9: Generation Engine And Image Generation** - ABSORBED by Phase 13 (2026-06-25). The provider-agnostic async generation contract and real image generation were delivered as part of the AiToEarn-inspired platform. No separate execution.
+- [x] **Phase 10: Credit Metering And Model Selection** - ABSORBED by Phase 13 (2026-06-25). Ledger-backed credit metering, model selection with per-model cost, and pre-launch enforcement were delivered in Phase 13. No separate execution.
+- [ ] **Phase 11: Carousel Generation** - Generates multi-slide carousels from an idea/URL using real image generation and brand layout. Extends the Phase 13 generation framework; references AiToEarn `draft-generation/image-text`.
+- [ ] **Phase 12: Text-To-Video And UGC Avatar** - Generates short videos and UGC avatar videos through video-model providers with voiceover. Promotes the Phase 13 CCDance/Sora stub to a real adapter; references AiToEarn `ai/video` services.
+- [x] **Phase 13: AiToEarn-Inspired Credits And Multi-Provider Generation Platform** - Adds an AiToEarn-informed generation control plane with credit metering, provider/model catalog, GPT and CCDance-style generation adapters, async jobs, and a full merchant-facing creation workspace. (completed 2026-06-25)
 
 ## Phase Details
 
@@ -122,6 +123,7 @@ Plans:
 - [x] 06-01-PLAN.md — Manual fallback policy + cross-publisher terminal-state wiring
 - [x] 06-02-PLAN.md — Operator-gated admin console for redacted inspection, retry, and mark-support
 - [x] 06-03-PLAN.md — Redacted evidence bundle export for app review and pilot support
+
 **UI hint**: yes
 
 ### Phase 5: TikTok Upload And Direct-Post Gates
@@ -205,49 +207,44 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 9: Generation Engine And Image Generation
+### Phase 9: Generation Engine And Image Generation — ABSORBED by Phase 13
 
-**Goal**: The backend can route generation requests to a configured model/provider through a provider-agnostic async contract and produce real images / ad creatives.
-**Mode:** mvp
-**Depends on**: Phase 5 (publish lifecycle pattern)
-**Requirements**: GEN-01, GEN-02, GEN-03
-**Success Criteria** (what must be TRUE):
+**Status**: Absorbed by Phase 13 (2026-06-25). No separate execution.
 
-  1. A generation request routes to a configured `{provider, model}` without exposing API keys.
-  2. Generation runs as an async job with a normalized status lifecycle and a result reference surfaced to the client.
-  3. Merchant can generate a real image / ad creative from a prompt and brand context.
-  4. The provider abstraction allows swapping models/providers via configuration.
+The provider-agnostic async generation contract (GEN-01, GEN-02, GEN-03) and real image generation were delivered in Phase 13:
 
-**Plans**: TBD
-**UI hint**: yes
+  1. Generation requests route to a configured `{provider, model}` via `backend/app/generation_catalog.py` + adapters, with API keys server-side only. ✓ (13-02)
+  2. Generation runs as async jobs with a normalized status lifecycle (`generation_jobs` / `generation_attempts`) and output references (`generation_outputs`). ✓ (13-01, 13-02)
+  3. Image generation via `OpenAIImageAdapter` (GPT Image 2). ✓ (13-02)
+  4. The `GenerationProviderAdapter` contract allows swapping providers via the catalog registry. ✓ (13-02)
 
-### Phase 10: Credit Metering And Model Selection
+See `.planning/phases/13-aitoearn-inspired-credits-and-multi-provider-generation-plat/13-02-SUMMARY.md`.
 
-**Goal**: The system meters generation credits, exposes model selection with per-model cost, and enforces plan limits before expensive generation runs.
-**Mode:** mvp
-**Depends on**: Phase 9
-**Requirements**: CREDIT-01, CREDIT-02, CREDIT-03
-**Success Criteria** (what must be TRUE):
+### Phase 10: Credit Metering And Model Selection — ABSORBED by Phase 13
 
-  1. System meters credit usage per generation by content type, model, and duration.
-  2. Merchant can select among available models with visible per-model credit cost.
-  3. System enforces plan credit limits and blocks or queues generation when exhausted.
+**Status**: Absorbed by Phase 13 (2026-06-25). No separate execution.
 
-**Plans**: TBD
-**UI hint**: yes
+Credit metering and model selection (CREDIT-01, CREDIT-02, CREDIT-03) were delivered in Phase 13:
+
+  1. Credit usage is metered per job via `credit_accounts` + `credit_ledger` with deterministic reserve/settle/release. ✓ (13-01)
+  2. Model selection with visible per-model `credit_cost` in the catalog rail. ✓ (13-01, 13-03)
+  3. Insufficient-balance launches are blocked before expensive generation runs. ✓ (13-03)
+
+See `.planning/phases/13-aitoearn-inspired-credits-and-multi-provider-generation-plat/13-01-SUMMARY.md` and `13-03-SUMMARY.md`.
 
 ### Phase 11: Carousel Generation
 
 **Goal**: A merchant can generate a multi-slide carousel from an idea or URL using real image generation and brand layout.
 **Mode:** mvp
-**Depends on**: Phase 9, Phase 10
+**Depends on**: Phase 13 (generation framework, credit metering, model catalog)
 **Requirements**: GENC-01
 **Success Criteria** (what must be TRUE):
 
   1. Merchant can generate a multi-slide carousel from an idea or URL.
   2. Slides use real generated imagery and the merchant's brand layout.
-  3. Carousel generation is metered through the credit system.
+  3. Carousel generation is metered through the Phase 13 credit system.
 
+**Reuse strategy**: Extend the existing Phase 13 generation job framework (catalog + jobs + credit ledger + AI Studio workspace) with a carousel capability rather than building a new engine. Reference AiToEarn `apps/aitoearn-ai/src/core/draft-generation/` and the `POST /ai/draft-generation/image-text` flow for the multi-image planner/prompt pattern.
 **Plans**: TBD
 **UI hint**: yes
 
@@ -255,7 +252,7 @@ Plans:
 
 **Goal**: A merchant can generate short videos and UGC avatar videos through video-model providers, with voiceover, gated by credits.
 **Mode:** mvp
-**Depends on**: Phase 9, Phase 10
+**Depends on**: Phase 13 (generation framework, credit metering; CCDance/Sora adapter seam)
 **Requirements**: GENV-01, GENV-02
 **Success Criteria** (what must be TRUE):
 
@@ -263,6 +260,7 @@ Plans:
   2. Merchant can generate a UGC avatar video by selecting an avatar and providing a script, producing a video with voiceover.
   3. Video generation is metered and gated by plan credit limits.
 
+**Reuse strategy**: Promote the Phase 13 `CCDanceAdapter` stub and `OpenAIVideoAdapter` (Sora 2 submit/poll) to production-grade adapters, reusing the existing async job lifecycle and credit metering. Reference AiToEarn `apps/aitoearn-ai/src/core/ai/video/` (grok/volcengine/dashscope video services + task-status scheduler) and the `draft-generation` v2 video pipeline for submit-poll-callback patterns and voiceover handling.
 **Plans**: TBD
 **UI hint**: yes
 
@@ -273,7 +271,8 @@ The roadmap still preserves the original Facebook-first, TikTok-second publishin
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+v1.0 phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6.
+v2.0 order (re-sequenced 2026-06-25): 13 (done) -> 7 -> 8 -> 11 -> 12. Phases 9 and 10 are absorbed by Phase 13 and are not executed separately.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -283,12 +282,42 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Facebook Page Publishing Hardening | 3/8 | In Progress|  |
 | 5. TikTok Upload And Direct-Post Gates | 5/5 | Complete    | 2026-06-24 |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
-| 7. Google Login And Auth (v2.0) | 0/TBD | Not started | - |
-| 8. Website-Crawl Smart Onboarding (v2.0) | 0/TBD | Not started | - |
-| 9. Generation Engine And Image Generation (v2.0) | 0/TBD | Not started | - |
-| 10. Credit Metering And Model Selection (v2.0) | 0/TBD | Not started | - |
-| 11. Carousel Generation (v2.0) | 0/TBD | Not started | - |
-| 12. Text-To-Video And UGC Avatar (v2.0) | 0/TBD | Not started | - |
+| 7. Google Login And Auth (v2.0) | 2/2 | Complete   | 2026-06-25 |
+| 8. Website-Crawl Smart Onboarding (v2.0) | 0/TBD | Not started (self-built) | - |
+| 9. Generation Engine And Image Generation (v2.0) | - | Absorbed by Phase 13 | 2026-06-25 |
+| 10. Credit Metering And Model Selection (v2.0) | - | Absorbed by Phase 13 | 2026-06-25 |
+| 11. Carousel Generation (v2.0) | 0/TBD | Not started (extends Phase 13) | - |
+| 12. Text-To-Video And UGC Avatar (v2.0) | 0/TBD | Not started (extends Phase 13) | - |
+| 13. AiToEarn-Inspired Credits And Multi-Provider Generation Platform (v2.0) | 3/3 | Complete | 2026-06-25 |
+
+### Phase 13: AiToEarn-Inspired Credits And Multi-Provider Generation Platform
+
+**Goal:** LocalPilot can run a merchant-facing generation platform inspired by AiToEarn, with backend-owned credit metering, provider/model catalog, GPT and CCDance-style generation adapters, async job lifecycle, and a polished frontend workspace for choosing models, launching jobs, and tracking outputs.
+**Mode:** mvp
+**Depends on:** Phase 5, Phase 6
+**Requirements**: GEN-01, GEN-02, GEN-03, CREDIT-01, CREDIT-02, CREDIT-03, GENV-01, GENV-02
+**Success Criteria** (what must be TRUE):
+
+  1. Merchant can see available image, video, and avatar models with visible provider, credit cost, supported aspect ratios or durations, and readiness state before launching a job.
+  2. Backend stores credit balance and an auditable ledger, reserves and settles credits per generation job, and blocks or safely rejects launches when balance is insufficient.
+  3. Backend can submit generation jobs through provider adapters for GPT-backed image or video generation and CCDance-style video or avatar flows, then poll or finalize them into normalized succeeded or failed records with output references kept server-side.
+  4. Merchant can launch image, video, and UGC or avatar jobs from one frontend workspace, track live job status and history, inspect outputs, and retry safe failures without breaking credit correctness.
+  5. Automated coverage proves provider adapter contracts, credit accounting, async lifecycle state, and the key frontend interaction flows for model selection, launch, status, and result retrieval.
+
+**Plans**: 3 plans
+**UI hint**: yes
+
+Plans:
+
+- [x] 13-01-PLAN.md - Generation control plane foundation
+- [x] 13-02-PLAN.md - Provider adapters and async job runtime
+- [x] 13-03-PLAN.md - Merchant generation workspace and flow integration
+
+Planning note (2026-06-25): Phase 13 is complete. It absorbed the original Phase 9 (generation engine + image) and Phase 10 (credit metering + model selection), so those phases are closed without separate execution. Remaining v2.0 work re-sequences around the AiToEarn reference repo (`/tmp/AiToEarn`):
+
+- **Phase 7 (next)** — port the proven Google login from AiToEarn instead of building from scratch.
+- **Phase 8** — self-built website-crawl onboarding (AiToEarn has no equivalent).
+- **Phase 11 / 12** — extend the Phase 13 generation framework (carousel, text-to-video, UGC avatar), referencing AiToEarn's `draft-generation` and `ai/video` modules.
 
 ---
 *Roadmap created: 2026-06-09*
