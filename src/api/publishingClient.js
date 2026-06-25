@@ -258,6 +258,25 @@ export const loadTiktokMediaPolicy = () => requestJson("/tiktok/media-policy");
 
 export const loadFacebookConnection = () => requestJson("/facebook/connection");
 
+export const crawlWebsite = (url) =>
+  requestJson("/onboarding/crawl", {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
+
+export const loadOnboardingProfile = () => requestJson("/onboarding/profile");
+
+export const updateOnboardingProfile = (updates) =>
+  requestJson("/onboarding/profile", {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
+
+export const confirmOnboardingProfile = () =>
+  requestJson("/onboarding/profile/confirm", {
+    method: "POST",
+  });
+
 export const loadFacebookPages = (connectSession) =>
   requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
 
