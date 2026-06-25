@@ -298,6 +298,8 @@ export const googleLogin = (credential) =>
     body: JSON.stringify({ credential }),
   });
 
+export const loadAuthCapabilities = () => requestJson("/auth");
+
 export const devLogin = () =>
   requestJson("/auth/google", {
     method: "POST",

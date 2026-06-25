@@ -24,6 +24,7 @@ import {
   generatePhase3CreatorStyleVideo,
   googleLogin,
   confirmOnboardingProfile,
+  loadAuthCapabilities,
   loadFacebookConnection,
   loadOnboardingProfile,
   loadPhase3Workspace,
@@ -2715,6 +2716,8 @@ export function LandingPage() {
   const [pilotOpen, setPilotOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [devLoginEnabled, setDevLoginEnabled] = useState(false);
+  const [loginCapabilityLoading, setLoginCapabilityLoading] = useState(false);
   const navigate = useNavigate();
 
   const showToast = (message) => {
@@ -2749,6 +2752,36 @@ export function LandingPage() {
       handleLoginError(err);
     }
   };
+
+  useEffect(() => {
+    if (!loginOpen || GOOGLE_CLIENT_ID) return undefined;
+
+    let cancelled = false;
+    setLoginError("");
+    setDevLoginEnabled(false);
+    setLoginCapabilityLoading(true);
+
+    loadAuthCapabilities()
+      .then((payload) => {
+        if (!cancelled) {
+          setDevLoginEnabled(Boolean(payload?.devLoginEnabled));
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setLoginError(err?.message || "Unable to load sign-in options.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoginCapabilityLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loginOpen]);
 
   return (
     <div className="marketing-page">
@@ -3090,13 +3123,17 @@ export function LandingPage() {
           {loginError && <p className="modal-copy" style={{ color: "var(--red)" }}>{loginError}</p>}
           {GOOGLE_CLIENT_ID ? (
             <GoogleSignInButton onSuccess={handleLoginSuccess} onError={handleLoginError} />
-          ) : (
+          ) : loginCapabilityLoading ? (
+            <p className="modal-copy">Checking sign-in options...</p>
+          ) : devLoginEnabled ? (
             <>
-              <p className="modal-copy">Development mode — no Google Client ID configured.</p>
+              <p className="modal-copy">Development mode — backend dev login is enabled.</p>
               <button className="primary-button full" type="button" onClick={handleDevLogin}>
                 Dev Login
               </button>
             </>
+          ) : (
+            <p className="modal-copy">Google sign-in is not configured in this environment.</p>
           )}
         </Modal>
       )}
