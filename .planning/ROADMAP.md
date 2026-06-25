@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Predis Replica Plus Local Proof Loop MVP** - Replicates Predis.ai's core prompt-to-content, brand kit, editor, calendar, approval, competitor idea, and analytics loop, then adds local owner approval, Facebook OAuth publishing, and measurable response hooks.
 - [ ] **Phase 4: Facebook Page Publishing Hardening** - Hardens merchant-owned Facebook Page publishing for production readiness, including encrypted token persistence, permission health, app review evidence, media validation, retries, and fallback.
 - [x] **Phase 5: TikTok Upload And Direct-Post Gates** - Connects TikTok second and delivers approved TikTok drafts through official upload/draft paths while gating Direct Post. (completed 2026-06-24)
-- [ ] **Phase 6: Manual Fallback And Pilot Support** - Gives merchants and operators safe paths for blocked jobs, manual packages, retries, and diagnostics.
+- [x] **Phase 6: Manual Fallback And Pilot Support** - Gives merchants and operators safe paths for blocked jobs, manual packages, retries, and diagnostics. (completed 2026-06-25)
 
 **Milestone v2.0 — Predis-style Generative Engine + Smart Onboarding:**
 
@@ -116,7 +116,12 @@ Plans:
   4. Merchant can see stored Facebook post IDs, public URLs or provider references, normalized failure classes, and Page-specific retry, reconnect, or manual fallback actions.
   5. The Meta app, permissions, app review, test Page, and screencast evidence needed for Facebook Page publishing are documented for production readiness.
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+
+- [x] 06-01-PLAN.md — Manual fallback policy + cross-publisher terminal-state wiring
+- [x] 06-02-PLAN.md — Operator-gated admin console for redacted inspection, retry, and mark-support
+- [x] 06-03-PLAN.md — Redacted evidence bundle export for app review and pilot support
 **UI hint**: yes
 
 ### Phase 5: TikTok Upload And Direct-Post Gates
