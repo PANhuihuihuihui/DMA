@@ -208,6 +208,8 @@ def initialize_database(conn):
           language text not null default '',
           timezone text not null default '',
           tonality text not null default '',
+          voiceover text not null default '',
+          avatar text not null default '',
           target_audience text not null default '',
           raw_extraction_json text not null default '{}',
           created_at text not null,
@@ -823,6 +825,12 @@ def migrate_database(conn):
         conn.execute("alter table brand_kits add column logos_json text not null default '{}'")
     if "integrations_json" not in brand_columns:
         conn.execute("alter table brand_kits add column integrations_json text not null default '[]'")
+
+    merchant_profile_columns = column_names(conn, "merchant_profiles")
+    if "voiceover" not in merchant_profile_columns:
+        conn.execute("alter table merchant_profiles add column voiceover text not null default ''")
+    if "avatar" not in merchant_profile_columns:
+        conn.execute("alter table merchant_profiles add column avatar text not null default ''")
 
     job_columns = column_names(conn, "publish_jobs")
     if "platform" not in job_columns:
@@ -3938,6 +3946,7 @@ def get_workflow(conn):
 def serialize_brand_kit(row):
     if row is None:
         return {}
+    voice = json_loads(row["voice_json"], {})
     return {
         "id": row["id"],
         "merchantId": row["merchant_id"],
@@ -3945,7 +3954,9 @@ def serialize_brand_kit(row):
         "website": row["website"],
         "socialHandle": row["social_handle"],
         "colors": json_loads(row["colors_json"], []),
-        "voice": json_loads(row["voice_json"], {}),
+        "voice": voice,
+        "voiceover": voice.get("voiceover") or "",
+        "avatar": voice.get("avatar") or "",
         "hashtags": json_loads(row["hashtags_json"], []),
         "typography": json_loads(row["typography_json"], {}),
         "logos": json_loads(row["logos_json"], {}),
@@ -3970,11 +3981,17 @@ MERCHANT_PROFILE_FIELDS = (
     "language",
     "timezone",
     "tonality",
+    "voiceover",
+    "avatar",
     "target_audience",
 )
 
 _MERCHANT_PROFILE_COLOR_FIELDS = {"primary_color", "secondary_color", "accent_color"}
 _MERCHANT_PROFILE_URL_FIELDS = {"crawl_url", "logo_url"}
+_MERCHANT_PROFILE_DEFAULTS = {
+    "voiceover": "Warm owner voice",
+    "avatar": "Owner-style avatar",
+}
 _HEX_COLOR_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 
 
@@ -4028,6 +4045,8 @@ def serialize_merchant_profile(row):
         "language": row["language"],
         "timezone": row["timezone"],
         "tonality": row["tonality"],
+        "voiceover": row["voiceover"],
+        "avatar": row["avatar"],
         "targetAudience": row["target_audience"],
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
@@ -4044,7 +4063,10 @@ def get_merchant_profile(conn, merchant_id):
 def upsert_merchant_profile(conn, merchant_id, profile_data):
     existing = get_merchant_profile(conn, merchant_id)
     now = utc_now()
-    payload = {field: _sanitize_profile_value(field, profile_data.get(field)) for field in MERCHANT_PROFILE_FIELDS}
+    payload = {}
+    for field in MERCHANT_PROFILE_FIELDS:
+        value = _sanitize_profile_value(field, profile_data.get(field))
+        payload[field] = value or _MERCHANT_PROFILE_DEFAULTS.get(field, "")
     crawl_url = _sanitize_profile_value("crawl_url", profile_data.get("crawl_url") or profile_data.get("crawlUrl"))
     raw_extraction = profile_data.get("raw_extraction_json")
     if not isinstance(raw_extraction, (dict, list)):
@@ -4055,8 +4077,8 @@ def upsert_merchant_profile(conn, merchant_id, profile_data):
             insert into merchant_profiles (
               id, merchant_id, status, crawl_url, name, description, industry, logo_url,
               primary_color, secondary_color, accent_color, font_family, language, timezone,
-              tonality, target_audience, raw_extraction_json, created_at, updated_at
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              tonality, voiceover, avatar, target_audience, raw_extraction_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 new_id("mprofile"),
@@ -4074,6 +4096,8 @@ def upsert_merchant_profile(conn, merchant_id, profile_data):
                 payload["language"],
                 payload["timezone"],
                 payload["tonality"],
+                payload["voiceover"],
+                payload["avatar"],
                 payload["target_audience"],
                 json_dumps(raw_extraction),
                 now,
@@ -4086,7 +4110,7 @@ def upsert_merchant_profile(conn, merchant_id, profile_data):
             update merchant_profiles
             set status = ?, crawl_url = ?, name = ?, description = ?, industry = ?, logo_url = ?,
                 primary_color = ?, secondary_color = ?, accent_color = ?, font_family = ?,
-                language = ?, timezone = ?, tonality = ?, target_audience = ?,
+                language = ?, timezone = ?, tonality = ?, voiceover = ?, avatar = ?, target_audience = ?,
                 raw_extraction_json = ?, updated_at = ?
             where id = ?
             """,
@@ -4104,6 +4128,8 @@ def upsert_merchant_profile(conn, merchant_id, profile_data):
                 payload["language"],
                 payload["timezone"],
                 payload["tonality"],
+                payload["voiceover"],
+                payload["avatar"],
                 payload["target_audience"],
                 json_dumps(raw_extraction),
                 now,
@@ -4164,6 +4190,8 @@ def confirm_merchant_profile(conn, merchant_id):
             "audience": refreshed["target_audience"],
             "language": refreshed["language"],
             "description": refreshed["description"],
+            "voiceover": refreshed["voiceover"],
+            "avatar": refreshed["avatar"],
         }
     )
     typography = json_loads(brand["typography_json"], {}) if brand else {}
@@ -4244,8 +4272,8 @@ def ensure_phase8_onboarding_seed(conn):
         insert into merchant_profiles (
           id, merchant_id, status, crawl_url, name, description, industry, logo_url,
           primary_color, secondary_color, accent_color, font_family, language, timezone,
-          tonality, target_audience, raw_extraction_json, created_at, updated_at
-        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          tonality, voiceover, avatar, target_audience, raw_extraction_json, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             "mprofile_demo_aurora",
@@ -4263,11 +4291,15 @@ def ensure_phase8_onboarding_seed(conn):
             "en",
             "America/Detroit",
             "professional",
+            "Warm owner voice",
+            "Owner-style avatar",
             "Washtenaw County homeowners and property managers",
             json_dumps(
                 {
                     "name": "Aurora Heating & Cooling",
                     "description": "Local HVAC service for homeowners and property managers who need tune-ups, repairs, and fast scheduling.",
+                    "voiceover": "Warm owner voice",
+                    "avatar": "Owner-style avatar",
                 }
             ),
             now,

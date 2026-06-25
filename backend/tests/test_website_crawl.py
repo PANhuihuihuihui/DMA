@@ -131,6 +131,8 @@ class TestExtractBrandProfile(unittest.TestCase):
             "language": "en",
             "timezone": "America/Detroit",
             "tonality": "professional",
+            "voiceover": "Warm owner voice",
+            "avatar": "Owner-style avatar",
             "target_audience": "Homeowners",
         }
         with patch("backend.app.website_crawl.request.urlopen", return_value=self._mock_llm_response(payload)):
@@ -139,6 +141,8 @@ class TestExtractBrandProfile(unittest.TestCase):
             self.assertIn(field, profile)
         self.assertEqual(profile["primary_color"], "#aabbcc")
         self.assertEqual(profile["timezone"], "America/Detroit")
+        self.assertEqual(profile["voiceover"], "Warm owner voice")
+        self.assertEqual(profile["avatar"], "Owner-style avatar")
 
     def test_partial_response_fills_missing_fields_with_empty_strings(self):
         with patch(
@@ -149,6 +153,8 @@ class TestExtractBrandProfile(unittest.TestCase):
         self.assertEqual(profile["name"], "Demo Co")
         self.assertEqual(profile["description"], "")
         self.assertEqual(profile["timezone"], "")
+        self.assertEqual(profile["voiceover"], "Warm owner voice")
+        self.assertEqual(profile["avatar"], "Owner-style avatar")
 
     def test_llm_failure_returns_empty_defaults(self):
         with patch("backend.app.website_crawl.request.urlopen", side_effect=error.URLError("boom")):
@@ -165,6 +171,8 @@ class TestExtractBrandProfile(unittest.TestCase):
             "language": "EN",
             "timezone": "Bad/Zone",
             "tonality": "PROFESSIONAL",
+            "voiceover": "<b>Warm owner voice</b>",
+            "avatar": "<img src=x onerror=alert(1)>Owner-style avatar",
             "target_audience": "<img src=x onerror=alert(1)>Owners",
         }
         with patch("backend.app.website_crawl.request.urlopen", return_value=self._mock_llm_response(payload)):
@@ -176,6 +184,8 @@ class TestExtractBrandProfile(unittest.TestCase):
         self.assertEqual(profile["language"], "en")
         self.assertEqual(profile["timezone"], "")
         self.assertEqual(profile["tonality"], "professional")
+        self.assertEqual(profile["voiceover"], "Warm owner voice")
+        self.assertEqual(profile["avatar"], "Owner-style avatar")
         self.assertEqual(profile["target_audience"], "Owners")
 
 
@@ -231,6 +241,8 @@ class TestOnboardingRoutes(unittest.TestCase):
             "language": "en",
             "timezone": "America/Detroit",
             "tonality": "professional",
+            "voiceover": "Warm owner voice",
+            "avatar": "Owner-style avatar",
             "target_audience": "Owners",
             "raw_extraction_json": {"name": "Onboarding Co"},
         }
@@ -248,9 +260,21 @@ class TestOnboardingRoutes(unittest.TestCase):
 
         _, payload = self._request("GET", "/api/v1/onboarding/profile")
         self.assertEqual(payload["profile"]["crawlUrl"], "https://example.com")
+        self.assertEqual(payload["profile"]["voiceover"], "Warm owner voice")
+        self.assertEqual(payload["profile"]["avatar"], "Owner-style avatar")
 
-        _, payload = self._request("PATCH", "/api/v1/onboarding/profile", {"name": "Onboarding Co Updated"})
+        _, payload = self._request(
+            "PATCH",
+            "/api/v1/onboarding/profile",
+            {
+                "name": "Onboarding Co Updated",
+                "voiceover": "Clear service narrator",
+                "avatar": "Service expert avatar",
+            },
+        )
         self.assertEqual(payload["profile"]["name"], "Onboarding Co Updated")
+        self.assertEqual(payload["profile"]["voiceover"], "Clear service narrator")
+        self.assertEqual(payload["profile"]["avatar"], "Service expert avatar")
 
         _, payload = self._request("POST", "/api/v1/onboarding/profile/confirm")
         self.assertEqual(payload["profile"]["status"], "confirmed")
@@ -259,6 +283,9 @@ class TestOnboardingRoutes(unittest.TestCase):
         brand = conn.execute("select * from brand_kits where merchant_id = ?", (self.merchant_id,)).fetchone()
         conn.close()
         self.assertIsNotNone(brand)
+        voice = json.loads(brand["voice_json"])
+        self.assertEqual(voice["voiceover"], "Clear service narrator")
+        self.assertEqual(voice["avatar"], "Service expert avatar")
 
     def test_recrawl_replaces_existing_draft(self):
         first = {"name": "First Name", "raw_extraction_json": {"name": "First Name"}}
@@ -283,6 +310,8 @@ class TestOnboardingRoutes(unittest.TestCase):
                         "primary_color": "#111111",
                         "font_family": "Sora",
                         "tonality": "professional",
+                        "voiceover": "Warm owner voice",
+                        "avatar": "Owner-style avatar",
                         "target_audience": "Owners",
                         "language": "en",
                         "description": "Seeded profile",
@@ -296,6 +325,8 @@ class TestOnboardingRoutes(unittest.TestCase):
         conn.close()
         self.assertIsNotNone(brand)
         self.assertEqual(json.loads(brand["colors_json"]), ["#111111"])
+        self.assertEqual(json.loads(brand["voice_json"])["voiceover"], "Warm owner voice")
+        self.assertEqual(json.loads(brand["voice_json"])["avatar"], "Owner-style avatar")
 
     def test_edit_on_confirmed_profile_returns_409(self):
         conn = store.connect(self.db_path)
@@ -337,6 +368,8 @@ class TestOnboardingRoutes(unittest.TestCase):
         self.assertEqual(payload["warning"], "Website could not be reached.")
         self.assertEqual(payload["profile"]["crawlUrl"], "https://example.com")
         self.assertEqual(payload["profile"]["name"], "")
+        self.assertEqual(payload["profile"]["voiceover"], "Warm owner voice")
+        self.assertEqual(payload["profile"]["avatar"], "Owner-style avatar")
 
 
 if __name__ == "__main__":

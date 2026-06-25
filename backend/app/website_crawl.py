@@ -29,8 +29,14 @@ PROFILE_FIELDS = (
     "language",
     "timezone",
     "tonality",
+    "voiceover",
+    "avatar",
     "target_audience",
 )
+PROFILE_DEFAULTS = {
+    "voiceover": "Warm owner voice",
+    "avatar": "Owner-style avatar",
+}
 ALLOWED_TONALITIES = {"formal", "casual", "playful", "professional"}
 HEX_COLOR_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 LANGUAGE_RE = re.compile(r"^[a-zA-Z]{2,8}(?:[-_][a-zA-Z0-9]{2,8})?$")
@@ -48,7 +54,10 @@ class CrawlError(Exception):
 
 
 def _empty_profile():
-    return {**{field: "" for field in PROFILE_FIELDS}, "raw_extraction_json": {}}
+    return {
+        **{field: PROFILE_DEFAULTS.get(field, "") for field in PROFILE_FIELDS},
+        "raw_extraction_json": {},
+    }
 
 
 def _strip_tags(value):
@@ -114,6 +123,8 @@ def _sanitize_profile(payload, raw_extraction=None):
             sanitized[field] = _sanitize_tonality(value)
         else:
             sanitized[field] = _sanitize_text(value)
+        if not sanitized[field] and field in PROFILE_DEFAULTS:
+            sanitized[field] = PROFILE_DEFAULTS[field]
     sanitized["raw_extraction_json"] = raw_extraction if isinstance(raw_extraction, (dict, list)) else {}
     return sanitized
 
@@ -277,12 +288,13 @@ def extract_brand_profile(cleaned_text, *, api_key=None):
             {
                 "role": "system",
                 "content": (
-                    "Extract a business brand profile from website content. "
-                    "Return one JSON object with exactly these string keys: "
-                    "name, description, industry, logo_url, primary_color, secondary_color, "
-                    "accent_color, font_family, language, timezone, tonality, target_audience. "
-                    "Use empty strings when the website does not provide enough evidence."
-                ),
+                "Extract a business brand profile from website content. "
+                "Return one JSON object with exactly these string keys: "
+                "name, description, industry, logo_url, primary_color, secondary_color, "
+                "accent_color, font_family, language, timezone, tonality, voiceover, avatar, "
+                "target_audience. "
+                "Use empty strings when the website does not provide enough evidence."
+            ),
             },
             {
                 "role": "user",
