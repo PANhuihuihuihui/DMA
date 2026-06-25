@@ -23,7 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Milestone v2.0 — Predis-style Generative Engine + Smart Onboarding:**
 
 - [x] **Phase 7: Google Login And Auth** - Adds real Google OAuth sign-in with backend ID-token verification on top of the v1.0 sessions foundation. Ports the proven login from the AiToEarn reference repo rather than building from scratch. (completed 2026-06-25)
-- [ ] **Phase 8: Website-Crawl Smart Onboarding** - Crawls a merchant's website to auto-generate a brand/business profile, style, and content-setting defaults. (Self-built: AiToEarn has no equivalent.)
+- [x] **Phase 8: Website-Crawl Smart Onboarding** - Crawls a merchant's website to auto-generate a brand/business profile, style, and content-setting defaults. (Self-built: AiToEarn has no equivalent.) (completed 2026-06-25)
 - [x] **Phase 9: Generation Engine And Image Generation** - ABSORBED by Phase 13 (2026-06-25). The provider-agnostic async generation contract and real image generation were delivered as part of the AiToEarn-inspired platform. No separate execution.
 - [x] **Phase 10: Credit Metering And Model Selection** - ABSORBED by Phase 13 (2026-06-25). Ledger-backed credit metering, model selection with per-model cost, and pre-launch enforcement were delivered in Phase 13. No separate execution.
 - [ ] **Phase 11: Carousel Generation** - Generates multi-slide carousels from an idea/URL using real image generation and brand layout. Extends the Phase 13 generation framework; references AiToEarn `draft-generation/image-text`.
@@ -283,7 +283,7 @@ v2.0 order (re-sequenced 2026-06-25): 13 (done) -> 7 -> 8 -> 11 -> 12. Phases 9 
 | 5. TikTok Upload And Direct-Post Gates | 5/5 | Complete    | 2026-06-24 |
 | 6. Manual Fallback And Pilot Support | 0/TBD | Not started | - |
 | 7. Google Login And Auth (v2.0) | 2/2 | Complete   | 2026-06-25 |
-| 8. Website-Crawl Smart Onboarding (v2.0) | 1/2 | In Progress|  |
+| 8. Website-Crawl Smart Onboarding (v2.0) | 3/3 | Complete   | 2026-06-25 |
 | 9. Generation Engine And Image Generation (v2.0) | - | Absorbed by Phase 13 | 2026-06-25 |
 | 10. Credit Metering And Model Selection (v2.0) | - | Absorbed by Phase 13 | 2026-06-25 |
 | 11. Carousel Generation (v2.0) | 0/TBD | Not started (extends Phase 13) | - |

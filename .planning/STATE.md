@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Phase Details
-status: planning
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-06-25T16:12:27.917Z"
-last_activity: "2026-06-25 -- Phase 08 planning complete (2 plans: 08-01 backend crawl + LLM extraction, 08-02 frontend onboarding card)"
+status: completed
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-06-25T16:41:00.663Z"
+last_activity: 2026-06-25 -- Phase 08 marked complete
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 6
-  percent: 29
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
+  percent: 43
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 08 (website-crawl-smart-onboarding) — PLANNED
-Plan: 1 of 2
-Status: Planning complete for Phase 08; ready for execution
-Last activity: 2026-06-25 -- Phase 08 planning complete (2 plans: 08-01 backend crawl + LLM extraction, 08-02 frontend onboarding card)
+Phase: 08 — COMPLETE
+Plan: 2 of 2
+Status: Phase 08 complete
+Last activity: 2026-06-25 -- Phase 08 marked complete
 
 ## Performance Metrics
 
@@ -53,6 +53,8 @@ Last activity: 2026-06-25 -- Phase 08 planning complete (2 plans: 08-01 backend 
 
 *Updated after each plan completion*
 | Phase 08 P01 | 6min | 4 tasks | 4 files |
+| Phase 08 P02 | 10min | 3 tasks | 3 files |
+| Phase 08 P03 | 9min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -71,6 +73,10 @@ Recent decisions affecting current work:
 - [Phase 08]: Used stdlib urllib for homepage fetch and MiniMax chat completions to avoid new dependencies.
 - [Phase 08]: Onboarding routes require an authenticated merchant session instead of the demo fallback path.
 - [Phase 08]: Confirmed onboarding profiles seed brand_kits in place for downstream generation flows.
+- [Phase 08]: Kept website onboarding inside the existing AppDemo shell and hid the workspace until the profile is confirmed.
+- [Phase 08]: Reused Modal, toasts, and the requestJson client boundary for crawl, save, replace, and confirm actions.
+- [Phase 08]: ONBOARD-03 voiceover/avatar defaults now persist through crawl drafts and confirm into brand_kits.voice_json.
+- [Phase 08]: Rewrote the Phase 08 roadmap goal into user-story form so MVP verification can run cleanly.
 
 ### Pending Todos
 
@@ -99,6 +105,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-25T16:12:27.913Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-06-25T16:41:00.398Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None
