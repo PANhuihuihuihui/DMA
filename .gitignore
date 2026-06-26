@@ -48,3 +48,8 @@ vendor/
 coverage/
 .cache/
 tmp/
+
+# GSD runtime files generated during auto-mode; keep milestone artifacts tracked separately.
+.gsd/metrics.json
+.gsd/runtime/
+.gsd/state-manifest.json
