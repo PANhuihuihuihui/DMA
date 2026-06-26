@@ -1,0 +1,127 @@
+src/publishing/workflow.js:174:    approvalSnapshotSummary: summarizeApprovalSnapshot(source.approvalSnapshotSummary),
+src/models/publishing.js:214:    approvalSnapshot: normalizeApprovalSnapshot(source.approvalSnapshot),
+src/models/publishing.js:224:export const normalizeWorkflow = (workflow = {}) => {
+src/models/publishing.js:225:  const source = asObject(workflow);
+src/models/publishing.js:235:    publishJobs: asArray(source.publishJobs).map(normalizePublishJob),
+src/models/generation.js:77:    workflowType: text(source.workflowType),
+src/main.jsx:131:  "Watch workflow": "查看流程",
+src/main.jsx:200:  "Track customer intent and revenue signals inside the same workflow.": "在同一个流程中追踪客户意图和收入信号。",
+src/main.jsx:271:  "Native RED content, booking signals, calls, map clicks, and guided posting in one workflow.":
+src/main.jsx:462:  "Mock TikTok, Instagram, Facebook, Xiaohongshu, and Google Business workflows.":
+src/main.jsx:540:  "Restaurant local visit workflow": "餐厅到店转化流程",
+src/main.jsx:733:  "Approval status and frozen snapshots returned by the workflow API.": "审批状态和冻结快照由工作流 API 返回。",
+src/main.jsx:1299:      ["Active", "Sunny Side Bistro", "Restaurant local visit workflow"],
+src/main.jsx:2589:const workflowCampaignInput = (workflow) => {
+src/main.jsx:2590:  const campaign = workflow.campaigns[0];
+src/main.jsx:2591:  const profile = workflow.businessProfiles[0] || {};
+src/main.jsx:2612:  if (plan?.publishJob?.currentStatus) {
+src/main.jsx:2613:    return plan.publishJob.currentStatus;
+src/main.jsx:2615:  if (plan?.approvalSnapshot?.draftVersionId) {
+src/main.jsx:2626:const workflowDraftToPlan = (draft, index, workflow) => {
+src/main.jsx:2630:  const connectedChannel = workflow.connectedChannels.find((channelRef) => channelRef.id === draft.connectedChannelId);
+src/main.jsx:2631:  const approval = workflow.approvals.find(
+src/main.jsx:2646:      approvalSnapshot: approval?.snapshot ? normalizeApprovalSnapshot(approval.snapshot) : null,
+src/main.jsx:2660:      publishingMode: `Backend-backed ${displayName} workflow`,
+src/main.jsx:2686:    workflowCampaignInput(workflow),
+src/main.jsx:2839:              <a className="secondary-button" href="#workflow">
+src/main.jsx:2840:                Watch workflow
+src/main.jsx:2915:        <section className="dashboard section-shell" id="workflow">
+src/main.jsx:2967:        <section className="workflow-strip section-shell">
+src/main.jsx:3026:                <p>Track customer intent and revenue signals inside the same workflow.</p>
+src/main.jsx:3729:  const [workflow, setWorkflow] = useState(() => normalizeWorkflow());
+src/main.jsx:3730:  const [workflowStatus, setWorkflowStatus] = useState("loading");
+src/main.jsx:3731:  const [workflowError, setWorkflowError] = useState("");
+src/main.jsx:3850:  const campaignInput = workflowCampaignInput(workflow);
+src/main.jsx:3925:      (workflow) =>
+src/main.jsx:3926:        workflow.prompt === creatorStyleForm.prompt &&
+src/main.jsx:3927:        workflow.goal === creatorStyleForm.goal &&
+src/main.jsx:3928:        workflow.status !== "archived",
+src/main.jsx:4051:  const publishJobsByApprovalId = useMemo(() => {
+src/main.jsx:4053:    workflow.publishJobs.forEach((job) => {
+src/main.jsx:4059:  }, [queuedPublishJobs, workflow.publishJobs]);
+src/main.jsx:4062:      workflow.platformDrafts.map((draft, index) => {
+src/main.jsx:4063:        const plan = workflowDraftToPlan(draft, index, workflow);
+src/main.jsx:4066:          publishJob: plan.approvalId ? publishJobsByApprovalId[plan.approvalId] || null : null,
+src/main.jsx:4069:    [publishJobsByApprovalId, workflow],
+src/main.jsx:4260:          ["Native outputs", String(plans.length), plans.length ? "Facebook and TikTok backend drafts" : "Loading workflow"],
+src/main.jsx:4271:      const nextWorkflow = normalizeWorkflow(await loadPublishingWorkflow());
+src/main.jsx:4410:        workflowType: "carousel",
+src/main.jsx:4486:  const carouselJobs = genJobs.filter((job) => job.workflowType === "carousel");
+src/main.jsx:4488:  const facebookDraft = workflow.platformDrafts.find((d) => d.platform === "facebook") || null;
+src/main.jsx:4669:    if (payload?.workflow) {
+src/main.jsx:4672:        prompt: payload.workflow.prompt || current.prompt,
+src/main.jsx:4673:        goal: payload.workflow.goal || current.goal,
+src/main.jsx:4674:        selectedIdeaId: payload.workflow.selectedIdeaId || payload.workflow.ideas?.[0]?.id || current.selectedIdeaId,
+src/main.jsx:4675:        styleId: payload.workflow.styleId || current.styleId,
+src/main.jsx:4676:        actorId: payload.workflow.status === "generated_ready" ? payload.workflow.actor?.id || current.actorId : current.actorId,
+src/main.jsx:4678:          payload.workflow.status === "generated_ready" ? payload.workflow.template?.id || current.templateId : current.templateId,
+src/main.jsx:4699:      if (payload?.workflow?.ideas?.length) {
+src/main.jsx:4702:      showAppToast(`${payload?.workflow?.ideas?.length || 0} creator-style ideas generated.`);
+src/main.jsx:4703:      return payload?.workflow || null;
+src/main.jsx:4716:      let workflow =
+src/main.jsx:4720:    if (!workflow?.id) {
+src/main.jsx:4730:        workflow = ideasPayload?.workflow;
+src/main.jsx:4732:      if (!workflow?.id) {
+src/main.jsx:4736:      const payload = await generatePhase3CreatorStyleVideo(workflow.id, {
+src/main.jsx:4739:        selectedIdeaId: creatorStyleForm.selectedIdeaId || workflow.selectedIdeaId || workflow.ideas?.[0]?.id,
+src/main.jsx:4816:    const workflow = await generateCreatorStyleIdeas({ goal: nextGoal });
+src/main.jsx:4817:    if (workflow?.ideas?.length) {
+src/main.jsx:4818:      setCreatorIdeaChatResults(workflow.ideas.slice(0, 2));
+src/main.jsx:4865:        showAppToast("Complete this creator workflow step before continuing.");
+src/main.jsx:4872:        const workflow = await generateCreatorStyleIdeas();
+src/main.jsx:4873:        if (!workflow?.ideas?.length) {
+src/main.jsx:5170:    showAppToast("Local demo preferences cleared. Backend workflow reloaded from seeded records.");
+src/main.jsx:5176:      showAppToast("Publishing status could not load. Reload the workflow and try again.");
+src/main.jsx:5244:    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+src/main.jsx:5248:    if (plan.publishJob?.id) {
+src/main.jsx:5505:    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+src/main.jsx:5509:    if (plan.publishJob?.id) {
+src/main.jsx:5644:    showAppToast(item?.done ? "Backend checklist item is already satisfied." : "Backend workflow controls this item.");
+src/main.jsx:5655:    showAppToast("Backend-backed workflow package is ready for assisted review.");
+src/main.jsx:5661:    showAppToast(`${template.label} selection noted. Backend workflow records remain the source of truth.`);
+src/main.jsx:6370:                    {activeCreateFormat === "ugc" ? "Open creator workflow" : "Generate selected setup"}
+src/main.jsx:6416:                  <section className="creator-workflow-launch" aria-label="Creator Style Video workflow launcher">
+src/main.jsx:6417:                    <span>Popup workflow</span>
+src/main.jsx:6429:                      Open workflow popup
+src/main.jsx:6464:                      {activeCreateFormat === "ugc" ? "Open workflow popup" : "Generate selected setup"}
+src/main.jsx:6674:                  <section className="workflow-state-panel">
+src/main.jsx:6675:                    <span>{workflowStatus === "error" ? "Workflow error" : "Loading workflow"}</span>
+src/main.jsx:6676:                    <h3>{workflowStatus === "error" ? "Publishing status could not load." : "Loading backend records."}</h3>
+src/main.jsx:6678:                      {workflowError ||
+src/main.jsx:6682:                      Reload workflow
+src/main.jsx:6715:                        {channel.approvalSnapshot?.draftVersionId && !channel.publishJob?.id && (
+src/main.jsx:6725:                        {channel.platform === "facebook" && channel.approvalSnapshot?.draftVersionId && !channel.publishJob?.id && (
+src/main.jsx:6860:                      <ApprovalSnapshot snapshot={channel.approvalSnapshot} />
+src/main.jsx:6870:                        job={plan.publishJob}
+src/main.jsx:6874:                      {safeSelectedChannel === index && canRetryPublishJob(plan.publishJob) && (
+src/main.jsx:6876:                          job={plan.publishJob}
+src/main.jsx:6913:                        <li>Approval status and frozen snapshots returned by the workflow API.</li>
+src/main.jsx:7805:                        {selectedPlan.approvalSnapshot?.draftVersionId && !selectedPlan.publishJob?.id && (
+src/main.jsx:7814:                        {selectedPlan.platform === "facebook" && selectedPlan.approvalSnapshot?.draftVersionId && !selectedPlan.publishJob?.id && (
+src/main.jsx:7862:                      <ApprovalSnapshot snapshot={selectedPlan.approvalSnapshot} />
+src/main.jsx:7865:                        job={selectedPlan.publishJob}
+src/main.jsx:7869:                      {canRetryPublishJob(selectedPlan.publishJob) && (
+src/main.jsx:7871:                          job={selectedPlan.publishJob}
+src/main.jsx:7880:                  <section className="workflow-state-panel">
+src/main.jsx:7881:                    <span>{workflowStatus === "error" ? "Workflow error" : "Loading workflow"}</span>
+src/main.jsx:7882:                    <h3>{workflowStatus === "error" ? "Publishing status could not load." : "Loading backend records."}</h3>
+src/main.jsx:7884:                      {workflowError ||
+src/main.jsx:7888:                      Reload workflow
+src/main.jsx:8405:                      This preserves the backend competitor-source workflow, but the first screen now
+src/main.jsx:8748:                            {job.workflowType === "carousel" ? carouselStageLabel(job) : job.status === "succeeded" ? "Ready" : job.status}
+src/main.jsx:8753:                              {job.workflowType === "carousel" ? "carousel package" : job.capability}
+src/main.jsx:8802:                    {genSucceededJobs.filter((j) => j.workflowType === "video").length > 0 && (
+src/main.jsx:8806:                          {genSucceededJobs.filter((j) => j.workflowType === "video").map((job) => (
+src/main.jsx:8880:                            {detailJob.workflowType === "carousel" && <>
+src/main.jsx:8902:                          {detailJob.workflowType === "carousel" && detailJob.creativeId && (
+src/main.jsx:8907:                          {detailJob.workflowType === "video" && detailJob.creativeId && (
+src/main.jsx:9108:                      <p>Backend workflow and screen smoke passed.</p>
+src/main.jsx:9163:              <div className="modal-backdrop creator-workflow-backdrop" role="presentation">
+src/main.jsx:9164:                <section className="creator-workflow-modal" role="dialog" aria-modal="true" aria-label="Creator Style Video workflow modal">
+src/main.jsx:9165:                  <button className="modal-close" type="button" aria-label="Close workflow" onClick={closeCreatorWorkflow}>
+src/main.jsx:9169:                    <aside className="creator-reference-sidebar" aria-label="Creator workflow reference navigation">
+src/main.jsx:9217:                        Popup workflow: generate ideas, select the angle, choose Motivational style,
+src/main.jsx:9222:                  <section className="creator-style-wizard" aria-label="Creator Style Video workflow">
+src/main.jsx:9223:                    <div className="creator-progress-dots" aria-label="Creator Style Video workflow progress">
+src/main.jsx:9948:              <div className="module-workflow">
+src/main.jsx:9970:                <div className="module-steps" aria-label={`${activeModule} workflow`}>

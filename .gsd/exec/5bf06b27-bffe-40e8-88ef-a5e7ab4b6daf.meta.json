@@ -1,0 +1,26 @@
+{
+  "id": "5bf06b27-bffe-40e8-88ef-a5e7ab4b6daf",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-find-brand-module (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-find-brand-module",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 115,
+  "started_at": "2026-06-26T06:55:35.632Z",
+  "finished_at": "2026-06-26T06:55:35.653Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 21,
+  "stdout_bytes": 8987,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/5bf06b27-bffe-40e8-88ef-a5e7ab4b6daf.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/5bf06b27-bffe-40e8-88ef-a5e7ab4b6daf.stderr"
+}

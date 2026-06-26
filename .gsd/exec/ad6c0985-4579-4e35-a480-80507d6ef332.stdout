@@ -1,0 +1,30 @@
+8108:                      </article>
+8109:                    ))}
+8110:                  </section>
+8111:                )}
+8112:                {activeBrandAccountTab === "Social Platforms" && (
+8113:                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden={!pendingConnectSession}>
+8114:                    <div>
+8115:                      <span>Facebook Page selection</span>
+8116:                      <h3>Choose the Page LocalPilot should use after OAuth.</h3>
+8117:                      <p>
+8118:                        Select a Page to connect. LocalPilot will publish on its behalf.
+8119:                      </p>
+8120:                    </div>
+8121:                    <div className="page-card-grid">
+8122:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+8123:                        <button
+8124:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+8125:                          type="button"
+8126:                          key={page.pageId}
+8127:                          onClick={pendingConnectSession ? () => handleConnectSessionPageSelect(page.pageId) : () => setSelectedFacebookPageId(page.pageId)}
+8128:                        >
+8129:                          <strong>{page.name || page.pageId}</strong>
+8130:                          <span>{page.category || "Facebook Page"}</span>
+8131:                          <small>{(page.tasks || []).join(" · ") || "Page permissions pending"}</small>
+8132:                        </button>
+8133:                      ))}
+8134:                    </div>
+8135:                    <div className="permission-health-card">
+8136:                      <span>Permission health</span>
+8137:                      <strong>{facebookConnection.configured ? "OAuth configured" : "Backend env required"}</strong>

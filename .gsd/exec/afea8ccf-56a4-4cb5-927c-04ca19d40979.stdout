@@ -1,0 +1,9 @@
+440:  "Usage history": "使用历史",
+2745:    navigate("/app");
+2892:                    <Link className="ghost-button" to="/app">
+3713:          navigate("/");
+5054:      navigate(location.pathname + (nextSearch ? `?${nextSearch}` : ""), { replace: true });
+5094:    navigate("/");
+5102:    navigate(`/app?module=${moduleSlug(nextModule)}`, { replace: true });
+5475:    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+5567:    showAppToast(`${platform} retry accepted. Attempt history updated.`);

@@ -1,0 +1,17 @@
+src/components/PublishTimeline.jsx:14:  manual_fallback_required: "Manual fallback required",
+src/components/PublishTimeline.jsx:17:const terminalStates = new Set(["published", "failed", "manual_fallback_required"]);
+src/components/PublishTimeline.jsx:118:const fallbackHintText = (errorClass) => {
+src/components/PublishTimeline.jsx:119:  if (errorClass === "authentication" || errorClass === "missing_permission") {
+src/components/PublishTimeline.jsx:120:    return "Facebook authorization expired or missing. Reconnect this Page to resume publishing.";
+src/components/PublishTimeline.jsx:122:  if (errorClass === "validation") {
+src/components/PublishTimeline.jsx:125:  if (errorClass === "rate_limit") {
+src/components/PublishTimeline.jsx:131:const isAuthError = (errorClass) =>
+src/components/PublishTimeline.jsx:132:  errorClass === "authentication" || errorClass === "missing_permission";
+src/components/PublishTimeline.jsx:134:export function PublishTimeline({ platform, job, fallbackStatus = "needs_review", onReconnect }) {
+src/components/PublishTimeline.jsx:136:  const currentStatus = normalizedJob.id ? normalizedJob.currentStatus : fallbackStatus;
+src/components/PublishTimeline.jsx:167:      {currentStatus === "manual_fallback_required" && (
+src/components/PublishTimeline.jsx:168:        <div className="manual-fallback-hint" role="status">
+src/components/PublishTimeline.jsx:169:          <p>{fallbackHintText(normalizedJob.latestAttempt?.errorClass)}</p>
+src/components/PublishTimeline.jsx:170:          {isAuthError(normalizedJob.latestAttempt?.errorClass) && onReconnect && (
+src/components/PublishTimeline.jsx:171:            <button className="manual-fallback-reconnect" onClick={onReconnect} type="button">
+src/components/PublishTimeline.jsx:172:              Reconnect Facebook

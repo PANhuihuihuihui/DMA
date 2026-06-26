@@ -1,0 +1,10 @@
+8110:                  </section>
+8111:                )}
+8112:                {activeBrandAccountTab === "Social Platforms" && (
+8113:                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden={!pendingConnectSession}>
+8114:                    <div>
+8115:                      <span>Facebook Page selection</span>
+8116:                      <h3>Choose the Page LocalPilot should use after OAuth.</h3>
+8117:                      <p>
+8118:                        Select a Page to connect. LocalPilot will publish on its behalf.
+8119:                      </p>

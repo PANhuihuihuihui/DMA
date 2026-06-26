@@ -1,0 +1,26 @@
+{
+  "id": "c8cced94-5a54-4a3d-b86a-393a290a7ebf",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-facebook-social (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-facebook-social",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 93,
+  "started_at": "2026-06-26T06:54:31.956Z",
+  "finished_at": "2026-06-26T06:54:31.975Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 19,
+  "stdout_bytes": 19928,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/c8cced94-5a54-4a3d-b86a-393a290a7ebf.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/c8cced94-5a54-4a3d-b86a-393a290a7ebf.stderr"
+}

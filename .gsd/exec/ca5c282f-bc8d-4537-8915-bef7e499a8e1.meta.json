@@ -1,0 +1,26 @@
+{
+  "id": "ca5c282f-bc8d-4537-8915-bef7e499a8e1",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-db-job-summary (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-db-job-summary",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 814,
+  "started_at": "2026-06-26T07:15:25.339Z",
+  "finished_at": "2026-06-26T07:15:25.382Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 43,
+  "stdout_bytes": 13,
+  "stderr_bytes": 137,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ca5c282f-bc8d-4537-8915-bef7e499a8e1.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ca5c282f-bc8d-4537-8915-bef7e499a8e1.stderr"
+}

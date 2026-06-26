@@ -1,0 +1,47 @@
+backend/app/fake_publisher.py:175:            "terminalStatus": "manual_fallback_required",
+backend/app/fake_publisher.py:183:                "result": "manual_fallback_required",
+backend/app/facebook_oauth.py:230:        return "missing_permission"
+backend/app/contracts.py:20:    "manual_fallback_required",
+backend/app/facebook_publisher.py:116:        outcome["terminalStatus"] = "manual_fallback_required"
+backend/app/facebook_publisher.py:117:    if error_class == "authentication":
+backend/app/facebook_publisher.py:145:    if error_class in ("authentication", "missing_permission", "page_capability"):
+backend/app/facebook_publisher.py:147:    if error_class in ("rate_limit", "platform_transient"):
+backend/app/facebook_publisher.py:212:        outcome["terminalStatus"] = "manual_fallback_required"
+backend/app/facebook_publisher.py:213:    if error_class == "authentication":
+backend/app/facebook_publisher.py:296:            provider_diagnostics("authentication", "not_connected", {"pageId": page_id}),
+backend/app/facebook_publisher.py:378:            provider_diagnostics("missing_permission", "page_token_not_found", {"pageId": page_id}),
+backend/app/facebook_publisher.py:431:            return "missing_permission"
+backend/app/facebook_publisher.py:432:        return "authentication"
+backend/app/facebook_publisher.py:436:        return "rate_limit"
+src/components/PublishTimeline.jsx:14:  manual_fallback_required: "Manual fallback required",
+src/components/PublishTimeline.jsx:17:const terminalStates = new Set(["published", "failed", "manual_fallback_required"]);
+src/components/PublishTimeline.jsx:119:  if (errorClass === "authentication" || errorClass === "missing_permission") {
+src/components/PublishTimeline.jsx:125:  if (errorClass === "rate_limit") {
+src/components/PublishTimeline.jsx:132:  errorClass === "authentication" || errorClass === "missing_permission";
+src/components/PublishTimeline.jsx:167:      {currentStatus === "manual_fallback_required" && (
+backend/app/server.py:606:            raise store.StoreError(401, "Authentication required.")
+backend/app/tiktok_publisher.py:19:RETRYABLE_ERROR_CLASSES = {"rate_limit", "platform_transient"}
+backend/app/tiktok_publisher.py:23:    "authentication",
+backend/app/tiktok_publisher.py:27:    "rate_limit",
+backend/app/tiktok_publisher.py:57:        "auth": "authentication",
+backend/app/tiktok_publisher.py:58:        "unauthorized": "authentication",
+backend/app/tiktok_publisher.py:59:        "missing_permission": "scope",
+backend/app/tiktok_publisher.py:65:        "throttled": "rate_limit",
+backend/app/tiktok_publisher.py:80:        return "authentication"
+backend/app/tiktok_publisher.py:86:        return "rate_limit"
+backend/app/tiktok_publisher.py:176:    "authentication": (401, "TikTok rejected the request: authentication failed."),
+backend/app/tiktok_publisher.py:179:    "rate_limit": (429, "TikTok rate limit reached. Retry shortly."),
+backend/app/tiktok_publisher.py:357:        outcome["terminalStatus"] = "manual_fallback_required"
+src/publishing/workflow.js:18:  manual_fallback_required: "Manual fallback required",
+src/models/publishing.js:18:  "manual_fallback_required",
+backend/app/store.py:48:    "missing_permission",
+backend/app/store.py:67:    "permission_denied": "missing_permission",
+backend/app/store.py:68:    "missing_scope": "missing_permission",
+backend/app/store.py:74:MANUAL_FALLBACK_RETRYABLE_CLASSES = {"rate_limit", "platform_transient"}
+backend/app/store.py:349:          retry_classification text,
+backend/app/store.py:848:    if "retry_classification" not in attempt_columns:
+backend/app/store.py:849:        conn.execute("alter table publish_attempts add column retry_classification text")
+backend/app/store.py:7549:    update_publish_job_status(conn, job_id, "manual_fallback_required")
+backend/app/store.py:7553:        "manual_fallback_required",
+backend/app/store.py:7588:          diagnostics_json, retry_classification, started_at, finished_at, created_at, updated_at
+backend/app/store.py:7699:        "retryClassification": row["retry_classification"] or "none",

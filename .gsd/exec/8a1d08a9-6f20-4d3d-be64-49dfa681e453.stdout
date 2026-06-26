@@ -1,0 +1,85 @@
+3960:  const creatorReviewScript = [
+3961:    selectedCreatorIdea?.hook || creatorStyleForm.prompt,
+3962:    selectedCreatorIdea?.angle,
+3963:    "Book your expert consultation today.",
+3964:  ]
+3965:    .filter(Boolean)
+3966:    .join(" ");
+3967:  const creatorVisibleWorkflowSteps = creatorWorkflowSteps.filter((step) => step.id !== "generated");
+3968:  const rawCreatorWorkflowStepIndex = Math.max(
+3969:    0,
+3970:    creatorWorkflowSteps.findIndex((step) => step.id === creatorWorkflowStep),
+3971:  );
+3972:  const creatorWorkflowStepIndex =
+3973:    creatorWorkflowStep === "generated"
+3974:      ? creatorVisibleWorkflowSteps.length - 1
+3975:      : Math.max(0, creatorVisibleWorkflowSteps.findIndex((step) => step.id === creatorWorkflowStep));
+3976:  const activeCreatorWorkflowStep = creatorWorkflowSteps[rawCreatorWorkflowStepIndex] || creatorWorkflowSteps[0];
+3977:  const creatorCanContinue =
+3978:    creatorWorkflowStep === "prompt"
+3979:      ? Boolean(creatorStyleForm.prompt.trim() && creatorStyleForm.goal.trim())
+3980:      : creatorWorkflowStep === "idea"
+3981:      ? Boolean(selectedCreatorIdea)
+3982:      : creatorWorkflowStep === "style"
+3983:      ? Boolean(selectedCreatorStyle && creatorStyleForm.aspectRatio)
+3984:      : creatorWorkflowStep === "actor"
+3985:      ? Boolean(selectedCreatorActor)
+3986:      : creatorWorkflowStep === "template"
+3987:      ? Boolean(selectedCreatorTemplate)
+3988:      : creatorWorkflowStep === "review"
+3989:      ? Boolean(selectedCreatorIdea && selectedCreatorStyle && selectedCreatorActor && selectedCreatorTemplate)
+3990:      : creatorWorkflowStep === "confirm"
+3991:      ? Boolean(selectedCreatorIdea && selectedCreatorStyle && selectedCreatorActor && selectedCreatorTemplate)
+3992:      : true;
+3993:  const selectedHelpAction =
+3994:    helpActions.find(([title]) => title === activeHelpAction) ||
+3995:    helpActions[0] || ["FAQs", "Find answers about generation, publishing, and account setup."];
+3996:  const onboardingRequired = !onboardingResolved || onboardingProfile?.status !== "confirmed";
+3997:  const phase3CreativesByPlatform = useMemo(
+3998:    () =>
+3999:      phase3Creatives.reduce((byPlatform, creative) => {
+4000:        byPlatform[creative.platform] = creative;
+4001:        return byPlatform;
+4002:      }, {}),
+4003:    [phase3Creatives],
+4004:  );
+4005:  const approvalReviewLinksByCreativeId = useMemo(
+4006:    () =>
+4007:      phase3ApprovalReviewLinks.reduce((byCreative, link) => {
+4008:        byCreative[link.creativeId] = link;
+4009:        return byCreative;
+4010:      }, {}),
+4011:    [phase3ApprovalReviewLinks],
+4012:  );
+4013:  const approvalFeedbackByCreativeId = useMemo(
+4014:    () =>
+4015:      phase3ApprovalFeedback.reduce((byCreative, feedback) => {
+4016:        byCreative[feedback.creativeId] = [...(byCreative[feedback.creativeId] || []), feedback];
+4017:        return byCreative;
+4018:      }, {}),
+4019:    [phase3ApprovalFeedback],
+4020:  );
+4021:  const reviewNotificationsByCreativeId = useMemo(
+4022:    () =>
+4023:      phase3ReviewNotifications.reduce((byCreative, notification) => {
+4024:        byCreative[notification.creativeId] = [
+4025:          ...(byCreative[notification.creativeId] || []),
+4026:          notification,
+4027:        ];
+4028:        return byCreative;
+4029:      }, {}),
+4030:    [phase3ReviewNotifications],
+4031:  );
+4032:  const phase3CreativeForPlan = (plan, index) =>
+4033:    phase3CreativesByPlatform[plan?.platform] || phase3Creatives[index] || null;
+4034:  const brandKitDisplayCards = phase3BrandKit.id
+4035:    ? [
+4036:        ["Business", campaignInput.business, phase3BrandKit.voice?.audience || campaignInput.audience],
+4037:        ["Tone", phase3BrandKit.voice?.tone || "trusted, prompt, local", phase3BrandKit.voice?.promise || "Helpful local expert"],
+4038:        ["Colors", (phase3BrandKit.colors || []).join(", "), "Applied to cards, carousels, and proof reports"],
+4039:        ["Approved words", (phase3BrandKit.approvedTerms || []).join(", "), "Used by the generator before every draft"],
+4040:        ["Avoid", (phase3BrandKit.avoidTerms || []).join(", "), "Risk guardrails before owner approval"],
+4041:        ["Examples", `${(phase3BrandKit.examples || []).length} saved examples`, "Used as the brand voice calibration seed"],
+4042:      ]
+4043:    : brandKitCards;
+4044:  const proofEventDisplayCards = proofEvents.map(([label, fallbackValue, body]) => {

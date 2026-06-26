@@ -1,0 +1,176 @@
+3:import { Link, useLocation, useNavigate } from "react-router-dom";
+71:import { AppRoutes } from "./routes/AppRoutes.jsx";
+81:const referencePreviewImages = [cafeOwner, restaurant, salon, clinic, shop];
+82:const referencePreviewStyle = (image) => (image ? { "--reference-preview-image": `url(${image})` } : undefined);
+83:const creatorAvatarPreviewImages = [cafeOwner, salon, salon, cafeOwner, salon, cafeOwner, salon, cafeOwner, salon, salon, cafeOwner, salon];
+84:const creatorAvatarPreviewPositions = [
+98:const creatorAvatarPreviewScales = ["1", "1", "-1", "1", "-1", "1", "1", "-1", "1", "-1", "1", "1"];
+103:const creatorAvatarPreviewStyle = (index) => ({
+104:  "--reference-preview-image": `url(${creatorAvatarPreviewImages[index % creatorAvatarPreviewImages.length]})`,
+105:  "--reference-preview-position": creatorAvatarPreviewPositions[index % creatorAvatarPreviewPositions.length],
+106:  "--reference-preview-scale-x": creatorAvatarPreviewScales[index % creatorAvatarPreviewScales.length],
+255:  "LocalPilot Customer Preview": "LocalPilot 客户预览",
+317:  "Needs review": "待审核",
+372:  "Local cafe owner reviewing marketing on a tablet": "本地咖啡店老板在平板上查看营销内容",
+373:  "Product sidebar preview": "产品侧边栏预览",
+376:  "campaign preview": "营销预览",
+401:  "generated campaign preview": "生成的营销预览",
+404:  "Selected campaign preview": "已选择营销预览",
+443:  "No-login review": "免登录审核",
+468:  "Assign creators, reviewers, approvers, and report recipients.":
+749:  "This module uses fake demo data for customer review.": "此模块使用模拟演示数据，方便客户审核。",
+800:  " ready for owner review": " 可提交给商家审核",
+896:    .replace(/^(\d+)% ready for owner review$/, "$1% 可提交给商家审核")
+1208:    summary: "Pick the next slot, review the copy, and keep the week moving.",
+1323:    preview: restaurant,
+1330:    preview: cafeOwner,
+1337:    preview: salon,
+1344:    preview: shop,
+1351:    preview: clinic,
+1358:    preview: restaurant,
+1401:        preview: shop,
+1408:        preview: salon,
+1415:        preview: clinic,
+1422:        preview: restaurant,
+1429:        preview: cafeOwner,
+1436:        preview: shop,
+1451:        preview: cafeOwner,
+1458:        preview: salon,
+1465:        preview: clinic,
+1472:        preview: shop,
+1479:        preview: restaurant,
+1485:        prompt: "Create a behind-the-scenes local trust clip with an owner review checkpoint.",
+1486:        preview: cafeOwner,
+1501:        preview: shop,
+1508:        preview: restaurant,
+1515:        preview: cafeOwner,
+1522:        preview: clinic,
+1528:        prompt: "Create a review-inspired proof card that stays inside approved claims.",
+1529:        preview: salon,
+1536:        preview: shop,
+1647:    preview: cafeOwner,
+1654:    preview: shop,
+1690:  ["Tue 12:30", "Instagram Reel", "Visual story + offer CTA", "Needs review", "coral"],
+1745:  ["Examples", "5 past posts + 3 customer reviews", "Used as the brand voice calibration seed"],
+1822:  reviewNotifications: [],
+1854:  { id: "review", label: "Review", title: "Review your script", subtitle: "This is what your creator will say. Edit via prompt below." },
+1859:const creatorTemplatePreviewSamples = [
+2538:      status: "Needs review",
+2546:    status: "Needs review",
+2563:    status: plan?.status || "Needs review",
+2606:  String(status || "needs_review")
+2618:  return "needs_review";
+2720:export function LandingPage() {
+2727:  const navigate = useNavigate();
+2856:            <img className="hero-photo" src={cafeOwner} alt="Local cafe owner reviewing marketing on a tablet" />
+2858:              <aside className="workspace-sidebar" aria-label="Product sidebar preview">
+2904:                      <img src={image} alt={`${name} campaign preview`} />
+3532:          Paste your homepage URL, review the draft, then confirm once everything looks right. Until
+3693:export function AppDemo() {
+3694:  const navigate = useNavigate();
+3737:  const [reviewNotificationPending, setReviewNotificationPending] = useState("");
+3885:  const phase3ReviewNotifications = Array.isArray(phase3Workspace.reviewNotifications)
+3886:    ? phase3Workspace.reviewNotifications
+3988:      : creatorWorkflowStep === "review"
+4021:  const reviewNotificationsByCreativeId = useMemo(
+4102:  const creativePreviewImage = (creative, index = 0) => {
+4105:      creative?.previewDataUrl ||
+4107:      mediaAsset?.previewDataUrl ||
+4108:      mediaAsset?.renderedOutputs?.[0]?.previewDataUrl ||
+4109:      referencePreviewImages[index % referencePreviewImages.length]
+4149:  const libraryDetailPreviewImage = creativePreviewImage(libraryDetailCreative, libraryDetailIndex);
+4971:      showAppToast("Choose a generated creative before previewing.");
+5584:        authorName: isChangeRequest ? "Karen Li" : "LocalPilot reviewer",
+5588:          : `${plan?.name || creative.platform} approval note: owner confirmed the CTA, proof hook, and schedule are ready for review.`,
+5598:          ? `${plan?.name || "Draft"} change request saved to the review link.`
+5599:          : `${plan?.name || "Draft"} approval note saved to the review link.`,
+5655:    showAppToast("Backend-backed workflow package is ready for assisted review.");
+5910:        status: "needs_review",
+5936:      thumbnailRender: currentMetadata.composedPayload?.thumbnailRender || currentMetadata.composedPayload?.editorPreview || "",
+5937:      editorPreview: currentMetadata.composedPayload?.editorPreview || currentMetadata.composedPayload?.thumbnailRender || "",
+5942:        status: "edited_preview",
+5975:        status: "edited_preview",
+6007:        status: "edited_preview",
+6077:  const renderMediaPreview = async (asset) => {
+6079:      showAppToast("Select a generated media asset before rendering a preview.");
+6085:        outputKind: "preview_svg",
+6086:        format: `${asset.format} customer preview`,
+6094:      showAppToast("Rendered preview artifact saved to backend.");
+6096:      showAppToast(error instanceof Error ? error.message : "Render preview failed.");
+6266:                ? "Fetch your website, review the extracted brand draft, and confirm it before generation starts."
+6380:                        style={referencePreviewStyle(format.preview)}
+6504:                              <div className="inspiration-preview" style={referencePreviewStyle(item.preview)}>
+6557:                          <div className="inspiration-preview" style={referencePreviewStyle(item.preview)}>
+6689:                    <div className="channel-preview">
+6690:                      <img src={channel.asset} alt={`${channel.name} generated campaign preview`} />
+6898:                      <h3>{packageReadiness}% ready for owner review</h3>
+6972:                    <h3>Past posts and reviews become guardrails, not a generic prompt.</h3>
+7070:                    const previewImage = creativePreviewImage(creative, index);
+7094:                        style={referencePreviewStyle(previewImage)}
+7096:                        <div className="content-card-preview">
+7110:                                aria-label={`Preview ${creative.title}`}
+7150:                    <h2>Post, carousel, and reel previews from the same local idea</h2>
+7177:                              const preview = asset.metadata?.composedPayload?.thumbnailRender;
+7186:                                  {preview ? <img src={preview} alt={`${slide.role || "slide"} thumbnail`} /> : <strong>{slide.role || `Slide ${index + 1}`}</strong>}
+7193:                            {activeCarouselPayload.editorPreview ? (
+7194:                              <img src={activeCarouselPayload.editorPreview} alt={`${activeCarouselPayload.layout?.role || "carousel"} preview`} />
+7447:                                <em>{template.previewRef}</em>
+7553:                                      {output.previewDataUrl && (
+7554:                                        <img src={output.previewDataUrl} alt={`${asset.format} rendered preview`} />
+7583:                                  onClick={() => renderMediaPreview(asset)}
+7585:                                  {mediaAssetPending === `${asset.id}:render` ? "Rendering..." : "Render preview"}
+7672:                    "Owner reviews exact posts",
+7739:                    const calendarPreviewImage = creativeForSlot ? creativePreviewImage(creativeForSlot, planIndex) : "";
+7760:                            <div className="calendar-post-thumb" style={referencePreviewStyle(calendarPreviewImage)}>
+7877:                    <img src={selectedPlan.asset} alt="Selected campaign preview" />
+7902:                    <div className="drawer-preview-card">
+7929:                    <h2>{pendingPlans.length} drafts need owner review</h2>
+7946:                    const reviewCreative = phase3CreativeForPlan(plan, index);
+7947:                    const reviewLink =
+7948:                      (reviewCreative && approvalReviewLinksByCreativeId[reviewCreative.id]) || reviewCreative?.reviewLink;
+7949:                    const reviewFeedback =
+7950:                      (reviewCreative && approvalFeedbackByCreativeId[reviewCreative.id]) || reviewCreative?.approvalFeedback || [];
+7951:                    const reviewNotifications =
+7952:                      (reviewCreative && reviewNotificationsByCreativeId[reviewCreative.id]) ||
+7953:                      reviewCreative?.reviewNotifications ||
+7955:                    const lastNotification = reviewNotifications[0];
+7956:                    const feedbackPendingKey = reviewCreative ? `${reviewCreative.id}:approval_note` : "";
+7957:                    const changePendingKey = reviewCreative ? `${reviewCreative.id}:change_request` : "";
+7980:                          <span>Share review link</span>
+7981:                          <input readOnly value={reviewLink?.reviewUrl || "Generating review link from backend workspace"} />
+7987:                                : "Create a backend outbox record before asking the client to review."}
+7991:                            {reviewFeedback.slice(0, 2).map((feedback) => (
+8000:                            {!reviewFeedback.length && (
+8025:                            disabled={reviewNotificationPending === reviewCreative?.id}
+8028:                            Send review link
+8188:                          <div className="brand-style-preview-row" aria-hidden="true">
+8222:                          <div className="brand-style-preview-row" aria-hidden="true">
+8354:                            <img src={row.preview} alt="" />
+8558:                        className="source-image-preview"
+8560:                        alt={contentImageForm.fileName || "Selected source image preview"}
+8570:                        {source.extracted?.previewDataUrl && (
+8571:                          <img className="source-card-image" src={source.extracted.previewDataUrl} alt={`${source.label} preview`} />
+8688:                          {latestCarouselJob?.sourcePreview?.domain && (
+8689:                            <div className="carousel-source-preview">
+8690:                              <strong>{latestCarouselJob.sourcePreview.title || latestCarouselJob.sourcePreview.domain}</strong>
+8691:                              <small>{latestCarouselJob.sourcePreview.domain}</small>
+8777:                              <div className="carousel-output-preview-grid">
+8809:                                {job.outputs[0]?.previewRef && (
+8810:                                  <img src={job.outputs[0].previewRef} alt="Video thumbnail" />
+8835:                              {output.previewRef && (
+8837:                                  <img src={output.previewRef} alt="Generated image" />
+8897:                                  <small>{output.previewRef || output.storagePath || output.providerRef}</small>
+9100:                      Choose a topic, review the status, and save a local support draft. Nothing is sent
+9360:                                style={creatorAvatarPreviewStyle(index)}
+9376:                            const sample = creatorTemplatePreviewSamples[index % creatorTemplatePreviewSamples.length];
+9389:                                <div className={`creator-template-preview subtitle-style-${(index % 8) + 1}`}>
+9400:                      {creatorWorkflowStep === "review" && (
+9401:                        <article className="creator-step-panel creator-review-panel">
+9465:                          <div className="creator-video-preview" aria-label="Generated creator-style media preview">
+9467:                            <button type="button" aria-label="Play generated storyboard preview">▶</button>
+9519:                          {creatorWorkflowStep === "review"
+9630:                      <div className="library-detail-preview" style={referencePreviewStyle(libraryDetailPreviewImage)}>
+9637:                            poster={libraryDetailMediaAsset.storageRef !== libraryDetailPreviewImage ? libraryDetailPreviewImage || undefined : undefined}
+9687:                      <button type="button" onClick={() => showAppToast("Download package prepared for owner review.")}>
+9953:                    <p>{moduleWorkflows[activeModule]?.summary || "This module uses fake demo data for customer review."}</p>
+10073:      <AppRoutes appElement={<AppDemo />} landingElement={<LandingPage />} />

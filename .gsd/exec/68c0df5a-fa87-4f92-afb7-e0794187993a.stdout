@@ -1,0 +1,9 @@
+approvals 1
+approval_snapshots ERR no such table: approval_snapshots
+publish_jobs 1
+publish_job_attempts ERR no such table: publish_job_attempts
+publish_job_events ERR no such table: publish_job_events
+drafts ERR no such table: drafts
+draft_media_refs ERR no such table: draft_media_refs
+generation_jobs 3
+generation_outputs 0

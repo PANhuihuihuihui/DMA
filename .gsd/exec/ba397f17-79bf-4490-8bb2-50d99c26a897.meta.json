@@ -1,0 +1,26 @@
+{
+  "id": "ba397f17-79bf-4490-8bb2-50d99c26a897",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-devLogin-ui (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-devLogin-ui",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 90,
+  "started_at": "2026-06-26T07:03:54.362Z",
+  "finished_at": "2026-06-26T07:03:54.377Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 15,
+  "stdout_bytes": 4639,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ba397f17-79bf-4490-8bb2-50d99c26a897.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ba397f17-79bf-4490-8bb2-50d99c26a897.stderr"
+}

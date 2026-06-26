@@ -1,0 +1,26 @@
+{
+  "id": "354120dd-4526-4185-aa5f-32412dabc579",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-read-appdemo-start (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-read-appdemo-start",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 177,
+  "started_at": "2026-06-26T06:58:27.757Z",
+  "finished_at": "2026-06-26T06:58:27.814Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 57,
+  "stdout_bytes": 18485,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/354120dd-4526-4185-aa5f-32412dabc579.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/354120dd-4526-4185-aa5f-32412dabc579.stderr"
+}

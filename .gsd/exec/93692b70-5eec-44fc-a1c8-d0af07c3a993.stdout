@@ -1,0 +1,16 @@
+125:  "Join the pilot": "加入试点",
+2204:    cta: "Join the pilot",
+2213:    cta: "Join the pilot",
+2723:  const [loginOpen, setLoginOpen] = useState(false);
+2744:    setLoginOpen(false);
+2763:    if (!loginOpen || GOOGLE_CLIENT_ID) return undefined;
+2790:  }, [loginOpen]);
+2806:          <button className="text-button" type="button" onClick={() => setLoginOpen(true)}>
+2810:            Join the pilot
+2837:                Join the pilot
+2938:              <button className="secondary-button compact" type="button" onClick={() => setLoginOpen(true)}>
+3127:      {loginOpen && (
+3128:        <Modal title="Log in to LocalPilot AI" eyebrow="Sign in" onClose={() => { setLoginOpen(false); setLoginError(""); }}>
+3142:            <p className="modal-copy">Google sign-in is not configured in this environment.</p>
+8310:                          <button type="button" onClick={() => showAppToast(`${connector.name} connect is demo-safe and keeps credentials server-side.`)}>
+9690:                      <button type="button" aria-label="More asset actions" onClick={() => showAppToast("More asset actions are demo-safe.")}>

@@ -1,0 +1,14 @@
+10064:      {appToast && <div className="app-toast">{appToast}</div>}
+10065:    </div>
+10066:  );
+10067:}
+10068:
+10069:function App() {
+10070:  return (
+10071:    <LanguageProvider>
+10072:      <TranslationLayer />
+10073:      <AppRoutes appElement={<AppDemo />} landingElement={<LandingPage />} />
+10074:    </LanguageProvider>
+10075:  );
+10076:}
+10077:

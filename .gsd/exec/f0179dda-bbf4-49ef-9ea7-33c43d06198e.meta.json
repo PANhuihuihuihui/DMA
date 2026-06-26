@@ -1,0 +1,26 @@
+{
+  "id": "f0179dda-bbf4-49ef-9ea7-33c43d06198e",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-read-session-logic (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-read-session-logic",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 154,
+  "started_at": "2026-06-26T06:59:33.489Z",
+  "finished_at": "2026-06-26T06:59:33.522Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 33,
+  "stdout_bytes": 3258,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/f0179dda-bbf4-49ef-9ea7-33c43d06198e.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/f0179dda-bbf4-49ef-9ea7-33c43d06198e.stderr"
+}

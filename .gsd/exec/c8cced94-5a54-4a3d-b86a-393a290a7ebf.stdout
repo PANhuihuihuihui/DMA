@@ -1,0 +1,200 @@
+src/main.jsx:548:  "Mock the operational controls that will later connect to Odoo, social accounts, and customer data.":
+src/main.jsx:555:  "Odoo connection": "Odoo 连接",
+src/main.jsx:747:  "LocalPilot connects the content plan to business actions: calls from Facebook and Google, DMs from Instagram, saves from Xiaohongshu, and coupon scans from TikTok.":
+src/main.jsx:1087:      observer.disconnect();
+src/main.jsx:1168:  "connected-accounts": "Brand & Social Accounts",
+src/main.jsx:1307:    summary: "Mock the operational controls that will later connect to Odoo, social accounts, and customer data.",
+src/main.jsx:1312:      ["Later", "Odoo connection", "Replace fake sample data with customer records"],
+src/main.jsx:1555:  { provider: "Facebook", accountType: "Page", icon: "f", tone: "facebook", watch: true },
+src/main.jsx:1575:    "Can I choose a different Page after connecting?",
+src/main.jsx:1581:  "What permissions are required to connect this account?",
+src/main.jsx:1582:  "Can I schedule posts after this account is connected?",
+src/main.jsx:2580:  if (normalized === "facebook") {
+src/main.jsx:2630:  const connectedChannel = workflow.connectedChannels.find((channelRef) => channelRef.id === draft.connectedChannelId);
+src/main.jsx:2642:      connectedChannelId: draft.connectedChannelId,
+src/main.jsx:2643:      connectedChannel,
+src/main.jsx:2648:      tokenBoundaryRef: connectedChannel?.tokenBoundaryRef || {},
+src/main.jsx:2658:      role: connectedChannel?.displayName || base.role,
+src/main.jsx:2661:      scheduleSlot: connectedChannel?.status || "Connected channel pending",
+src/main.jsx:3739:  const [facebookConnection, setFacebookConnection] = useState({
+src/main.jsx:3741:    connectedPages: [],
+src/main.jsx:3745:  const [facebookConnectionStatus, setFacebookConnectionStatus] = useState("loading");
+src/main.jsx:3746:  const [facebookPublishForm, setFacebookPublishForm] = useState({
+src/main.jsx:3830:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+src/main.jsx:4172:    publishDraft.platform.startsWith("Facebook") && facebookConnection.connectedPages.length === 0;
+src/main.jsx:4179:    facebookConnection.connectedPages.find((page) => page.pageId === selectedFacebookPageId) ||
+src/main.jsx:4180:    facebookConnection.connectedPages[0] ||
+src/main.jsx:4182:  const pagePickerPages = facebookConnection.connectedPages.length
+src/main.jsx:4183:    ? facebookConnection.connectedPages
+src/main.jsx:4315:      const connectedPages = Array.isArray(payload?.connectedPages) ? payload.connectedPages : [];
+src/main.jsx:4318:        connectedPages,
+src/main.jsx:4322:      if (connectedPages[0]?.pageId) {
+src/main.jsx:4323:        updateFacebookPublishForm("pageId", connectedPages[0].pageId);
+src/main.jsx:4324:        setSelectedFacebookPageId(connectedPages[0].pageId);
+src/main.jsx:4488:  const facebookDraft = workflow.platformDrafts.find((d) => d.platform === "facebook") || null;
+src/main.jsx:4576:    if (params.get("facebookConnected") === "1") {
+src/main.jsx:4579:      setAppToast("Facebook Page connected. You can publish approved Facebook drafts live.");
+src/main.jsx:4581:    const connectSession = params.get("connectSession");
+src/main.jsx:4582:    if (connectSession) {
+src/main.jsx:4583:      loadFacebookPages(connectSession)
+src/main.jsx:4587:          setPendingConnectSession(connectSession);
+src/main.jsx:4990:      platform: creative.platform === "facebook" ? "Facebook" : "Assisted Package",
+src/main.jsx:5052:      nextParams.delete("connectSession");
+src/main.jsx:5055:      setAppToast("Facebook Page connected. You can publish approved Facebook drafts live.");
+src/main.jsx:5072:    showAppToast(`${page.name || "Facebook Page"} selected. Official publish still requires OAuth connection.`);
+src/main.jsx:5470:  const connectFacebook = () => {
+src/main.jsx:5471:    if (!facebookConnection.configured) {
+src/main.jsx:5475:    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+src/main.jsx:5488:      connectFacebook();
+src/main.jsx:5495:    showAppToast(`${socialActionDialog?.provider || "Account"} ${choice.title} connection path selected for demo setup.`);
+src/main.jsx:5501:    if (plan?.platform !== "facebook") {
+src/main.jsx:5514:    const pageId = facebookPublishForm.pageId.trim();
+src/main.jsx:5515:    if (!facebookConnection.connectedPages.length) {
+src/main.jsx:5520:      showAppToast("Choose a connected Facebook Page before publishing.");
+src/main.jsx:5526:      publishMode: facebookPublishForm.publishMode,
+src/main.jsx:5528:    if (facebookPublishForm.publishMode === "schedule") {
+src/main.jsx:5529:      const scheduledAt = Math.floor(new Date(facebookPublishForm.scheduledPublishTime).getTime() / 1000);
+src/main.jsx:6725:                        {channel.platform === "facebook" && channel.approvalSnapshot?.draftVersionId && !channel.publishJob?.id && (
+src/main.jsx:6726:                          <div className="facebook-live-publish" aria-label="Facebook live publish controls">
+src/main.jsx:6730:                                value={facebookPublishForm.pageId}
+src/main.jsx:6733:                                {facebookConnection.connectedPages.length ? (
+src/main.jsx:6734:                                  facebookConnection.connectedPages.map((page) => (
+src/main.jsx:6740:                                  <option value={facebookPublishForm.pageId}>No Page connected</option>
+src/main.jsx:6747:                                value={facebookPublishForm.publishMode}
+src/main.jsx:6754:                            {facebookPublishForm.publishMode === "schedule" && (
+src/main.jsx:6759:                                  value={facebookPublishForm.scheduledPublishTime}
+src/main.jsx:6764:                            <button className="secondary-action" type="button" onClick={connectFacebook}>
+src/main.jsx:6765:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:6770:                              disabled={publishPending === channel.id || !facebookConnection.connectedPages.length}
+src/main.jsx:6871:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+src/main.jsx:6912:                        <li>Server media refs, connected channel refs, and publishing mode.</li>
+src/main.jsx:6993:                      by media compatibility, connected accounts, and explicit owner approval.
+src/main.jsx:7814:                        {selectedPlan.platform === "facebook" && selectedPlan.approvalSnapshot?.draftVersionId && !selectedPlan.publishJob?.id && (
+src/main.jsx:7815:                          <div className="facebook-live-publish facebook-live-publish--compact">
+src/main.jsx:7817:                              value={facebookPublishForm.pageId}
+src/main.jsx:7820:                              {facebookConnection.connectedPages.length ? (
+src/main.jsx:7821:                                facebookConnection.connectedPages.map((page) => (
+src/main.jsx:7827:                                <option value={facebookPublishForm.pageId}>No Page connected</option>
+src/main.jsx:7830:                            <button type="button" onClick={connectFacebook}>
+src/main.jsx:7831:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:7835:                              disabled={publishPending === selectedPlan.id || !facebookConnection.connectedPages.length}
+src/main.jsx:7866:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+src/main.jsx:8056:                  <button className="primary-action" type="button" onClick={connectFacebook}>
+src/main.jsx:8057:                    {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:8099:                          <div className="social-connected-card">
+src/main.jsx:8100:                            <div className="social-connected-avatar">●</div>
+src/main.jsx:8113:                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden={!pendingConnectSession}>
+src/main.jsx:8118:                        Select a Page to connect. LocalPilot will publish on its behalf.
+src/main.jsx:8122:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+src/main.jsx:8124:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+src/main.jsx:8137:                      <strong>{facebookConnection.configured ? "OAuth configured" : "Backend env required"}</strong>
+src/main.jsx:8139:                        Required scopes: {(facebookConnection.scopes || []).join(", ") || "pages_show_list, pages_read_engagement, pages_manage_posts"}.
+src/main.jsx:8141:                      <small>{facebookConnection.redirectUri || "Backend callback not loaded"}</small>
+src/main.jsx:8305:                    <div className="ecommerce-connector-grid" aria-label="E-commerce platform connectors">
+src/main.jsx:8306:                      {ecommerceConnectors.map((connector) => (
+src/main.jsx:8307:                        <article key={connector.name}>
+src/main.jsx:8308:                          <span className={`ecommerce-icon ${connector.tone}`}>{connector.icon}</span>
+src/main.jsx:8309:                          <strong>{connector.name}</strong>
+src/main.jsx:8310:                          <button type="button" onClick={() => showAppToast(`${connector.name} connect is demo-safe and keeps credentials server-side.`)}>
+src/main.jsx:8377:                      access to all facebook pages to authorise API access.
+src/main.jsx:8383:                      <p>Must be connected via Facebook Page for competitor analysis to work</p>
+src/main.jsx:8384:                      <span>Facebook connection required</span>
+src/main.jsx:8842:                              {facebookDraft && (
+src/main.jsx:8847:                                  onClick={() => handleAttachToDraft(facebookDraft.id, output.id)}
+src/main.jsx:8998:                  <div className="analytics-account-tabs" role="tablist" aria-label="Analytics connected accounts">
+src/main.jsx:9074:                      LocalPilot connects content to observable actions: short-link clicks, QR scans, call taps,
+src/main.jsx:9118:                      <p>Facebook live publish stays gated by connected accounts.</p>
+src/main.jsx:9754:                    <div className="social-connect-options">
+src/main.jsx:9757:                          <span className="social-connect-icons">
+src/main.jsx:9775:                        `How to connect ${activeSocialPlatform.provider}`,
+src/main.jsx:9852:                            <p>Please connect the accounts below to publish/schedule this post!</p>
+src/main.jsx:9853:                            <div className="publish-account-icons" aria-label="Supported account connectors">
+backend/app/fake_publisher.py:138:    if platform == "facebook":
+backend/app/fake_publisher.py:147:                "platform": "facebook",
+backend/app/website_crawl.py:195:        raise CrawlError("Website SSL connection failed.") from exc
+backend/app/facebook_token_vault.py:8:def put_page_token(page_id, token, page=None, conn=None, merchant_id=None, connected_channel_id=None, expires_at=None, issued_at=None):
+backend/app/facebook_token_vault.py:10:    connected_channel_id = connected_channel_id or store.FACEBOOK_CHANNEL_ID
+backend/app/facebook_token_vault.py:17:            provider="facebook",
+backend/app/facebook_token_vault.py:18:            connected_channel_id=connected_channel_id,
+backend/app/facebook_token_vault.py:19:            secret_ref=f"localpilot/provider/facebook/{connected_channel_id}/{page_id}",
+backend/app/facebook_token_vault.py:21:        store.upsert_facebook_page_token(
+backend/app/facebook_token_vault.py:24:            connected_channel_id=connected_channel_id,
+backend/app/facebook_token_vault.py:38:            "connectedAt": utc_now(),
+backend/app/facebook_token_vault.py:47:        row = store.get_facebook_page_token_row(conn, page_id, merchant_id)
+backend/app/facebook_token_vault.py:56:def list_connected_pages(conn=None, merchant_id=None):
+backend/app/facebook_token_vault.py:60:        rows = store.list_facebook_page_token_rows(conn, merchant_id)
+backend/app/facebook_token_vault.py:67:                "connectedAt": row["created_at"],
+backend/app/facebook_token_vault.py:79:            "connectedAt": record["connectedAt"],
+backend/app/facebook_token_vault.py:90:        store.set_active_facebook_page(conn, merchant_id, page_id)
+backend/app/facebook_token_vault.py:94:def mark_reconnect_required(page_id, conn=None):
+backend/app/facebook_token_vault.py:98:        store.mark_facebook_page_reconnect_required(conn, page_id)
+backend/app/contracts.py:30:    "oauth" + "_payload",
+backend/app/contracts.py:75:def idempotency_key(platform, draft_version_id, connected_channel_id):
+backend/app/contracts.py:76:    digest = hashlib.sha256(f"{platform}:{draft_version_id}:{connected_channel_id}".encode("utf-8")).hexdigest()
+backend/app/contracts.py:118:def serialize_connected_channel(row, token_boundary):
+backend/app/contracts.py:159:    connected_channel_ref = {
+backend/app/contracts.py:176:        "connectedChannelRef": connected_channel_ref,
+backend/app/contracts.py:206:        "connectedChannelId": boundary.get("connectedChannelId"),
+backend/app/contracts.py:229:            "connectedChannelRef": snapshot.get("connectedChannelRef") or {},
+backend/app/tiktok_publisher.py:289:    connected_channel_id = (snapshot.get("connectedChannelRef") or {}).get("id")
+backend/app/tiktok_publisher.py:290:    if connected_channel_id:
+backend/app/tiktok_publisher.py:291:        store.assert_channel_publishable(conn, connected_channel_id)
+backend/app/generation_dispatch.py:110:            with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:129:    with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:166:        with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:175:            with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:195:            with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:246:        with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:272:    with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:316:    with closing(store.connect(db_path)) as conn:
+backend/app/generation_dispatch.py:344:    with closing(store.connect(db_path)) as conn:
+backend/app/facebook_publisher.py:5:from backend.app import facebook_token_vault, store
+backend/app/facebook_publisher.py:9:GRAPH_API_BASE = "https://graph.facebook.com/v25.0"
+backend/app/facebook_publisher.py:25:def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE, opener=None):
+backend/app/facebook_publisher.py:26:    from backend.app import facebook_oauth
+backend/app/facebook_publisher.py:30:    if snapshot.get("platform") != "facebook":
+backend/app/facebook_publisher.py:33:    connected_channel_id = (snapshot.get("connectedChannelRef") or {}).get("id")
+backend/app/facebook_publisher.py:34:    if connected_channel_id:
+backend/app/facebook_publisher.py:35:        store.assert_channel_publishable(conn, connected_channel_id)
+backend/app/facebook_publisher.py:37:    page_id = payload.get("pageId") or (snapshot.get("connectedChannelRef") or {}).get("providerChannelId")
+backend/app/facebook_publisher.py:42:        health = facebook_oauth.active_page_health(conn)
+backend/app/facebook_publisher.py:44:            raise store.StoreError(409, "This Page can't publish yet \u2014 reconnect or grant the publishing permission first.")
+backend/app/facebook_publisher.py:46:    media_info = validate_facebook_media(snapshot, opener=opener)
+backend/app/facebook_publisher.py:76:        "facebook_publisher",
+backend/app/facebook_publisher.py:111:        store.record_publish_outcome(conn, job["id"], attempt["id"], snapshot, provider="facebook", provider_result_ref=provider_ref)
+backend/app/facebook_publisher.py:118:        facebook_token_vault.mark_reconnect_required(str(page_id), conn=conn)
+backend/app/facebook_publisher.py:126:            "facebook_publisher",
+backend/app/facebook_publisher.py:137:            "facebook_publisher",
+backend/app/facebook_publisher.py:146:        return "reconnect"
+backend/app/facebook_publisher.py:154:def retry_facebook_publish(conn, job_id, graph_base=GRAPH_API_BASE, opener=None):
+backend/app/facebook_publisher.py:155:    from backend.app import facebook_oauth
+backend/app/facebook_publisher.py:165:    page_id = job_row["page_id"] or (snapshot.get("connectedChannelRef") or {}).get("providerChannelId")
+backend/app/facebook_publisher.py:167:    health = facebook_oauth.active_page_health(conn)
+backend/app/facebook_publisher.py:169:        raise store.StoreError(409, "This Page can't publish yet \u2014 reconnect or grant the publishing permission first.")
+backend/app/facebook_publisher.py:171:    media_info = validate_facebook_media(snapshot, opener=opener)
+backend/app/facebook_publisher.py:174:    store.append_publish_event(conn, job_id, "publishing", "Facebook retry attempt started.", "facebook_publisher", attempt_number)
+backend/app/facebook_publisher.py:207:        store.record_publish_outcome(conn, job_id, attempt["id"], snapshot, provider="facebook", provider_result_ref=provider_ref)
+backend/app/facebook_publisher.py:214:        facebook_token_vault.mark_reconnect_required(str(page_id), conn=conn)
+backend/app/facebook_publisher.py:217:        store.append_publish_event(conn, job_id, outcome["attemptStatus"], outcome["summary"], "facebook_publisher", attempt_number)
+backend/app/facebook_publisher.py:221:        store.append_publish_event(conn, job_id, outcome["attemptStatus"], outcome["summary"], "facebook_publisher", attempt_number)
+backend/app/facebook_publisher.py:238:def validate_facebook_media(snapshot, opener=None):
+backend/app/facebook_publisher.py:289:    page_token = facebook_token_vault.get_page_token(page_id)
+backend/app/facebook_publisher.py:296:            provider_diagnostics("authentication", "not_connected", {"pageId": page_id}),
+backend/app/facebook_publisher.py:298:    message = build_facebook_message(snapshot)
+backend/app/facebook_publisher.py:448:        "provider": "facebook",
+backend/app/facebook_publisher.py:450:        "platform": "facebook",
+backend/app/facebook_publisher.py:459:def build_facebook_message(snapshot):
+backend/app/facebook_oauth.py:7:from backend.app import facebook_token_vault, store
+backend/app/facebook_oauth.py:10:GRAPH_API_BASE = "https://graph.facebook.com/v25.0"
+backend/app/facebook_oauth.py:11:FACEBOOK_DIALOG_BASE = "https://www.facebook.com/v25.0/dialog/oauth"
+backend/app/facebook_oauth.py:13:DEFAULT_REDIRECT_URI = "http://127.0.0.1:8787/api/v1/facebook/oauth/callback"
+backend/app/facebook_oauth.py:14:DEFAULT_RETURN_URL = "http://127.0.0.1:5173/app?facebookConnected=1"
+backend/app/facebook_oauth.py:22:def oauth_config():
+backend/app/facebook_oauth.py:33:def connection_status(conn=None):
+backend/app/facebook_oauth.py:34:    config = oauth_config()
+backend/app/facebook_oauth.py:35:    pages = facebook_token_vault.list_connected_pages(conn=conn)
+backend/app/facebook_oauth.py:45:        "connectedPages": pages,
+backend/app/facebook_oauth.py:52:    config = oauth_config()
+backend/app/facebook_oauth.py:80:    config = oauth_config()
+backend/app/facebook_oauth.py:100:    return f"{return_url}{separator}connectSession={parse.quote(session_id)}"
+backend/app/facebook_oauth.py:122:        raise store.StoreError(400, "Selected Page was not in the connect session.")

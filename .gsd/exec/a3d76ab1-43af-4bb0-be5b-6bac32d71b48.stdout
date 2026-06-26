@@ -1,0 +1,24 @@
+23:  devLogin,
+34:  loadSession,
+35:  logout as logoutSession,
+443:  "No-login review": "免登录审核",
+527:  "Review every channel plan, request changes, and prepare a no-login approval package.":
+1287:    summary: "Review every channel plan, request changes, and prepare a no-login approval package.",
+2723:  const [loginOpen, setLoginOpen] = useState(false);
+2725:  const [devLoginEnabled, setDevLoginEnabled] = useState(false);
+2726:  const [loginCapabilityLoading, setLoginCapabilityLoading] = useState(false);
+2741:  const [loginError, setLoginError] = useState("");
+2755:      await devLogin();
+2763:    if (!loginOpen || GOOGLE_CLIENT_ID) return undefined;
+2773:          setDevLoginEnabled(Boolean(payload?.devLoginEnabled));
+2790:  }, [loginOpen]);
+3127:      {loginOpen && (
+3129:          {loginError && <p className="modal-copy" style={{ color: "var(--red)" }}>{loginError}</p>}
+3132:          ) : loginCapabilityLoading ? (
+3134:          ) : devLoginEnabled ? (
+3136:              <p className="modal-copy">Development mode — backend dev login is enabled.</p>
+3703:    loadSession()
+5086:  const logout = async () => {
+5088:      await logoutSession();
+6296:            <button className="icon-action" type="button" onClick={logout}>
+6396:                        These method choices map to safe source import flows. No login scraping, cookies,

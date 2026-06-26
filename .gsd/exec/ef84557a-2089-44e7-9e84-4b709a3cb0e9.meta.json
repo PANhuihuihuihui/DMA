@@ -1,0 +1,26 @@
+{
+  "id": "ef84557a-2089-44e7-9e84-4b709a3cb0e9",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-backend-auth-routes (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-backend-auth-routes",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 275,
+  "started_at": "2026-06-26T06:55:47.631Z",
+  "finished_at": "2026-06-26T06:55:47.640Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 9,
+  "stdout_bytes": 585,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ef84557a-2089-44e7-9e84-4b709a3cb0e9.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ef84557a-2089-44e7-9e84-4b709a3cb0e9.stderr"
+}

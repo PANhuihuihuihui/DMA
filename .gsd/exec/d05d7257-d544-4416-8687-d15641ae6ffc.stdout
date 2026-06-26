@@ -1,0 +1,3 @@
+src/api/publishingClient.js:36:export const loadPublishingWorkflow = () => requestJson("/workflow");
+src/main.jsx:33:  loadPublishingWorkflow,
+src/main.jsx:4271:      const nextWorkflow = normalizeWorkflow(await loadPublishingWorkflow());

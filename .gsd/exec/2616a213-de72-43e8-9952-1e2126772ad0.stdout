@@ -1,0 +1,120 @@
+     1	import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+     2	import { createRoot } from "react-dom/client";
+     3	import { Link, useLocation, useNavigate } from "react-router-dom";
+     4	import "./styles.css";
+     5	import {
+     6	  applyPhase3IdeaVariant,
+     7	  approveDraftVersion,
+     8	  createPhase3ApprovalFeedback,
+     9	  createPhase3AiAssistantReply,
+    10	  createPhase3BulkVariations,
+    11	  createPhase3CompetitorSource,
+    12	  createPhase3ContentBatch,
+    13	  createPhase3ContentBatchFromReply,
+    14	  createPhase3ContentSource,
+    15	  createPhase3CreatorStyleVideoWorkflow,
+    16	  createPhase3IdeaVariants,
+    17	  createPhase3LanguageVariants,
+    18	  createPhase3MediaVariant,
+    19	  createPhase3ReviewNotification,
+    20	  createPhase3TemplateImport,
+    21	  createPhase3UgcVoiceoverPackage,
+    22	  crawlWebsite,
+    23	  devLogin,
+    24	  generatePhase3CreatorStyleVideo,
+    25	  googleLogin,
+    26	  confirmOnboardingProfile,
+    27	  loadAuthCapabilities,
+    28	  loadFacebookConnection,
+    29	  loadFacebookPages,
+    30	  loadOnboardingProfile,
+    31	  loadPhase3Workspace,
+    32	  loadPublishJob,
+    33	  loadPublishingWorkflow,
+    34	  loadSession,
+    35	  logout as logoutSession,
+    36	  publishFacebookPost,
+    37	  queueFakePublish,
+    38	  recordPhase3ProofEvent,
+    39	  selectFacebookPage,
+    40	  renderPhase3MediaAsset,
+    41	  updateOnboardingProfile,
+    42	  updatePhase3BrandKit,
+    43	  updatePhase3CalendarSlot,
+    44	  attachGenerationOutputToDraft,
+    45	  updatePhase3Creative,
+    46	  updatePhase3MediaAsset,
+    47	  updatePhase3MediaLayerLayout,
+    48	} from "./api/publishingClient.js";
+    49	import { ApprovalSnapshot } from "./components/ApprovalSnapshot.jsx";
+    50	import { PublishTimeline } from "./components/PublishTimeline.jsx";
+    51	import { RetryPublishControl } from "./components/RetryPublishControl.jsx";
+    52	import {
+    53	  RETRYABLE_PUBLISH_STATUSES,
+    54	  normalizeApprovalSnapshot,
+    55	  normalizePublishJob,
+    56	  normalizeWorkflow,
+    57	} from "./models/publishing.js";
+    58	import {
+    59	  loadGenerationCredits,
+    60	  loadGenerationJobs,
+    61	  loadGenerationModels,
+    62	  launchGenerationJob,
+    63	  retryGenerationJob,
+    64	} from "./api/generationClient.js";
+    65	import {
+    66	  normalizeCreditSummary,
+    67	  normalizeGenerationCatalog,
+    68	  normalizeGenerationJob,
+    69	  normalizeGenerationJobsList,
+    70	} from "./models/generation.js";
+    71	import { AppRoutes } from "./routes/AppRoutes.jsx";
+    72	import { clearDemoWorkspacePreferences, readPreference, writePreference } from "./storage/preferences.js";
+    73	
+    74	import cafeOwner from "../assets/cafe-owner.png";
+    75	import clinic from "../assets/clinic.png";
+    76	import restaurant from "../assets/restaurant.png";
+    77	import salon from "../assets/salon.png";
+    78	import shop from "../assets/shop.png";
+    79	
+    80	const LANGUAGE_STORAGE_KEY = "localpilot-language";
+    81	const referencePreviewImages = [cafeOwner, restaurant, salon, clinic, shop];
+    82	const referencePreviewStyle = (image) => (image ? { "--reference-preview-image": `url(${image})` } : undefined);
+    83	const creatorAvatarPreviewImages = [cafeOwner, salon, salon, cafeOwner, salon, cafeOwner, salon, cafeOwner, salon, salon, cafeOwner, salon];
+    84	const creatorAvatarPreviewPositions = [
+    85	  "72% 34%",
+    86	  "24% 34%",
+    87	  "74% 38%",
+    88	  "66% 38%",
+    89	  "26% 30%",
+    90	  "70% 42%",
+    91	  "78% 34%",
+    92	  "62% 32%",
+    93	  "18% 36%",
+    94	  "70% 30%",
+    95	  "58% 40%",
+    96	  "82% 36%",
+    97	];
+    98	const creatorAvatarPreviewScales = ["1", "1", "-1", "1", "-1", "1", "1", "-1", "1", "-1", "1", "1"];
+    99	const MINIMAX_CAROUSEL_MODEL_ID = "genmodel_minimax_carousel_primary";
+   100	const CAROUSEL_PRESET_ID = "carousel_canonical_v1";
+   101	const CAROUSEL_ROLE_ORDER = ["cover", "problem", "proof", "offer", "cta"];
+   102	
+   103	const creatorAvatarPreviewStyle = (index) => ({
+   104	  "--reference-preview-image": `url(${creatorAvatarPreviewImages[index % creatorAvatarPreviewImages.length]})`,
+   105	  "--reference-preview-position": creatorAvatarPreviewPositions[index % creatorAvatarPreviewPositions.length],
+   106	  "--reference-preview-scale-x": creatorAvatarPreviewScales[index % creatorAvatarPreviewScales.length],
+   107	});
+   108	
+   109	const onboardingVoiceoverOptions = [
+   110	  ["Warm owner voice", "Warm owner voice"],
+   111	  ["Clear service narrator", "Clear service narrator"],
+   112	];
+   113	
+   114	const onboardingAvatarOptions = [
+   115	  ["Owner-style avatar", "Owner-style avatar"],
+   116	  ["Service expert avatar", "Service expert avatar"],
+   117	];
+   118	
+   119	const zhTranslations = {
+   120	  Product: "产品",

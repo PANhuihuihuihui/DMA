@@ -1,0 +1,81 @@
+   240	    method: "POST",
+   241	  });
+   242	
+   243	export const reconnectChannel = (channelId) =>
+   244	  requestJson(`/channels/${encodeURIComponent(channelId)}/reconnect`, {
+   245	    method: "POST",
+   246	  });
+   247	
+   248	export const loadTiktokCreatorInfo = (channelId) =>
+   249	  requestJson(`/tiktok/creator-info${channelId ? `?channelId=${encodeURIComponent(channelId)}` : ""}`);
+   250	
+   251	export const refreshTiktokCreatorInfo = (channelId) =>
+   252	  requestJson("/tiktok/creator-info/refresh", {
+   253	    method: "POST",
+   254	    body: JSON.stringify({ channelId }),
+   255	  });
+   256	
+   257	export const loadTiktokMediaPolicy = () => requestJson("/tiktok/media-policy");
+   258	
+   259	export const loadFacebookConnection = () => requestJson("/facebook/connection");
+   260	
+   261	export const crawlWebsite = (url) =>
+   262	  requestJson("/onboarding/crawl", {
+   263	    method: "POST",
+   264	    body: JSON.stringify({ url }),
+   265	  });
+   266	
+   267	export const loadOnboardingProfile = () => requestJson("/onboarding/profile");
+   268	
+   269	export const updateOnboardingProfile = (updates) =>
+   270	  requestJson("/onboarding/profile", {
+   271	    method: "PATCH",
+   272	    body: JSON.stringify(updates),
+   273	  });
+   274	
+   275	export const confirmOnboardingProfile = () =>
+   276	  requestJson("/onboarding/profile/confirm", {
+   277	    method: "POST",
+   278	  });
+   279	
+   280	export const loadFacebookPages = (connectSession) =>
+   281	  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+   282	
+   283	export const selectFacebookPage = (connectSession, pageId) =>
+   284	  requestJson("/facebook/pages/select", {
+   285	    method: "POST",
+   286	    body: JSON.stringify({ connectSession, pageId }),
+   287	  });
+   288	
+   289	export const switchFacebookPage = (pageId) =>
+   290	  requestJson("/facebook/pages/switch", {
+   291	    method: "POST",
+   292	    body: JSON.stringify({ pageId }),
+   293	  });
+   294	
+   295	export const googleLogin = (credential) =>
+   296	  requestJson("/auth/google", {
+   297	    method: "POST",
+   298	    body: JSON.stringify({ credential }),
+   299	  });
+   300	
+   301	export const loadAuthCapabilities = () => requestJson("/auth");
+   302	
+   303	export const devLogin = () =>
+   304	  requestJson("/auth/google", {
+   305	    method: "POST",
+   306	    body: JSON.stringify({ devLogin: true }),
+   307	  });
+   308	
+   309	export const logout = () =>
+   310	  requestJson("/auth/logout", {
+   311	    method: "POST",
+   312	  });
+   313	
+   314	export const loadSession = () => requestJson("/auth/session");
+   315	
+   316	export const attachGenerationOutputToDraft = (draftId, generationOutputId) =>
+   317	  requestJson(`/drafts/${encodeURIComponent(draftId)}/media`, {
+   318	    method: "POST",
+   319	    body: JSON.stringify({ generationOutputId }),
+   320	  });

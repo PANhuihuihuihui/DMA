@@ -1,0 +1,68 @@
+  5468	  };
+  5469	
+  5470	  const connectFacebook = () => {
+  5471	    if (!facebookConnection.configured) {
+  5472	      showAppToast("Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET on the backend.");
+  5473	      return;
+  5474	    }
+  5475	    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+  5476	  };
+  5477	
+  5478	  const openSocialDialog = (provider, mode) => {
+  5479	    setSocialActionDialog({ provider, mode });
+  5480	  };
+  5481	
+  5482	  const closeSocialDialog = () => {
+  5483	    setSocialActionDialog(null);
+  5484	  };
+  5485	
+  5486	  const handleSocialAdd = (platform) => {
+  5487	    if (platform.provider === "Facebook") {
+  5488	      connectFacebook();
+  5489	      return;
+  5490	    }
+  5491	    openSocialDialog(platform.provider, "add");
+  5492	  };
+  5493	
+  5494	  const handleSocialConnectionChoice = (choice) => {
+  5495	    showAppToast(`${socialActionDialog?.provider || "Account"} ${choice.title} connection path selected for demo setup.`);
+  5496	    closeSocialDialog();
+  5497	  };
+  5498	
+  5499	  const publishFacebookLive = async (index) => {
+  5500	    const plan = plans[index];
+  5501	    if (plan?.platform !== "facebook") {
+  5502	      showAppToast("Live publishing is available for Facebook drafts first.");
+  5503	      return;
+  5504	    }
+  5505	    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+  5506	      showAppToast("Approve this exact Facebook draft before publishing live.");
+  5507	      return;
+  5508	    }
+  5509	    if (plan.publishJob?.id) {
+  5510	      showAppToast(`${plan.name} publish timeline is already loaded.`);
+  5511	      return;
+  5512	    }
+  5513	
+  5514	    const pageId = facebookPublishForm.pageId.trim();
+  5515	    if (!facebookConnection.connectedPages.length) {
+  5516	      showAppToast("Connect Facebook before publishing live.");
+  5517	      return;
+  5518	    }
+  5519	    if (!pageId) {
+  5520	      showAppToast("Choose a connected Facebook Page before publishing.");
+  5521	      return;
+  5522	    }
+  5523	
+  5524	    const payload = {
+  5525	      pageId,
+  5526	      publishMode: facebookPublishForm.publishMode,
+  5527	    };
+  5528	    if (facebookPublishForm.publishMode === "schedule") {
+  5529	      const scheduledAt = Math.floor(new Date(facebookPublishForm.scheduledPublishTime).getTime() / 1000);
+  5530	      if (!Number.isFinite(scheduledAt)) {
+  5531	        showAppToast("Choose a valid scheduled publish time.");
+  5532	        return;
+  5533	      }
+  5534	      payload.scheduledPublishTime = String(scheduledAt);
+  5535	    }

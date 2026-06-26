@@ -1,0 +1,26 @@
+{
+  "id": "ba0fd265-314e-4320-87ea-ba395f70e10b",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-list-backend-8790 (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-list-backend-8790",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 61,
+  "started_at": "2026-06-26T07:06:27.566Z",
+  "finished_at": "2026-06-26T07:06:27.642Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 76,
+  "stdout_bytes": 244,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ba0fd265-314e-4320-87ea-ba395f70e10b.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ba0fd265-314e-4320-87ea-ba395f70e10b.stderr"
+}

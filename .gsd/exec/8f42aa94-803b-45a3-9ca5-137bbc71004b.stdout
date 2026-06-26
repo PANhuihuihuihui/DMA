@@ -1,0 +1,7 @@
+154:          diagnostics_json text not null,
+348:          diagnostics_json text not null,
+6178:        "diagnostics": safe_diagnostics(json_loads(row["diagnostics_json"], {})),
+6539:              id, generation_job_id, attempt_number, status, diagnostics_json, created_at, updated_at
+7588:          diagnostics_json, retry_classification, started_at, finished_at, created_at, updated_at
+7698:        "diagnostics": safe_diagnostics(json_loads(row["diagnostics_json"], {})),
+7743:def get_serialized_publish_job(conn, job_id):

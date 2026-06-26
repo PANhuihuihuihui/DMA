@@ -1,0 +1,59 @@
+ 10040	                  </article>
+ 10041	                )}
+ 10042	              </div>
+ 10043	            </section>
+ 10044	            <section className="insight-card roi-card">
+ 10045	              <h2>Local ROI loop</h2>
+ 10046	              <div className="mini-metrics">
+ 10047	                {[
+ 10048	                  ["28", "calls"],
+ 10049	                  ["17", "bookings"],
+ 10050	                  ["34", "DMs"],
+ 10051	                  ["76", "map clicks"],
+ 10052	                ].map(([value, label]) => (
+ 10053	                  <span key={label}>
+ 10054	                    <strong>{value}</strong> {label}
+ 10055	                  </span>
+ 10056	                ))}
+ 10057	              </div>
+ 10058	            </section>
+ 10059	          </aside>
+ 10060	        </section>
+ 10061	          </>
+ 10062	        )}
+ 10063	      </main>
+ 10064	      {appToast && <div className="app-toast">{appToast}</div>}
+ 10065	    </div>
+ 10066	  );
+ 10067	}
+ 10068	
+ 10069	function App() {
+ 10070	  return (
+ 10071	    <LanguageProvider>
+ 10072	      <TranslationLayer />
+ 10073	      <AppRoutes appElement={<AppDemo />} landingElement={<LandingPage />} />
+ 10074	    </LanguageProvider>
+ 10075	  );
+ 10076	}
+ 10077	
+ 10078	const rootElement = document.getElementById("root");
+ 10079	
+ 10080	if (!rootElement) {
+ 10081	  throw new Error("LocalPilot root element was not found.");
+ 10082	}
+ 10083	
+ 10084	const rootStoreKey = "__localpilotReactRoot";
+ 10085	const existingRoot = window[rootStoreKey];
+ 10086	const localPilotRoot =
+ 10087	  existingRoot && existingRoot._internalRoot?.containerInfo === rootElement
+ 10088	    ? existingRoot
+ 10089	    : createRoot(rootElement);
+ 10090	window[rootStoreKey] = localPilotRoot;
+ 10091	localPilotRoot.render(<App />);
+ 10092	
+ 10093	if (import.meta.hot) {
+ 10094	  import.meta.hot.dispose(() => {
+ 10095	    // Intentionally no root disposal here. Keep the existing root between module updates
+ 10096	    // to avoid duplicate createRoot() calls and child-removal consistency errors.
+ 10097	  });
+ 10098	}

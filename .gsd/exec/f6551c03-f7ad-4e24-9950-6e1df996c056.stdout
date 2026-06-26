@@ -1,0 +1,86 @@
+"/api/v1/facebook/pages" 25546
+IKTOK_CHANNEL_ID
+                    self.send_json({"creatorInfo": store.refresh_tiktok_creator_info(conn, channel_id)}, status=201)
+                return
+            if method == "GET" and path == "/api/v1/facebook/connection":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(facebook_oauth.connection_status(conn=conn))
+                return
+            if method == "GET" and path == "/api/v1/facebook/pages":
+                query = parse_qs(parsed.query)
+                session_id = (query.get("connectSession") or [None])[0]
+                self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id)})
+                return
+            if method == "POST" and path == "/api/v1/facebook/pages/select":
+                with closing(store.connect(self.db_path)) as c
+---
+"/api/v1/facebook/pages/select" 25851
+              self.send_json(facebook_oauth.connection_status(conn=conn))
+                return
+            if method == "GET" and path == "/api/v1/facebook/pages":
+                query = parse_qs(parsed.query)
+                session_id = (query.get("connectSession") or [None])[0]
+                self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id)})
+                return
+            if method == "POST" and path == "/api/v1/facebook/pages/select":
+                with closing(store.connect(self.db_path)) as conn:
+                    body = self.read_json()
+                    self.send_json(facebook_oauth.select_page(conn, body.get("connectSession"), body.get("pageId")), status=201)
+                return
+            if method == "POST" and path == "/api/v1/facebook/pages/switch":
+                with closin
+---
+"/api/v1/facebook/pages/switch" 26191
+.list_pages_for_session(session_id)})
+                return
+            if method == "POST" and path == "/api/v1/facebook/pages/select":
+                with closing(store.connect(self.db_path)) as conn:
+                    body = self.read_json()
+                    self.send_json(facebook_oauth.select_page(conn, body.get("connectSession"), body.get("pageId")), status=201)
+                return
+            if method == "POST" and path == "/api/v1/facebook/pages/switch":
+                with closing(store.connect(self.db_path)) as conn:
+                    body = self.read_json()
+                    self.send_json(facebook_oauth.switch_active_page(conn, body.get("pageId")))
+                return
+            if method == "GET" and path == "/api/v1/facebook/oauth/start":
+                query = parse_qs(parsed.query)
+               
+---
+"/api/v1/drafts" -1
+"/api/v1/facebook/connection" 25302
+efresh":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.resolve_merchant_id(conn, parsed)
+                    body = self.read_json()
+                    channel_id = body.get("channelId") or store.TIKTOK_CHANNEL_ID
+                    self.send_json({"creatorInfo": store.refresh_tiktok_creator_info(conn, channel_id)}, status=201)
+                return
+            if method == "GET" and path == "/api/v1/facebook/connection":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(facebook_oauth.connection_status(conn=conn))
+                return
+            if method == "GET" and path == "/api/v1/facebook/pages":
+                query = parse_qs(parsed.query)
+                session_id = (query.get("connectSession") or [None])[0]
+           
+---
+"/api/v1/auth/session" 3891
+t(self.db_path)) as conn:
+                    token = self._parse_cookie("lp_session")
+                    if token:
+                        try:
+                            sessions.expire_session(conn, token)
+                        except Exception:
+                            pass
+                    self.send_json({"status": "ok"}, cookies=[self.clear_session_cookie()])
+                return
+            if method == "GET" and path == "/api/v1/auth/session":
+                with closing(store.connect(self.db_path)) as conn:
+                    token = self._parse_cookie("lp_session")
+                    if not token:
+                        raise store.StoreError(401, "No session cookie.")
+                    try:
+                        sessions.resolve_session(conn, token)
+                    except sessions.SessionError as e
+---

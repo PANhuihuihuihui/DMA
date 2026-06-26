@@ -1,0 +1,26 @@
+{
+  "id": "60524abf-e406-40e5-93bc-4200624cff9d",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-kill-old-backend (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-kill-old-backend",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 53,
+  "started_at": "2026-06-26T06:53:27.619Z",
+  "finished_at": "2026-06-26T06:53:27.624Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 5,
+  "stdout_bytes": 15,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/60524abf-e406-40e5-93bc-4200624cff9d.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/60524abf-e406-40e5-93bc-4200624cff9d.stderr"
+}

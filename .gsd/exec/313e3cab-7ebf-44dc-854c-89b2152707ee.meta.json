@@ -1,0 +1,26 @@
+{
+  "id": "313e3cab-7ebf-44dc-854c-89b2152707ee",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-read-pagepicker-ui3 (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-read-pagepicker-ui3",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 41,
+  "started_at": "2026-06-26T07:00:40.717Z",
+  "finished_at": "2026-06-26T07:00:40.727Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 10,
+  "stdout_bytes": 3839,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/313e3cab-7ebf-44dc-854c-89b2152707ee.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/313e3cab-7ebf-44dc-854c-89b2152707ee.stderr"
+}

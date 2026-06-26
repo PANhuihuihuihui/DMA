@@ -1,0 +1,10 @@
+src/main.jsx:5475:    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+backend/app/facebook_oauth.py:13:DEFAULT_REDIRECT_URI = "http://127.0.0.1:8787/api/v1/facebook/oauth/callback"
+backend/app/server.py:438:            if method == "GET" and path == "/api/v1/facebook/connection":
+backend/app/server.py:442:            if method == "GET" and path == "/api/v1/facebook/pages":
+backend/app/server.py:447:            if method == "POST" and path == "/api/v1/facebook/pages/select":
+backend/app/server.py:452:            if method == "POST" and path == "/api/v1/facebook/pages/switch":
+backend/app/server.py:457:            if method == "GET" and path == "/api/v1/facebook/oauth/start":
+backend/app/server.py:461:            if method == "GET" and path == "/api/v1/facebook/oauth/callback":
+backend/tests/test_facebook_oauth.py:30:                "FACEBOOK_REDIRECT_URI": "http://127.0.0.1:8787/api/v1/facebook/oauth/callback",
+backend/tests/test_facebook_oauth.py:68:        self.assertEqual("http://127.0.0.1:8787/api/v1/facebook/oauth/callback", query["redirect_uri"][0])

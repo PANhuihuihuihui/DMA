@@ -1,0 +1,26 @@
+{
+  "id": "f5f80b39-5b90-46ed-93a2-4e213d2107b4",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-wc-publish (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-wc-publish",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 40,
+  "started_at": "2026-06-26T06:54:53.854Z",
+  "finished_at": "2026-06-26T06:54:53.859Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 5,
+  "stdout_bytes": 44,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/f5f80b39-5b90-46ed-93a2-4e213d2107b4.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/f5f80b39-5b90-46ed-93a2-4e213d2107b4.stderr"
+}

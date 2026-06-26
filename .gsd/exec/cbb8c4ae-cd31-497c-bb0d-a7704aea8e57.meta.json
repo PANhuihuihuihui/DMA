@@ -1,0 +1,26 @@
+{
+  "id": "cbb8c4ae-cd31-497c-bb0d-a7704aea8e57",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-seed-manual-fallback (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-seed-manual-fallback",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 1288,
+  "started_at": "2026-06-26T07:22:00.804Z",
+  "finished_at": "2026-06-26T07:22:00.871Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 67,
+  "stdout_bytes": 135,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/cbb8c4ae-cd31-497c-bb0d-a7704aea8e57.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/cbb8c4ae-cd31-497c-bb0d-a7704aea8e57.stderr"
+}

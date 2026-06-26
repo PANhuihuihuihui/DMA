@@ -1,0 +1,71 @@
+
+export const refreshTiktokCreatorInfo = (channelId) =>
+  requestJson("/tiktok/creator-info/refresh", {
+    method: "POST",
+    body: JSON.stringify({ channelId }),
+  });
+
+export const loadTiktokMediaPolicy = () => requestJson("/tiktok/media-policy");
+
+export const loadFacebookConnection = () => requestJson("/facebook/connection");
+
+export const crawlWebsite = (url) =>
+  requestJson("/onboarding/crawl", {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
+
+export const loadOnboardingProfile = () => requestJson("/onboarding/profile");
+
+export const updateOnboardingProfile = (updates) =>
+  requestJson("/onboarding/profile", {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
+
+export const confirmOnboardingProfile = () =>
+  requestJson("/onboarding/profile/confirm", {
+    method: "POST",
+  });
+
+export const loadFacebookPages = (connectSession) =>
+  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+
+export const selectFacebookPage = (connectSession, pageId) =>
+  requestJson("/facebook/pages/select", {
+    method: "POST",
+    body: JSON.stringify({ connectSession, pageId }),
+  });
+
+export const switchFacebookPage = (pageId) =>
+  requestJson("/facebook/pages/switch", {
+    method: "POST",
+    body: JSON.stringify({ pageId }),
+  });
+
+export const googleLogin = (credential) =>
+  requestJson("/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ credential }),
+  });
+
+export const loadAuthCapabilities = () => requestJson("/auth");
+
+export const devLogin = () =>
+  requestJson("/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ devLogin: true }),
+  });
+
+export const logout = () =>
+  requestJson("/auth/logout", {
+    method: "POST",
+  });
+
+export const loadSession = () => requestJson("/auth/session");
+
+export const attachGenerationOutputToDraft = (draftId, generationOutputId) =>
+  requestJson(`/drafts/${encodeURIComponent(draftId)}/media`, {
+    method: "POST",
+    body: JSON.stringify({ generationOutputId }),
+  });

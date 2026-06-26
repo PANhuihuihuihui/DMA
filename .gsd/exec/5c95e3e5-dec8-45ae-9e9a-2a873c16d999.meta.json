@@ -1,0 +1,26 @@
+{
+  "id": "5c95e3e5-dec8-45ae-9e9a-2a873c16d999",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-grep-debug-client (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-grep-debug-client",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 87,
+  "started_at": "2026-06-26T07:17:15.590Z",
+  "finished_at": "2026-06-26T07:17:15.598Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 8,
+  "stdout_bytes": 286,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/5c95e3e5-dec8-45ae-9e9a-2a873c16d999.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/5c95e3e5-dec8-45ae-9e9a-2a873c16d999.stderr"
+}

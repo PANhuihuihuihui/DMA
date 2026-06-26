@@ -1,0 +1,114 @@
+124:  "Log in": "登录",
+125:  "Join the pilot": "加入试点",
+149:  "View app demo": "查看应用演示",
+221:  "Request demo": "预约演示",
+225:  "Local ROI dashboard": "本地 ROI 看板",
+247:  "Log in to the LocalPilot AI app demo": "登录 LocalPilot AI 应用演示",
+249:  "Use any name and email. This is a local prototype session with fake client and campaign data.":
+256:  "Enter app demo": "进入应用演示",
+273:  "Agency demo workspace": "代理商演示工作区",
+277:  "Reset demo": "重置演示",
+344:  "Run demo action": "运行演示操作",
+398:  "Primary demo panel": "主演示面板",
+749:  "This module uses fake demo data for customer review.": "此模块使用模拟演示数据，方便客户审核。",
+804:  " demo action saved.": " 演示操作已保存。",
+811:  "I updated channel copy, approval notes, and local ROI tracking in the demo plan.":
+908:    .replace(/^(.+) demo action saved\.$/, "$1 演示操作已保存。")
+914:    .replace(/^(.+) completed for (.+)\. I updated channel copy, approval notes, and local ROI tracking in the demo plan\.$/, "$1 已为 $2 完成。我已更新演示方案中的渠道文案、审批说明和本地 ROI 追踪。")
+1149:  dashboard: "Content Library",
+1432:        title: "Consumer electronic demo",
+1435:        prompt: "Create a consumer electronic demo with clear benefit framing and no fake claims.",
+1685:  ["Book demo", "Local callback CTA for sales follow-up."],
+1783:    source: "Predis parity demo",
+2204:    cta: "Join the pilot",
+2206:    features: ["1 business location", "1 video or promotion per week", "4 platforms", "Local ROI dashboard"],
+2213:    cta: "Join the pilot",
+2228:    cta: "Request demo",
+2703:    return moduleFromSlug(readPreference("localpilot-demo-active-module")) || "Content Library";
+2807:            Log in
+2810:            Join the pilot
+2837:                Join the pilot
+2893:                      View app demo
+2915:        <section className="dashboard section-shell" id="workflow">
+3087:          Request demo
+3128:        <Modal title="Log in to LocalPilot AI" eyebrow="Sign in" onClose={() => { setLoginOpen(false); setLoginError(""); }}>
+3369:  const [loading, setLoading] = useState(true);
+3522:  const canSave = Boolean(profile) && Boolean(Object.keys(editedFields).length) && !loading;
+3523:  const canConfirm = Boolean(profile) && !loading;
+3550:        <button className="primary-action" type="button" onClick={handleFetch} disabled={loading}>
+3555:      {loading && (
+3696:  const [session, setSession] = useState(null);
+3697:  const [authStatus, setAuthStatus] = useState("loading");
+3707:          setAuthStatus("authenticated");
+3712:          setAuthStatus("unauthenticated");
+3723:  const [selectedPost, setSelectedPost] = useState(() => loadStoredIndex("localpilot-demo-selected-post"));
+3724:  const [selectedChannel, setSelectedChannel] = useState(() => loadStoredIndex("localpilot-demo-selected-channel"));
+3725:  const [selectedInbox, setSelectedInbox] = useState(() => loadStoredIndex("localpilot-demo-selected-inbox"));
+3727:    loadStoredIndex("localpilot-demo-selected-walkthrough"),
+3730:  const [workflowStatus, setWorkflowStatus] = useState("loading");
+3733:  const [phase3Status, setPhase3Status] = useState("loading");
+3745:  const [facebookConnectionStatus, setFacebookConnectionStatus] = useState("loading");
+4186:          pageId: "demo-page-aurora",
+4192:          pageId: "demo-page-maintenance",
+4267:      setWorkflowStatus("loading");
+4282:      setPhase3Status("loading");
+4312:    setFacebookConnectionStatus("loading");
+4333:    setGenStatus("loading");
+4591:          setAppToast(err.message || "Failed to load Facebook Pages for this session.");
+4603:    writePreference("localpilot-demo-active-module", moduleSlug(activeModule));
+4607:    writePreference("localpilot-demo-selected-channel", String(safeSelectedChannel));
+4611:    writePreference("localpilot-demo-selected-post", String(safeSelectedPost));
+4615:    writePreference("localpilot-demo-selected-inbox", String(safeSelectedInbox));
+4619:    writePreference("localpilot-demo-selected-walkthrough", String(selectedWalkthrough));
+5093:    setAuthStatus("unauthenticated");
+5152:      "Reset demo workspace: This clears local demo preferences and reloads seeded backend records. Published audit records stay unchanged.",
+5170:    showAppToast("Local demo preferences cleared. Backend workflow reloaded from seeded records.");
+5197:          name: session?.name || "Karen Li",
+5198:          email: session?.email || "karen@example.com",
+5227:            name: session?.name || "Karen Li",
+5228:            email: session?.email || "karen@example.com",
+5338:      showAppToast("Choose an image under 900 KB for this local demo import.");
+5475:    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+5495:    showAppToast(`${socialActionDialog?.provider || "Account"} ${choice.title} connection path selected for demo setup.`);
+5584:        authorName: isChangeRequest ? "Karen Li" : "LocalPilot reviewer",
+5585:        authorRole: isChangeRequest ? "owner" : "internal",
+5761:          { name: "Website URL", status: "available_demo" },
+5762:          { name: "CSV upload", status: "available_demo" },
+6162:        source: "local_demo",
+6181:  if (authStatus === "loading") {
+6197:          <strong>{session?.workspace || "Aurora demo brand"}</strong>
+6233:                setActiveHelpAction("Book demo");
+6234:                showAppToast("Book a demo selected. No external send from this demo.");
+6254:            <small>{session?.email || "huijiepan69@gmail.com"}</small>
+6262:            <p className="app-kicker">Customer demo workspace</p>
+6294:              Reset demo
+6323:          <section className="primary-panel" aria-label="Primary demo panel">
+6334:                  onClick={() => showAppToast("Remove Watermark is a LocalPilot usage-plan badge in this demo.")}
+6341:                  <button type="button" onClick={() => showAppToast("Jumped to today's demo week.")}>
+6679:                        "LocalPilot is loading campaign, draft, media, channel, and approval records from the backend."}
+6974:                      The demo keeps this deterministic for now, but the product seam is ready for LLM brand
+7123:                              <small>Backend record creation remains authoritative.</small>
+7139:                          <button type="button" onClick={() => showAppToast("Remove Watermark is a LocalPilot usage-plan badge in this demo.")}>
+7315:                            Predis-style bulk generation for customer demos: create multiple ready-to-test
+7706:                    <button type="button" onClick={() => showAppToast("Previous month is disabled in this seeded demo.")}>
+7710:                    <button type="button" onClick={() => showAppToast("Next month is disabled in this seeded demo.")}>
+7885:                        "LocalPilot is loading campaign, draft, media, channel, and approval records from the backend."}
+7996:                                  {feedback.authorName} · {feedback.status}
+8050:                    <h2>Clickable auth, brand details, style, integrations, and exports.</h2>
+8179:                            <button className="secondary-action" type="button" onClick={() => showAppToast("Website fetch demo uses the existing source URL import boundary.")}>
+8310:                          <button type="button" onClick={() => showAppToast(`${connector.name} connect is demo-safe and keeps credentials server-side.`)}>
+8328:                      onClick={() => showAppToast("CSV upload demo uses the existing source import boundary.")}
+8377:                      access to all facebook pages to authorise API access.
+8402:                    <p className="app-kicker">LocalPilot advanced demo</p>
+8525:                      server-side, extracts a demo brief, and can generate approval-ready posts from it.
+8640:                    {genStatus === "loading" && <p className="gen-empty-hint">Loading models...</p>}
+8970:                <section className="performance-dashboard analytics-reference-dashboard" aria-label="Performance analytics dashboard">
+9064:                        Record demo event
+9098:                    <h2>Support center for account setup, FAQs, and demo handoff.</h2>
+9101:                      externally from this demo.
+9107:                      <strong>Local demo online</strong>
+9690:                      <button type="button" aria-label="More asset actions" onClick={() => showAppToast("More asset actions are demo-safe.")}>
+9779:                        <button type="button" key={title} onClick={() => showAppToast(`${title} queued for the demo help panel.`)}>
+9953:                    <p>{moduleWorkflows[activeModule]?.summary || "This module uses fake demo data for customer review."}</p>
+9955:                  <button className="primary-action" type="button" onClick={() => showAppToast(`${activeModule} demo action saved.`)}>
+9956:                    Run demo action

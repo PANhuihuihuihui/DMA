@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M005/S01/T01",
+  "timestamp": 1782494477143,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "python -c \"from backend.app.auth_provider import AuthProvider, get_valid_credential, run_with_credential_refresh\"",
+      "exitCode": 0,
+      "durationMs": 84,
+      "verdict": "pass"
+    }
+  ]
+}

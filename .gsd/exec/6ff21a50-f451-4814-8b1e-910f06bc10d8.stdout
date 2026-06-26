@@ -1,0 +1,31 @@
+   270	  requestJson("/onboarding/profile", {
+   271	    method: "PATCH",
+   272	    body: JSON.stringify(updates),
+   273	  });
+   274	
+   275	export const confirmOnboardingProfile = () =>
+   276	  requestJson("/onboarding/profile/confirm", {
+   277	    method: "POST",
+   278	  });
+   279	
+   280	export const loadFacebookPages = (connectSession) =>
+   281	  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+   282	
+   283	export const selectFacebookPage = (connectSession, pageId) =>
+   284	  requestJson("/facebook/pages/select", {
+   285	    method: "POST",
+   286	    body: JSON.stringify({ connectSession, pageId }),
+   287	  });
+   288	
+   289	export const switchFacebookPage = (pageId) =>
+   290	  requestJson("/facebook/pages/switch", {
+   291	    method: "POST",
+   292	    body: JSON.stringify({ pageId }),
+   293	  });
+   294	
+   295	export const googleLogin = (credential) =>
+   296	  requestJson("/auth/google", {
+   297	    method: "POST",
+   298	    body: JSON.stringify({ credential }),
+   299	  });
+   300	

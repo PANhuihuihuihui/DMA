@@ -1,0 +1,1 @@
+  502 17329 17313   0  1:28AM ttys022    0:00.72 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -m backend.app.server --port 8790 --db .localpilot-dev/backend.sqlite

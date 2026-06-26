@@ -1,0 +1,2 @@
+{'exists': True, 'pages_manage_posts': True, 'pages_read_engagement': True, 'test_account_setup': True, 'walkthrough': True, 'screencast': True, 'open_questions': True}
+headings: ['# App Review Evidence Preparation (M002/S01/T04)', '## 1. Required Graph API Permissions', '## 2. Test Account Setup', '## 3. Page Switching', '## 4. Full Publish Flow Walkthrough', '## 5. Screencast Recording Checklist', '### What to show on screen', '### Key moments to highlight (pause / voice-over)', '### Submission notes', '## Failure Modes', '## Load Profile', '## Negative Tests']

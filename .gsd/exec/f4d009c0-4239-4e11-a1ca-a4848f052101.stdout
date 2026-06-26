@@ -1,0 +1,21 @@
+23:  devLogin,
+124:  "Log in": "登录",
+125:  "Join the pilot": "加入试点",
+247:  "Log in to the LocalPilot AI app demo": "登录 LocalPilot AI 应用演示",
+2204:    cta: "Join the pilot",
+2213:    cta: "Join the pilot",
+2723:  const [loginOpen, setLoginOpen] = useState(false);
+2725:  const [devLoginEnabled, setDevLoginEnabled] = useState(false);
+2744:    setLoginOpen(false);
+2755:      await devLogin();
+2763:    if (!loginOpen || GOOGLE_CLIENT_ID) return undefined;
+2773:          setDevLoginEnabled(Boolean(payload?.devLoginEnabled));
+2790:  }, [loginOpen]);
+2806:          <button className="text-button" type="button" onClick={() => setLoginOpen(true)}>
+2807:            Log in
+2810:            Join the pilot
+2837:                Join the pilot
+2938:              <button className="secondary-button compact" type="button" onClick={() => setLoginOpen(true)}>
+3127:      {loginOpen && (
+3128:        <Modal title="Log in to LocalPilot AI" eyebrow="Sign in" onClose={() => { setLoginOpen(false); setLoginError(""); }}>
+3134:          ) : devLoginEnabled ? (

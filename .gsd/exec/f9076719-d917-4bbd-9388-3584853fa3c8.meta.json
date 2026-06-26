@@ -1,0 +1,26 @@
+{
+  "id": "f9076719-d917-4bbd-9388-3584853fa3c8",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-find-markers (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-find-markers",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 205,
+  "started_at": "2026-06-26T06:54:13.360Z",
+  "finished_at": "2026-06-26T06:54:13.707Z",
+  "exit_code": 2,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 347,
+  "stdout_bytes": 14246,
+  "stderr_bytes": 52,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/f9076719-d917-4bbd-9388-3584853fa3c8.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/f9076719-d917-4bbd-9388-3584853fa3c8.stderr"
+}

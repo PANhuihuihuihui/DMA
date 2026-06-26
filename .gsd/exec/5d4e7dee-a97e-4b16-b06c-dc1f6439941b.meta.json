@@ -1,0 +1,26 @@
+{
+  "id": "5d4e7dee-a97e-4b16-b06c-dc1f6439941b",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-connect-handlers2 (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-connect-handlers2",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 316,
+  "started_at": "2026-06-26T07:01:41.476Z",
+  "finished_at": "2026-06-26T07:01:41.517Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 41,
+  "stdout_bytes": 1029,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/5d4e7dee-a97e-4b16-b06c-dc1f6439941b.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/5d4e7dee-a97e-4b16-b06c-dc1f6439941b.stderr"
+}

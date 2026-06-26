@@ -1,0 +1,16 @@
+8094:                          <button type="button" onClick={() => handleSocialAdd(platform)}>
+8095:                            Add
+8096:                          </button>
+8097:                        </div>
+8098:                        {platform.provider === "Facebook" && (
+8099:                          <div className="social-connected-card">
+8100:                            <div className="social-connected-avatar">●</div>
+8101:                            <strong>{selectedFacebookPage?.name || campaignInput.business}</strong>
+8102:                            <small>{selectedFacebookPage?.pageId || "1243605852158721_"}</small>
+8103:                            <button type="button" onClick={() => showAppToast("Demo unlink keeps OAuth tokens server-side.")}>
+8104:                              Unlink
+8105:                            </button>
+8106:                          </div>
+8107:                        )}
+8108:                      </article>
+8109:                    ))}

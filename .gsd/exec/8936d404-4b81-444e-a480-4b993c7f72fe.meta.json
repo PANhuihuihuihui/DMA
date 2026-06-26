@@ -1,0 +1,26 @@
+{
+  "id": "8936d404-4b81-444e-a480-4b993c7f72fe",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-services-ready2 (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-services-ready2",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 340,
+  "started_at": "2026-06-26T06:54:05.570Z",
+  "finished_at": "2026-06-26T06:54:05.706Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 136,
+  "stdout_bytes": 61,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/8936d404-4b81-444e-a480-4b993c7f72fe.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/8936d404-4b81-444e-a480-4b993c7f72fe.stderr"
+}

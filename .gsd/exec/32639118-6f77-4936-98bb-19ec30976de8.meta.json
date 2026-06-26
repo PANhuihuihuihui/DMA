@@ -1,0 +1,26 @@
+{
+  "id": "32639118-6f77-4936-98bb-19ec30976de8",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-fetch-workflow (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-fetch-workflow",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 472,
+  "started_at": "2026-06-26T07:19:16.259Z",
+  "finished_at": "2026-06-26T07:19:16.333Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 74,
+  "stdout_bytes": 137,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/32639118-6f77-4936-98bb-19ec30976de8.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/32639118-6f77-4936-98bb-19ec30976de8.stderr"
+}

@@ -1,0 +1,31 @@
+   440	                    self.send_json(facebook_oauth.connection_status(conn=conn))
+   441	                return
+   442	            if method == "GET" and path == "/api/v1/facebook/pages":
+   443	                query = parse_qs(parsed.query)
+   444	                session_id = (query.get("connectSession") or [None])[0]
+   445	                self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id)})
+   446	                return
+   447	            if method == "POST" and path == "/api/v1/facebook/pages/select":
+   448	                with closing(store.connect(self.db_path)) as conn:
+   449	                    body = self.read_json()
+   450	                    self.send_json(facebook_oauth.select_page(conn, body.get("connectSession"), body.get("pageId")), status=201)
+   451	                return
+   452	            if method == "POST" and path == "/api/v1/facebook/pages/switch":
+   453	                with closing(store.connect(self.db_path)) as conn:
+   454	                    body = self.read_json()
+   455	                    self.send_json(facebook_oauth.switch_active_page(conn, body.get("pageId")))
+   456	                return
+   457	            if method == "GET" and path == "/api/v1/facebook/oauth/start":
+   458	                query = parse_qs(parsed.query)
+   459	                self.send_redirect(facebook_oauth.build_login_url(return_url=(query.get("returnTo") or [None])[0]))
+   460	                return
+   461	            if method == "GET" and path == "/api/v1/facebook/oauth/callback":
+   462	                with closing(store.connect(self.db_path)) as conn:
+   463	                    self.send_redirect(facebook_oauth.complete_callback(conn, parse_qs(parsed.query)))
+   464	                return
+   465	            if method == "POST" and path == "/api/v1/campaigns":
+   466	                with closing(store.connect(self.db_path)) as conn:
+   467	                    self.send_json({"campaign": store.create_campaign(conn, self.read_json())}, status=201)
+   468	                return
+   469	            approval_action = self.match_approval_action(path)
+   470	            if approval_action and method == "POST" and approval_action["action"] == "publish":

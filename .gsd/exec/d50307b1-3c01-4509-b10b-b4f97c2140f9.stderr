@@ -1,0 +1,14 @@
+test_auth_provider_is_abstract (backend.tests.test_auth_provider.AuthProviderTest.test_auth_provider_is_abstract) ... ok
+test_expired_oauth_session_is_rejected_and_cleanup_reports_removed_rows (backend.tests.test_auth_provider.AuthProviderTest.test_expired_oauth_session_is_rejected_and_cleanup_reports_removed_rows) ... ok
+test_get_valid_credential_raises_401_when_token_inside_buffer (backend.tests.test_auth_provider.AuthProviderTest.test_get_valid_credential_raises_401_when_token_inside_buffer) ... ok
+test_get_valid_credential_returns_plaintext_token (backend.tests.test_auth_provider.AuthProviderTest.test_get_valid_credential_returns_plaintext_token) ... ok
+test_get_valid_credential_warns_when_token_near_expiry (backend.tests.test_auth_provider.AuthProviderTest.test_get_valid_credential_warns_when_token_near_expiry) ... ok
+test_initialize_database_creates_oauth_sessions_table (backend.tests.test_auth_provider.AuthProviderTest.test_initialize_database_creates_oauth_sessions_table) ... ok
+test_oauth_session_round_trip_and_consume (backend.tests.test_auth_provider.AuthProviderTest.test_oauth_session_round_trip_and_consume) ... ok
+test_run_with_credential_refresh_raises_second_error (backend.tests.test_auth_provider.AuthProviderTest.test_run_with_credential_refresh_raises_second_error) ... ok
+test_run_with_credential_refresh_retries_once_after_401 (backend.tests.test_auth_provider.AuthProviderTest.test_run_with_credential_refresh_retries_once_after_401) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.209s
+
+OK

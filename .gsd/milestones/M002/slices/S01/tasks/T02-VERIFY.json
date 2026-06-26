@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M002/S01/T02",
+  "timestamp": 1782455769216,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q \"manual-fallback-hint\" src/components/PublishTimeline.jsx",
+      "exitCode": 0,
+      "durationMs": 53,
+      "verdict": "pass"
+    }
+  ],
+  "postExecutionChecks": [
+    {
+      "category": "pattern",
+      "target": "src/main.jsx",
+      "passed": true,
+      "message": "File src/main.jsx mixes async/await with .then() promise chaining — consider using consistent async style",
+      "blocking": false
+    }
+  ]
+}

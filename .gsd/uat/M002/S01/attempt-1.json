@@ -1,0 +1,212 @@
+{
+  "runId": "uat:M002:S01:attempt-1",
+  "attempt": 1,
+  "milestoneId": "M002",
+  "sliceId": "S01",
+  "uatType": "browser-executable",
+  "verdict": "FAIL",
+  "gateVerdict": "flag",
+  "evaluatedAt": "2026-06-26T07:25:23.336Z",
+  "worktreeRoot": "/Users/huijie/DMA",
+  "browserToolsPresented": true,
+  "modePolicy": {
+    "browserTools": true,
+    "partialEligible": false,
+    "passWithHumanFollowUp": false,
+    "requiredAnyModes": [
+      "browser"
+    ]
+  },
+  "checks": [
+    {
+      "id": "TC1",
+      "description": "connectSession OAuth Page Picker Flow",
+      "mode": "browser",
+      "result": "FAIL",
+      "evidence": [
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "c401ecf9-d4d5-4482-b5e8-584af11ced4f",
+          "note": "Created authenticated demo session for browser UAT.",
+          "tool": "gsd_uat_exec",
+          "executionId": "c401ecf9-d4d5-4482-b5e8-584af11ced4f"
+        },
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "25f41e41-c709-4aa2-a32f-fad48278323b",
+          "note": "Started seeded backend with a synthetic connectSession containing two Facebook Pages.",
+          "tool": "gsd_uat_exec",
+          "executionId": "25f41e41-c709-4aa2-a32f-fad48278323b"
+        },
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "706717df-51b5-4e20-92a7-5c84e534664d",
+          "note": "Backend log captured POST /api/v1/facebook/pages/select 400 and later GET /api/v1/facebook/pages?connectSession=... 400.",
+          "tool": "gsd_uat_exec",
+          "executionId": "706717df-51b5-4e20-92a7-5c84e534664d"
+        },
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "a81bc67f-774e-469b-a142-5d15eca90b55",
+          "note": "Source check for connectSession load/remove flow in src/main.jsx.",
+          "tool": "gsd_uat_exec",
+          "executionId": "a81bc67f-774e-469b-a142-5d15eca90b55"
+        }
+      ],
+      "notes": "The browser reached the page-picker state and rendered the connectSession-only copy, but selecting the seeded page did not complete the expected persistence/cleanup path: backend returned 400 for page selection, the connectSession query param remained, and the success toast plus connected-page confirmation were not observed."
+    },
+    {
+      "id": "TC2",
+      "description": "manual-fallback-hint in Approval Queue",
+      "mode": "browser",
+      "result": "FAIL",
+      "evidence": [
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "cbb8c4ae-cd31-497c-bb0d-a7704aea8e57",
+          "note": "Seeded the existing Facebook publish job into manual_fallback_required with authentication diagnostics.",
+          "tool": "gsd_uat_exec",
+          "executionId": "cbb8c4ae-cd31-497c-bb0d-a7704aea8e57"
+        },
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "21164c9b-e69d-436a-a755-134234460b7c",
+          "note": "Verified publish_events now include manual_fallback_required for the Facebook job.",
+          "tool": "gsd_uat_exec",
+          "executionId": "21164c9b-e69d-436a-a755-134234460b7c"
+        },
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "3f558e15-5e1a-46ce-afee-5981d7b3821f",
+          "note": "Source locations show Approval queue and PublishTimeline integration points in src/main.jsx.",
+          "tool": "gsd_uat_exec",
+          "executionId": "3f558e15-5e1a-46ce-afee-5981d7b3821f"
+        },
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "152384a6-9128-43e8-87c6-9b925d8d3241",
+          "note": "Source check shows manual-fallback hint and Reconnect Facebook CTA branch in src/components/PublishTimeline.jsx.",
+          "tool": "gsd_uat_exec",
+          "executionId": "152384a6-9128-43e8-87c6-9b925d8d3241"
+        }
+      ],
+      "notes": "Even after seeding a manual_fallback_required authentication failure, the active UI did not visibly show the expected manual-fallback hint, Reconnect Facebook CTA, or approval-queue evidence in the exercised workspace. The code path exists, but the live UAT did not surface it through the current workflow data path."
+    },
+    {
+      "id": "TC3",
+      "description": "AI Studio Image Attachment to Facebook Draft",
+      "mode": "browser",
+      "result": "FAIL",
+      "evidence": [
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "68c0df5a-fa87-4f92-afb7-e0794187993a",
+          "note": "DB inspection showed generation_outputs count 0 in the runtime database.",
+          "tool": "gsd_uat_exec",
+          "executionId": "68c0df5a-fa87-4f92-afb7-e0794187993a"
+        },
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "3d89493c-32f3-45b3-93ab-3c6d0d4cc78c",
+          "note": "Client source includes POST /api/v1/drafts/{id}/media attach endpoint usage.",
+          "tool": "gsd_uat_exec",
+          "executionId": "3d89493c-32f3-45b3-93ab-3c6d0d4cc78c"
+        }
+      ],
+      "notes": "The runtime AI Studio view did not show a Generated images section or a Use for Facebook post button, and the database contained no generation_outputs rows to attach. Because the live preconditions for the attach flow were absent, the expected draft-media mutation could not be verified and the runtime check failed in this environment."
+    },
+    {
+      "id": "TC4",
+      "description": "App Review Evidence Documentation",
+      "mode": "artifact",
+      "result": "PASS",
+      "evidence": [
+        {
+          "kind": "gsd_uat_exec",
+          "ref": "520bb9c2-f7f4-4d9b-9a4c-7c703045db53",
+          "note": "Artifact check confirmed required sections and headings in docs/app-review-evidence.md.",
+          "tool": "gsd_uat_exec",
+          "executionId": "520bb9c2-f7f4-4d9b-9a4c-7c703045db53"
+        }
+      ],
+      "notes": "docs/app-review-evidence.md exists and contains pages_manage_posts, pages_read_engagement, test-account setup, the full publish walkthrough, a screencast checklist, and explicit open-question coverage."
+    }
+  ],
+  "presentation": {
+    "surface": "hybrid",
+    "presentedTools": [
+      "gsd_uat_exec",
+      "gsd_uat_result_save",
+      "gsd_resume",
+      "gsd_milestone_status",
+      "gsd_journal_query",
+      "find",
+      "glob",
+      "grep",
+      "ls",
+      "read",
+      "browser_navigate",
+      "browser_click",
+      "browser_type",
+      "browser_fill_form",
+      "browser_click_ref",
+      "browser_fill_ref",
+      "browser_wait_for",
+      "browser_assert",
+      "browser_verify",
+      "browser_screenshot",
+      "browser_snapshot_refs",
+      "browser_find",
+      "browser_get_console_logs",
+      "browser_get_network_logs",
+      "browser_evaluate",
+      "browser_reload",
+      "browser_batch",
+      "browser_act"
+    ],
+    "blockedTools": [
+      {
+        "name": "edit",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "write",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "gsd_exec",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "gsd_summary_save",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "gsd_save_gate_result",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "search-the-web",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "WebSearch",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "Bash",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "Write",
+        "reason": "forbidden during run-uat"
+      },
+      {
+        "name": "Edit",
+        "reason": "forbidden during run-uat"
+      }
+    ],
+    "toolPresentationPlanId": "run-uat/default-v1"
+  },
+  "notes": "Runtime UAT found the documentation check passing, but the live connectSession page-selection flow, manual-fallback UI surfacing, and AI Studio draft-attachment flow did not complete successfully in the current localhost environment."
+}

@@ -1,0 +1,23 @@
+=== 1. Primary verification ===
+PASS: attachGenerationOutputToDraft in publishingClient.js
+=== 2. store.py ===
+PASS: patch_draft_media_ref in store.py
+PASS: _mime_type_from_url in store.py
+PASS: StoreError 400 URL validation present
+=== 3. server.py ===
+PASS: media route in server.py
+=== 4. main.jsx ===
+PASS: import present in main.jsx
+PASS: handler present in main.jsx
+PASS: button text present
+PASS: genImageOutputs derived value present
+PASS: facebookDraft derived value present
+=== 5. Vite build ===
+dist/client/assets/index-DRNXHhg5.css         186.02 kB │ gzip:  32.93 kB
+dist/client/assets/index-C6QWw5Yg.js          532.97 kB │ gzip: 159.43 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.08s

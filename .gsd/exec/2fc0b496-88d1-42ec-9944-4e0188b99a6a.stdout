@@ -1,0 +1,19 @@
+8076:                    {socialPlatformRows.map((platform) => (
+8077:                      <article className={platform.provider === "Facebook" ? "expanded" : ""} key={platform.provider}>
+8078:                        <div className={`social-platform-icon ${platform.tone}`}>{platform.icon}</div>
+8079:                        <div className="social-platform-copy">
+8080:                          <strong>{platform.provider}</strong>
+8081:                          <p>{platform.accountType}</p>
+8082:                        </div>
+8083:                        <div className="social-platform-actions">
+8084:                          {platform.watch && (
+8085:                            <button type="button" onClick={() => openSocialDialog(platform.provider, "video")}>
+8086:                              <span className="social-action-icon">▦</span>
+8087:                              Watch Videos
+8088:                            </button>
+8089:                          )}
+8090:                          <button type="button" onClick={() => openSocialDialog(platform.provider, "faq")}>
+8091:                            <span className="social-action-icon">?</span>
+8092:                            FAQ
+8093:                          </button>
+8094:                          <button type="button" onClick={() => handleSocialAdd(platform)}>

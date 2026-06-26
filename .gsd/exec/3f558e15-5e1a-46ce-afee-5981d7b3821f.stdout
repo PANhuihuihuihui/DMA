@@ -1,0 +1,14 @@
+src/components/PublishTimeline.jsx:14:  manual_fallback_required: "Manual fallback required",
+src/components/PublishTimeline.jsx:142:    <section className="publish-timeline-panel" aria-label={`${platform} fake publish timeline`}>
+src/components/PublishTimeline.jsx:146:          <h3>{platform} fake publish timeline</h3>
+src/components/PublishTimeline.jsx:168:        <div className="manual-fallback-hint" role="status">
+src/components/PublishTimeline.jsx:172:              Reconnect Facebook
+src/main.jsx:349:  "Approval queue": "审批队列",
+src/main.jsx:5249:      showAppToast(`${plan.name} fake publish timeline is already loaded.`);
+src/main.jsx:5266:      showAppToast(`${plan.name} fake publish timeline loaded.`);
+src/main.jsx:6765:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:6865:                <section className="publish-timeline-grid" aria-label="Per-platform fake publish timelines">
+src/main.jsx:7831:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:7928:                    <p className="app-kicker">Approval queue</p>
+src/main.jsx:8057:                    {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:10014:                <h2>Approval queue</h2>

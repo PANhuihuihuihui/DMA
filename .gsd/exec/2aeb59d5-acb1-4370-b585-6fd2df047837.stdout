@@ -1,0 +1,56 @@
+src/api/publishingClient.js:280:export const loadFacebookPages = (connectSession) =>
+src/api/publishingClient.js:281:  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+src/api/publishingClient.js:283:export const selectFacebookPage = (connectSession, pageId) =>
+src/api/publishingClient.js:286:    body: JSON.stringify({ connectSession, pageId }),
+src/components/PublishTimeline.jsx:168:        <div className="manual-fallback-hint" role="status">
+src/components/PublishTimeline.jsx:171:            <button className="manual-fallback-reconnect" onClick={onReconnect} type="button">
+src/components/PublishTimeline.jsx:172:              Reconnect Facebook
+src/styles.css:3944:.publish-timeline-status--manual-fallback-required {
+src/styles.css:4338:.debug-jobs-status--manual-fallback-required {
+src/main.jsx:1126:  "Brand & Social Accounts",
+src/main.jsx:1139:  "Brand & Social Accounts": "▣",
+src/main.jsx:1150:  "brand-kit": "Brand & Social Accounts",
+src/main.jsx:1151:  "brand-and-social-accounts": "Brand & Social Accounts",
+src/main.jsx:1167:  settings: "Brand & Social Accounts",
+src/main.jsx:1168:  "connected-accounts": "Brand & Social Accounts",
+src/main.jsx:1222:  "Brand & Social Accounts": {
+src/main.jsx:1224:    title: "Brand & Social Accounts",
+src/main.jsx:1608:      subtitle: "(via TikTok OAuth)",
+src/main.jsx:1681:  ["FAQs", "Explain OAuth, assisted channels, proof hooks, and owner approval."],
+src/main.jsx:1801:  ["Facebook", "Live OAuth adapter", "Approved Page posts can publish live when Meta credentials are configured."],
+src/main.jsx:2187:    module: "Brand & Social Accounts",
+src/main.jsx:2188:    note: "Show brand details, social platforms, OAuth boundaries, and page picker.",
+src/main.jsx:3830:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+src/main.jsx:4207:            subtitle: "(official OAuth)",
+src/main.jsx:4472:      showAppToast("Image attached to Facebook draft.");
+src/main.jsx:4579:      setAppToast("Facebook Page connected. You can publish approved Facebook drafts live.");
+src/main.jsx:4581:    const connectSession = params.get("connectSession");
+src/main.jsx:4582:    if (connectSession) {
+src/main.jsx:4583:      loadFacebookPages(connectSession)
+src/main.jsx:4587:          setPendingConnectSession(connectSession);
+src/main.jsx:5052:      nextParams.delete("connectSession");
+src/main.jsx:5055:      setAppToast("Facebook Page connected. You can publish approved Facebook drafts live.");
+src/main.jsx:5068:      showAppToast("Connect Facebook before saving a Page selection.");
+src/main.jsx:5072:    showAppToast(`${page.name || "Facebook Page"} selected. Official publish still requires OAuth connection.`);
+src/main.jsx:5472:      showAppToast("Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET on the backend.");
+src/main.jsx:5502:      showAppToast("Live publishing is available for Facebook drafts first.");
+src/main.jsx:5506:      showAppToast("Approve this exact Facebook draft before publishing live.");
+src/main.jsx:5516:      showAppToast("Connect Facebook before publishing live.");
+src/main.jsx:6765:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:6871:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+src/main.jsx:7659:                    ["Facebook", "Official first", "OAuth Page publish remains the first production path."],
+src/main.jsx:7673:                    "Compatible Facebook posts publish through OAuth",
+src/main.jsx:7831:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:7866:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+src/main.jsx:8049:                    <p className="app-kicker">Brand & Social Accounts</p>
+src/main.jsx:8053:                      users click OAuth to grant access, and provider credentials stay server-side.
+src/main.jsx:8057:                    {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:8103:                            <button type="button" onClick={() => showAppToast("Demo unlink keeps OAuth tokens server-side.")}>
+src/main.jsx:8116:                      <h3>Choose the Page LocalPilot should use after OAuth.</h3>
+src/main.jsx:8122:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+src/main.jsx:8124:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+src/main.jsx:8137:                      <strong>{facebookConnection.configured ? "OAuth configured" : "Backend env required"}</strong>
+src/main.jsx:8391:                        selectModule("Brand & Social Accounts");
+src/main.jsx:8849:                                  {genAttachPending === output.id ? "Attaching..." : "Use for Facebook post"}
+src/main.jsx:9187:                          ["▣", "Brand & Social Accounts", ""],
+src/main.jsx:9848:                              <button type="button" onClick={() => selectModule("Brand & Social Accounts")}>

@@ -1,0 +1,19 @@
+{
+  "id": "7816f782-0ffc-4d14-a9b3-c126252acc6b",
+  "runtime": "python",
+  "purpose": "inspect token_crypto snippets for M005 S01 T01",
+  "script_chars": 532,
+  "started_at": "2026-06-26T17:16:03.390Z",
+  "finished_at": "2026-06-26T17:16:03.427Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 37,
+  "stdout_bytes": 2225,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/7816f782-0ffc-4d14-a9b3-c126252acc6b.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/7816f782-0ffc-4d14-a9b3-c126252acc6b.stderr"
+}

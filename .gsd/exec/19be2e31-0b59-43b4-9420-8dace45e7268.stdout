@@ -1,0 +1,22 @@
+=== S01 Integration Verification ===
+
+1. T01: connectSession wiring
+✓ connectSession found in main.jsx
+
+2. T02: manual-fallback-hint block
+✓ manual-fallback-hint found in PublishTimeline.jsx
+✓ onReconnect wiring found in main.jsx
+
+3. T03: attachGenerationOutputToDraft wiring
+✓ attachGenerationOutputToDraft found in publishingClient.js
+✓ patch_draft_media_ref found in store.py
+✓ Use for Facebook post button found
+
+4. T04: App review documentation
+✓ docs/app-review-evidence.md exists
+✓ app-review-evidence.md has section headers
+
+5. Build verification
+✓ npm run build succeeded
+
+=== All S01 tasks integrated successfully ===

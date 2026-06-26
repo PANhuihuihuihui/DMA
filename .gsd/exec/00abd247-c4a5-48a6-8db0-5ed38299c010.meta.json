@@ -1,0 +1,26 @@
+{
+  "id": "00abd247-c4a5-48a6-8db0-5ed38299c010",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-server-search-python (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-server-search-python",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 259,
+  "started_at": "2026-06-26T06:56:07.768Z",
+  "finished_at": "2026-06-26T06:56:07.800Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 32,
+  "stdout_bytes": 460,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/00abd247-c4a5-48a6-8db0-5ed38299c010.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/00abd247-c4a5-48a6-8db0-5ed38299c010.stderr"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "1cd9a190-c0aa-40b5-b264-9d8a262d0923",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-server-snippet4 (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-server-snippet4",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 48,
+  "started_at": "2026-06-26T06:56:03.470Z",
+  "finished_at": "2026-06-26T06:56:03.481Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 11,
+  "stdout_bytes": 4235,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/1cd9a190-c0aa-40b5-b264-9d8a262d0923.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/1cd9a190-c0aa-40b5-b264-9d8a262d0923.stderr"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "7c334cd6-3066-4c47-af64-d900fad8b180",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-top-empty-lines (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-top-empty-lines",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 170,
+  "started_at": "2026-06-26T06:59:19.483Z",
+  "finished_at": "2026-06-26T06:59:19.526Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 43,
+  "stdout_bytes": 1157,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/7c334cd6-3066-4c47-af64-d900fad8b180.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/7c334cd6-3066-4c47-af64-d900fad8b180.stderr"
+}

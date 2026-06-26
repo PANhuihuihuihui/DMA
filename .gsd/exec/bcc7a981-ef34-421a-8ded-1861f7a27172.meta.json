@@ -1,0 +1,26 @@
+{
+  "id": "bcc7a981-ef34-421a-8ded-1861f7a27172",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-read-appdemo-signature (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-read-appdemo-signature",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 154,
+  "started_at": "2026-06-26T06:58:30.513Z",
+  "finished_at": "2026-06-26T06:58:30.545Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 32,
+  "stdout_bytes": 2110,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/bcc7a981-ef34-421a-8ded-1861f7a27172.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/bcc7a981-ef34-421a-8ded-1861f7a27172.stderr"
+}

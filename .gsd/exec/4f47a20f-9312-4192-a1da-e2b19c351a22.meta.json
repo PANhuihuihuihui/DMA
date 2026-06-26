@@ -1,0 +1,19 @@
+{
+  "id": "4f47a20f-9312-4192-a1da-e2b19c351a22",
+  "runtime": "python",
+  "purpose": "M005 S01 T01 compatibility tests for facebook oauth/token store",
+  "script_chars": 438,
+  "started_at": "2026-06-26T17:20:04.635Z",
+  "finished_at": "2026-06-26T17:20:05.042Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 407,
+  "stdout_bytes": 82,
+  "stderr_bytes": 3341,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/4f47a20f-9312-4192-a1da-e2b19c351a22.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/4f47a20f-9312-4192-a1da-e2b19c351a22.stderr"
+}

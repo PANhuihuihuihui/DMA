@@ -1,0 +1,5 @@
+36:export const loadPublishingWorkflow = () => requestJson("/workflow");
+61:  requestJson("/phase3/creator-style-video-workflows", {
+66:export const generatePhase3CreatorStyleVideo = (workflowId, payload) =>
+67:  requestJson(`/phase3/creator-style-video-workflows/${encodeURIComponent(workflowId)}/generate`, {
+207:export const loadPublishJob = (jobId) => requestJson(`/publish-jobs/${encodeURIComponent(jobId)}`);

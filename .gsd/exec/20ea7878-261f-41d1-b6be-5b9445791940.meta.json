@@ -1,0 +1,26 @@
+{
+  "id": "20ea7878-261f-41d1-b6be-5b9445791940",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-grep-workflow-endpoint (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-grep-workflow-endpoint",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 99,
+  "started_at": "2026-06-26T07:18:14.445Z",
+  "finished_at": "2026-06-26T07:18:14.453Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 8,
+  "stdout_bytes": 415,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/20ea7878-261f-41d1-b6be-5b9445791940.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/20ea7878-261f-41d1-b6be-5b9445791940.stderr"
+}

@@ -1,0 +1,22 @@
+backend/app/facebook_oauth.py:16:CONNECT_SESSION_TTL_SECONDS = 600
+backend/app/facebook_oauth.py:19:_CONNECT_SESSIONS = {}
+backend/app/facebook_oauth.py:93:    _CONNECT_SESSIONS[session_id] = {
+backend/app/facebook_oauth.py:122:        raise store.StoreError(400, "Selected Page was not in the connect session.")
+backend/app/facebook_oauth.py:147:    if not session_id or session_id not in _CONNECT_SESSIONS:
+backend/app/facebook_oauth.py:148:        raise store.StoreError(400, "Connect session is invalid or expired.")
+backend/app/facebook_oauth.py:149:    session = _CONNECT_SESSIONS[session_id] if not consume else _CONNECT_SESSIONS.pop(session_id)
+backend/app/facebook_oauth.py:150:    if time.time() - session["createdAt"] > CONNECT_SESSION_TTL_SECONDS:
+backend/app/facebook_oauth.py:151:        _CONNECT_SESSIONS.pop(session_id, None)
+backend/app/facebook_oauth.py:152:        raise store.StoreError(400, "Connect session is expired.")
+backend/app/facebook_oauth.py:269:    _CONNECT_SESSIONS.clear()
+backend/app/store.py:785:        create table if not exists facebook_page_tokens (
+backend/app/store.py:801:          on facebook_page_tokens(merchant_id, connected_channel_id, page_id);
+backend/app/store.py:7979:        "select id from facebook_page_tokens where merchant_id = ? and connected_channel_id = ? and page_id = ?",
+backend/app/store.py:7984:            """update facebook_page_tokens
+backend/app/store.py:7993:        """insert into facebook_page_tokens
+backend/app/store.py:8005:        "select * from facebook_page_tokens where page_id = ? and merchant_id = ?",
+backend/app/store.py:8012:        "select * from facebook_page_tokens where merchant_id = ? order by page_id",
+backend/app/store.py:8019:        "update facebook_page_tokens set is_active = 0, updated_at = ? where merchant_id = ?",
+backend/app/store.py:8023:        "update facebook_page_tokens set is_active = 1, updated_at = ? where merchant_id = ? and page_id = ?",
+backend/app/store.py:8030:        "update facebook_page_tokens set status = 'reconnect_required', updated_at = ? where page_id = ?",
+backend/app/store.py:8037:        "select * from facebook_page_tokens where merchant_id = ? and is_active = 1",

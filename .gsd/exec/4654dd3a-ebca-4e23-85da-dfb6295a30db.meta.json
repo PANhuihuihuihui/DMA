@@ -1,0 +1,19 @@
+{
+  "id": "4654dd3a-ebca-4e23-85da-dfb6295a30db",
+  "runtime": "python",
+  "purpose": "M005 S01 T01 import smoke check",
+  "script_chars": 214,
+  "started_at": "2026-06-26T17:19:51.880Z",
+  "finished_at": "2026-06-26T17:19:51.985Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 105,
+  "stdout_bytes": 33,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/4654dd3a-ebca-4e23-85da-dfb6295a30db.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/4654dd3a-ebca-4e23-85da-dfb6295a30db.stderr"
+}

@@ -1,0 +1,121 @@
+   380	                    self.resolve_operator_context(conn, parsed)
+   381	                    self.retry_publish_job(conn, admin_publish_job["job_id"], body)
+   382	                    job = store.get_publish_job(conn, admin_publish_job["job_id"])
+   383	                    self.send_json({"status": "ok", "job": store.serialize_debug_publish_job(conn, job)}, status=201)
+   384	                return
+   385	            if admin_publish_job and method == "POST" and admin_publish_job["action"] == "mark-support":
+   386	                body = self.read_json()
+   387	                with closing(store.connect(self.db_path)) as conn:
+   388	                    self.resolve_operator_context(conn, parsed)
+   389	                    store.get_publish_job(conn, admin_publish_job["job_id"])
+   390	                    store.mark_publish_job_support_path(conn, admin_publish_job["job_id"], body.get("note"))
+   391	                    conn.commit()
+   392	                    job = store.get_publish_job(conn, admin_publish_job["job_id"])
+   393	                    self.send_json({"status": "ok", "job": store.serialize_debug_publish_job(conn, job)}, status=201)
+   394	                return
+   395	            if method == "GET" and path == "/api/v1/channels/health":
+   396	                query = parse_qs(parsed.query)
+   397	                platform = (query.get("platform") or [None])[0]
+   398	                with closing(store.connect(self.db_path)) as conn:
+   399	                    merchant_id = self.resolve_merchant_id(conn, parsed)
+   400	                    self.send_json(store.get_channel_health(conn, merchant_id, platform=platform))
+   401	                return
+   402	            channel_action = self.match_channel_action(path)
+   403	            if channel_action and method == "POST" and channel_action["action"] == "disconnect":
+   404	                with closing(store.connect(self.db_path)) as conn:
+   405	                    merchant_id = self.resolve_merchant_id(conn, parsed)
+   406	                    self.send_json(
+   407	                        store.disconnect_channel(conn, merchant_id, channel_action["channel_id"]),
+   408	                        status=201,
+   409	                    )
+   410	                return
+   411	            if channel_action and method == "POST" and channel_action["action"] == "reconnect":
+   412	                with closing(store.connect(self.db_path)) as conn:
+   413	                    merchant_id = self.resolve_merchant_id(conn, parsed)
+   414	                    self.send_json(
+   415	                        store.set_channel_health(conn, merchant_id, channel_action["channel_id"], "connected"),
+   416	                        status=201,
+   417	                    )
+   418	                return
+   419	            if method == "GET" and path == "/api/v1/tiktok/creator-info":
+   420	                query = parse_qs(parsed.query)
+   421	                channel_id = (query.get("channelId") or [store.TIKTOK_CHANNEL_ID])[0]
+   422	                with closing(store.connect(self.db_path)) as conn:
+   423	                    self.resolve_merchant_id(conn, parsed)
+   424	                    self.send_json({"creatorInfo": store.get_tiktok_creator_info(conn, channel_id)})
+   425	                return
+   426	            if method == "GET" and path == "/api/v1/tiktok/media-policy":
+   427	                with closing(store.connect(self.db_path)) as conn:
+   428	                    self.resolve_merchant_id(conn, parsed)
+   429	                    self.send_json({"mediaPolicy": store.strictest_channel_media_policy(conn)})
+   430	                return
+   431	            if method == "POST" and path == "/api/v1/tiktok/creator-info/refresh":
+   432	                with closing(store.connect(self.db_path)) as conn:
+   433	                    self.resolve_merchant_id(conn, parsed)
+   434	                    body = self.read_json()
+   435	                    channel_id = body.get("channelId") or store.TIKTOK_CHANNEL_ID
+   436	                    self.send_json({"creatorInfo": store.refresh_tiktok_creator_info(conn, channel_id)}, status=201)
+   437	                return
+   438	            if method == "GET" and path == "/api/v1/facebook/connection":
+   439	                with closing(store.connect(self.db_path)) as conn:
+   440	                    self.send_json(facebook_oauth.connection_status(conn=conn))
+   441	                return
+   442	            if method == "GET" and path == "/api/v1/facebook/pages":
+   443	                query = parse_qs(parsed.query)
+   444	                session_id = (query.get("connectSession") or [None])[0]
+   445	                self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id)})
+   446	                return
+   447	            if method == "POST" and path == "/api/v1/facebook/pages/select":
+   448	                with closing(store.connect(self.db_path)) as conn:
+   449	                    body = self.read_json()
+   450	                    self.send_json(facebook_oauth.select_page(conn, body.get("connectSession"), body.get("pageId")), status=201)
+   451	                return
+   452	            if method == "POST" and path == "/api/v1/facebook/pages/switch":
+   453	                with closing(store.connect(self.db_path)) as conn:
+   454	                    body = self.read_json()
+   455	                    self.send_json(facebook_oauth.switch_active_page(conn, body.get("pageId")))
+   456	                return
+   457	            if method == "GET" and path == "/api/v1/facebook/oauth/start":
+   458	                query = parse_qs(parsed.query)
+   459	                self.send_redirect(facebook_oauth.build_login_url(return_url=(query.get("returnTo") or [None])[0]))
+   460	                return
+   461	            if method == "GET" and path == "/api/v1/facebook/oauth/callback":
+   462	                with closing(store.connect(self.db_path)) as conn:
+   463	                    self.send_redirect(facebook_oauth.complete_callback(conn, parse_qs(parsed.query)))
+   464	                return
+   465	            if method == "POST" and path == "/api/v1/campaigns":
+   466	                with closing(store.connect(self.db_path)) as conn:
+   467	                    self.send_json({"campaign": store.create_campaign(conn, self.read_json())}, status=201)
+   468	                return
+   469	            approval_action = self.match_approval_action(path)
+   470	            if approval_action and method == "POST" and approval_action["action"] == "publish":
+   471	                with closing(store.connect(self.db_path)) as conn:
+   472	                    self.send_json(fake_publisher.queue_fake_publish(conn, approval_action["approval_id"]), status=201)
+   473	                return
+   474	            if approval_action and method == "POST" and approval_action["action"] == "publish-facebook":
+   475	                with closing(store.connect(self.db_path)) as conn:
+   476	                    self.send_json(
+   477	                        facebook_publisher.queue_facebook_publish(
+   478	                            conn,
+   479	                            approval_action["approval_id"],
+   480	                            self.read_json(),
+   481	                        ),
+   482	                        status=201,
+   483	                    )
+   484	                return
+   485	            if approval_action and method == "POST" and approval_action["action"] == "publish-tiktok":
+   486	                with closing(store.connect(self.db_path)) as conn:
+   487	                    self.send_json(
+   488	                        tiktok_publisher.queue_tiktok_publish(
+   489	                            conn,
+   490	                            approval_action["approval_id"],
+   491	                            self.read_json(),
+   492	                        ),
+   493	                        status=201,
+   494	                    )
+   495	                return
+   496	            publish_job = self.match_publish_job(path)
+   497	            if publish_job and method == "GET" and publish_job["action"] is None:
+   498	                with closing(store.connect(self.db_path)) as conn:
+   499	                    self.send_json({"job": store.get_serialized_publish_job(conn, publish_job["job_id"])})
+   500	                return

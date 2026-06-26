@@ -1,0 +1,26 @@
+{
+  "id": "8f42aa94-803b-45a3-9ca5-137bbc71004b",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-rg-serialized-job (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-rg-serialized-job",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 107,
+  "started_at": "2026-06-26T07:21:12.661Z",
+  "finished_at": "2026-06-26T07:21:12.675Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 14,
+  "stdout_bytes": 527,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/8f42aa94-803b-45a3-9ca5-137bbc71004b.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/8f42aa94-803b-45a3-9ca5-137bbc71004b.stderr"
+}

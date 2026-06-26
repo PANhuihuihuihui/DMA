@@ -1,0 +1,19 @@
+{
+  "id": "ddea541f-8b1f-41e0-be46-563a93dba94f",
+  "runtime": "bash",
+  "purpose": "Verify T04 doc exists and has sections",
+  "script_chars": 138,
+  "started_at": "2026-06-26T06:43:47.688Z",
+  "finished_at": "2026-06-26T06:43:47.697Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 9,
+  "stdout_bytes": 49,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ddea541f-8b1f-41e0-be46-563a93dba94f.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ddea541f-8b1f-41e0-be46-563a93dba94f.stderr"
+}

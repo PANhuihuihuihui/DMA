@@ -1,0 +1,149 @@
+9950:                  <div>
+9951:                    <span>{moduleWorkflows[activeModule]?.focus || config.title}</span>
+9952:                    <h3>{config.title}</h3>
+9953:                    <p>{moduleWorkflows[activeModule]?.summary || "This module uses fake demo data for customer review."}</p>
+9954:                  </div>
+9955:                  <button className="primary-action" type="button" onClick={() => showAppToast(`${activeModule} demo action saved.`)}>
+9956:                    Run demo action
+9957:                  </button>
+9958:                </section>
+9959:
+9960:                <div className="module-cards">
+9961:                  {config.cards.map(([title, body]) => (
+9962:                    <article className="module-card" key={title}>
+9963:                      <span>Capability</span>
+9964:                      <strong>{title}</strong>
+9965:                      <p>{body}</p>
+9966:                    </article>
+9967:                  ))}
+9968:                </div>
+9969:
+9970:                <div className="module-steps" aria-label={`${activeModule} workflow`}>
+9971:                  {(moduleWorkflows[activeModule]?.steps || []).map(([status, title, action]) => (
+9972:                    <article key={`${status}-${title}`}>
+9973:                      <span>{status}</span>
+9974:                      <strong>{title}</strong>
+9975:                      <p>{action}</p>
+9976:                      <button type="button" onClick={() => showAppToast(`${title} marked in ${activeModule}.`)}>
+9977:                        Mark
+9978:                      </button>
+9979:                    </article>
+9980:                  ))}
+9981:                </div>
+9982:              </div>
+9983:            )}
+9984:          </section>
+9985:
+9986:          <aside className="insights-panel" aria-label="Insights and approvals">
+9987:            <section className="insight-card readiness-card">
+9988:              <div className="panel-head compact-head">
+9989:                <h2>Package readiness</h2>
+9990:                <span>{packageReadiness}%</span>
+9991:              </div>
+9992:              <div className="readiness-meter" aria-label={`Package readiness ${packageReadiness}%`}>
+9993:                <i style={{ width: `${packageReadiness}%` }} />
+9994:              </div>
+9995:              <p>
+9996:                {approvedCount}/{plans.length} channels approved. Complete checklist items, then save the assisted publishing package.
+9997:              </p>
+9998:            </section>
+9999:            <section className="insight-card">
+10000:              <div className="panel-head compact-head">
+10001:                <h2>What needs attention</h2>
+10002:                <span>{pendingPlans.length} items</span>
+10003:              </div>
+10004:              <ul className="recommendation-list">
+10005:                {pendingPlans.slice(0, 3).map((plan) => (
+10006:                  <li key={plan.name}>
+10007:                    {plan.name} is still pending. Review the {plan.kpi.toLowerCase()} angle before publishing.
+10008:                  </li>
+10009:                ))}
+10010:              </ul>
+10011:            </section>
+10012:            <section className="insight-card">
+10013:              <div className="panel-head compact-head">
+10014:                <h2>Approval queue</h2>
+10015:                <span>{pendingPlans.length} pending</span>
+10016:              </div>
+10017:              <div className="approval-list">
+10018:                {plans.map((plan, index) =>
+10019:                  plan.status === "Approved" ? null : (
+10020:                    <article key={plan.name}>
+10021:                      <strong>{plan.name} plan</strong>
+10022:                      <small>{plan.status} · KPI: {plan.kpi}</small>
+10023:                      <button
+10024:                        type="button"
+10025:                        disabled={approvalPending === plan.id}
+10026:                        onClick={() => approvePlan(index)}
+10027:                      >
+10028:                        Approve exact draft
+10029:                      </button>
+10030:                    </article>
+10031:                  ),
+10032:                )}
+10033:                {pendingPlans.length === 0 && (
+10034:                  <article>
+10035:                    <strong>All channels approved</strong>
+10036:                    <small>Ready to save the posting package</small>
+10037:                    <button type="button" onClick={exportPackage}>
+10038:                      Save
+10039:                    </button>
+10040:                  </article>
+10041:                )}
+10042:              </div>
+10043:            </section>
+10044:            <section className="insight-card roi-card">
+10045:              <h2>Local ROI loop</h2>
+10046:              <div className="mini-metrics">
+10047:                {[
+10048:                  ["28", "calls"],
+10049:                  ["17", "bookings"],
+10050:                  ["34", "DMs"],
+10051:                  ["76", "map clicks"],
+10052:                ].map(([value, label]) => (
+10053:                  <span key={label}>
+10054:                    <strong>{value}</strong> {label}
+10055:                  </span>
+10056:                ))}
+10057:              </div>
+10058:            </section>
+10059:          </aside>
+10060:        </section>
+10061:          </>
+10062:        )}
+10063:      </main>
+10064:      {appToast && <div className="app-toast">{appToast}</div>}
+10065:    </div>
+10066:  );
+10067:}
+10068:
+10069:function App() {
+10070:  return (
+10071:    <LanguageProvider>
+10072:      <TranslationLayer />
+10073:      <AppRoutes appElement={<AppDemo />} landingElement={<LandingPage />} />
+10074:    </LanguageProvider>
+10075:  );
+10076:}
+10077:
+10078:const rootElement = document.getElementById("root");
+10079:
+10080:if (!rootElement) {
+10081:  throw new Error("LocalPilot root element was not found.");
+10082:}
+10083:
+10084:const rootStoreKey = "__localpilotReactRoot";
+10085:const existingRoot = window[rootStoreKey];
+10086:const localPilotRoot =
+10087:  existingRoot && existingRoot._internalRoot?.containerInfo === rootElement
+10088:    ? existingRoot
+10089:    : createRoot(rootElement);
+10090:window[rootStoreKey] = localPilotRoot;
+10091:localPilotRoot.render(<App />);
+10092:
+10093:if (import.meta.hot) {
+10094:  import.meta.hot.dispose(() => {
+10095:    // Intentionally no root disposal here. Keep the existing root between module updates
+10096:    // to avoid duplicate createRoot() calls and child-removal consistency errors.
+10097:  });
+10098:}

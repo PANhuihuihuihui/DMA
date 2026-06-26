@@ -1,0 +1,351 @@
+3600:                  <label className={className} key={field.key}>
+3601:                    {field.label}
+3602:                    <select value={value} onChange={(event) => handleFieldChange(field.key, event.target.value)}>
+3603:                      {field.options.map(([optionValue, optionLabel]) => (
+3604:                        <option value={optionValue} key={optionValue}>
+3605:                          {optionLabel}
+3606:                        </option>
+3607:                      ))}
+3608:                    </select>
+3609:                    {field.helpText ? <small>{field.helpText}</small> : null}
+3610:                  </label>
+3611:                );
+3612:              }
+3613:              if (field.type === "color") {
+3614:                return (
+3615:                  <label className={`${className} onboarding-color-field`} key={field.key}>
+3616:                    {field.label}
+3617:                    <div className="onboarding-color-control">
+3618:                      <input
+3619:                        type="color"
+3620:                        value={normalizeColorInputValue(value, field.placeholder)}
+3621:                        onChange={(event) => handleFieldChange(field.key, event.target.value)}
+3622:                      />
+3623:                      <input
+3624:                        type="text"
+3625:                        placeholder={field.placeholder}
+3626:                        value={value}
+3627:                        onChange={(event) => handleFieldChange(field.key, event.target.value)}
+3628:                      />
+3629:                    </div>
+3630:                    {field.helpText ? <small>{field.helpText}</small> : null}
+3631:                  </label>
+3632:                );
+3633:              }
+3634:              return (
+3635:                <label className={className} key={field.key}>
+3636:                  {field.label}
+3637:                  <input
+3638:                    type={field.type}
+3639:                    placeholder={field.placeholder}
+3640:                    value={value}
+3641:                    onChange={(event) => handleFieldChange(field.key, event.target.value)}
+3642:                  />
+3643:                  {field.helpText ? <small>{field.helpText}</small> : null}
+3644:                </label>
+3645:              );
+3646:            })}
+3647:          </div>
+3648:
+3649:          <div className="onboarding-actions">
+3650:            <button className="secondary-action" type="button" onClick={handleSaveChanges} disabled={!canSave}>
+3651:              Save changes
+3652:            </button>
+3653:            <button className="primary-action" type="button" onClick={handleConfirm} disabled={!canConfirm}>
+3654:              Confirm profile
+3655:            </button>
+3656:          </div>
+3657:        </>
+3658:      )}
+3659:
+3660:      {showReplaceWarning && (
+3661:        <Modal
+3662:          eyebrow="Replace draft"
+3663:          title="Replace your current onboarding draft?"
+3664:          onClose={() => {
+3665:            setShowReplaceWarning(false);
+3666:            setPendingUrl("");
+3667:          }}
+3668:        >
+3669:          <div className="onboarding-modal-copy">
+3670:            <p>This will replace your current profile draft with fresh website crawl data.</p>
+3671:            <div className="onboarding-actions">
+3672:              <button
+3673:                className="secondary-action"
+3674:                type="button"
+3675:                onClick={() => {
+3676:                  setShowReplaceWarning(false);
+3677:                  setPendingUrl("");
+3678:                }}
+3679:              >
+3680:                Keep current draft
+3681:              </button>
+3682:              <button className="primary-action" type="button" onClick={() => handleCrawl(pendingUrl)}>
+3683:                Replace draft
+3684:              </button>
+3685:            </div>
+3686:          </div>
+3687:        </Modal>
+3688:      )}
+3689:    </section>
+3690:  );
+3691:}
+3692:
+3693:export function AppDemo() {
+3694:  const navigate = useNavigate();
+3695:  const location = useLocation();
+3696:  const [session, setSession] = useState(null);
+3697:  const [authStatus, setAuthStatus] = useState("loading");
+3698:  const [onboardingProfile, setOnboardingProfile] = useState(null);
+3699:  const [onboardingResolved, setOnboardingResolved] = useState(false);
+3700:
+3701:  useEffect(() => {
+3702:    let cancelled = false;
+3703:    loadSession()
+3704:      .then((data) => {
+3705:        if (!cancelled) {
+3706:          setSession(data);
+3707:          setAuthStatus("authenticated");
+3708:        }
+3709:      })
+3710:      .catch(() => {
+3711:        if (!cancelled) {
+3712:          setAuthStatus("unauthenticated");
+3713:          navigate("/");
+3714:        }
+3715:      });
+3716:    return () => { cancelled = true; };
+3717:  }, [navigate]);
+3718:  const initialModule = useMemo(() => {
+3719:    const queryModule = moduleFromSlug(new URLSearchParams(location.search).get("module"));
+3720:    return queryModule || loadStoredModule();
+3721:  }, [location.search]);
+3722:  const [activeModule, setActiveModule] = useState(initialModule);
+3723:  const [selectedPost, setSelectedPost] = useState(() => loadStoredIndex("localpilot-demo-selected-post"));
+3724:  const [selectedChannel, setSelectedChannel] = useState(() => loadStoredIndex("localpilot-demo-selected-channel"));
+3725:  const [selectedInbox, setSelectedInbox] = useState(() => loadStoredIndex("localpilot-demo-selected-inbox"));
+3726:  const [selectedWalkthrough, setSelectedWalkthrough] = useState(() =>
+3727:    loadStoredIndex("localpilot-demo-selected-walkthrough"),
+3728:  );
+3729:  const [workflow, setWorkflow] = useState(() => normalizeWorkflow());
+3730:  const [workflowStatus, setWorkflowStatus] = useState("loading");
+3731:  const [workflowError, setWorkflowError] = useState("");
+3732:  const [phase3Workspace, setPhase3Workspace] = useState(emptyPhase3Workspace);
+3733:  const [phase3Status, setPhase3Status] = useState("loading");
+3734:  const [phase3Error, setPhase3Error] = useState("");
+3735:  const [approvalPending, setApprovalPending] = useState("");
+3736:  const [approvalFeedbackPending, setApprovalFeedbackPending] = useState("");
+3737:  const [reviewNotificationPending, setReviewNotificationPending] = useState("");
+3738:  const [publishPending, setPublishPending] = useState("");
+3739:  const [facebookConnection, setFacebookConnection] = useState({
+3740:    configured: false,
+3741:    connectedPages: [],
+3742:    scopes: [],
+3743:    redirectUri: "",
+3744:  });
+3745:  const [facebookConnectionStatus, setFacebookConnectionStatus] = useState("loading");
+3746:  const [facebookPublishForm, setFacebookPublishForm] = useState({
+3747:    pageId: "1243605852158721",
+3748:    publishMode: "publish_now",
+3749:    scheduledPublishTime: "",
+3750:  });
+3751:  const [competitorSourceForm, setCompetitorSourceForm] = useState({
+3752:    label: "Local competitor page",
+3753:    url: "",
+3754:  });
+3755:  const [contentSourceForm, setContentSourceForm] = useState({
+3756:    label: "Aurora tune-up offer page",
+3757:    url: "https://auroraheatcool.example/ac-tune-up",
+3758:  });
+3759:  const [contentImageForm, setContentImageForm] = useState({
+3760:    label: "Aurora service photo",
+3761:    fileName: "",
+3762:    mimeType: "",
+3763:    imageDataUrl: "",
+3764:  });
+3765:  const [contentSourcePending, setContentSourcePending] = useState(false);
+3766:  const [contentImagePending, setContentImagePending] = useState(false);
+3767:  const [sourceGenerationPending, setSourceGenerationPending] = useState("");
+3768:  const [assistantPrompt, setAssistantPrompt] = useState("Give me a 3-post content calendar for same-week AC tune-ups");
+3769:  const [assistantReplyPending, setAssistantReplyPending] = useState("");
+3770:  const [competitorAnalysisPending, setCompetitorAnalysisPending] = useState(false);
+3771:  const [mediaAssetPending, setMediaAssetPending] = useState("");
+3772:  const [ideaVariantPending, setIdeaVariantPending] = useState("");
+3773:  const [bulkVariationPending, setBulkVariationPending] = useState(false);
+3774:  const [languageVariantPending, setLanguageVariantPending] = useState(false);
+3775:  const [ugcPackagePending, setUgcPackagePending] = useState(false);
+3776:  const [activeCreateFormat, setActiveCreateFormat] = useState("");
+3777:  const [calendarDrawerOpen, setCalendarDrawerOpen] = useState(false);
+3778:  const [activeCreateMethod, setActiveCreateMethod] = useState("write-idea");
+3779:  const [creatorStyleForm, setCreatorStyleForm] = useState(defaultCreatorStyleForm);
+3780:  const [creatorStylePending, setCreatorStylePending] = useState("");
+3781:  const [creatorWorkflowOpen, setCreatorWorkflowOpen] = useState(false);
+3782:  const [creatorWorkflowStep, setCreatorWorkflowStep] = useState("prompt");
+3783:  const [creatorIdeaChatOpen, setCreatorIdeaChatOpen] = useState(false);
+3784:  const [creatorIdeaChatInput, setCreatorIdeaChatInput] = useState(defaultCreatorStyleForm.goal);
+3785:  const [creatorIdeaChatResults, setCreatorIdeaChatResults] = useState([]);
+3786:  const [creatorScriptDuration, setCreatorScriptDuration] = useState("8s");
+3787:  const [creatorScriptRewritePrompt, setCreatorScriptRewritePrompt] = useState("");
+3788:  const [carouselStyle, setCarouselStyle] = useState("storytelling");
+3789:  const [carouselAspectRatio, setCarouselAspectRatio] = useState("1:1");
+3790:  const [carouselSourceMode, setCarouselSourceMode] = useState("idea");
+3791:  const [carouselIdeaText, setCarouselIdeaText] = useState("Turn one timely local offer into a five-slide owner-ready carousel.");
+3792:  const [carouselSourceUrl, setCarouselSourceUrl] = useState("https://www.nike.com/");
+3793:  const [selectedCarouselSlideId, setSelectedCarouselSlideId] = useState("");
+3794:  const [carouselSlideDraft, setCarouselSlideDraft] = useState({ headline: "", body: "", ctaLabel: "" });
+3795:  const [activeInspirationCategory, setActiveInspirationCategory] = useState("All");
+3796:  const [activeInspirationCollection, setActiveInspirationCollection] = useState("");
+3797:  const [pendingInspirationCollection, setPendingInspirationCollection] = useState("");
+3798:  const [waitNudgeOpen, setWaitNudgeOpen] = useState(false);
+3799:  const [libraryFilters, setLibraryFilters] = useState({
+3800:    type: "All",
+3801:    search: "",
+3802:    date: "This month",
+3803:    tags: "",
+3804:    users: "All users",
+3805:    createdFrom: "All sources",
+3806:    archived: false,
+3807:  });
+3808:  const [libraryDetailCreativeId, setLibraryDetailCreativeId] = useState("");
+3809:  const [publishDraft, setPublishDraft] = useState({
+3810:    creativeId: "",
+3811:    platform: "Facebook",
+3812:    postType: "Feed post",
+3813:    step: "platform",
+3814:    scheduleDay: 22,
+3815:    scheduleHour: "05",
+3816:    scheduleMinute: "15",
+3817:    scheduleMeridiem: "PM",
+3818:    aiSuggestedTime: false,
+3819:    approvalMember: false,
+3820:    confirmed: false,
+3821:  });
+3822:  const [calendarView, setCalendarView] = useState("Monthly");
+3823:  const [selectedTimezone, setSelectedTimezone] = useState("America/Detroit");
+3824:  const [selectedCalendarSlotId, setSelectedCalendarSlotId] = useState("");
+3825:  const [activeBrandAccountTab, setActiveBrandAccountTab] = useState("Social Platforms");
+3826:  const [activeBrandDetailSection, setActiveBrandDetailSection] = useState("Content settings");
+3827:  const [socialActionDialog, setSocialActionDialog] = useState(null);
+3828:  const [helpFlyoutOpen, setHelpFlyoutOpen] = useState(false);
+3829:  const [selectedFacebookPageId, setSelectedFacebookPageId] = useState("");
+3830:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+3831:  const [pendingConnectSession, setPendingConnectSession] = useState("");
+3832:  const [helpDraft, setHelpDraft] = useState("");
+3833:  const [activeHelpAction, setActiveHelpAction] = useState(helpActions[0]?.[0] || "FAQs");
+3834:  const [cookingCreativeId, setCookingCreativeId] = useState("");
+3835:  const [queuedPublishJobs, setQueuedPublishJobs] = useState({});
+3836:  const [aiResponse, setAiResponse] = useState(
+3837:    "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
+3838:  );
+3839:  const [appToast, setAppToast] = useState("");
+3840:  const [genCatalog, setGenCatalog] = useState([]);
+3841:  const [genCredits, setGenCredits] = useState({ accountId: "", balance: 0, reserved: 0, available: 0 });
+3842:  const [genJobs, setGenJobs] = useState([]);
+3843:  const [genSelectedModel, setGenSelectedModel] = useState("");
+3844:  const [genPrompt, setGenPrompt] = useState("");
+3845:  const [genLaunchPending, setGenLaunchPending] = useState(false);
+3846:  const [genRetryPending, setGenRetryPending] = useState("");
+3847:  const [genAttachPending, setGenAttachPending] = useState("");
+3848:  const [genDetailJobId, setGenDetailJobId] = useState("");
+3849:  const [genStatus, setGenStatus] = useState("idle");
+3850:  const campaignInput = workflowCampaignInput(workflow);
+3851:  const phase3Creatives = Array.isArray(phase3Workspace.generatedCreatives)
+3852:    ? phase3Workspace.generatedCreatives
+3853:    : [];
+3854:  const phase3BrandKit = phase3Workspace.brandKit || {};
+3855:  const phase3ContentSources = Array.isArray(phase3Workspace.contentSources)
+3856:    ? phase3Workspace.contentSources
+3857:    : [];
+3858:  const phase3AssistantReplies = Array.isArray(phase3Workspace.aiAssistantReplies)
+3859:    ? phase3Workspace.aiAssistantReplies
+3860:    : [];
+3861:  const phase3Ideas = Array.isArray(phase3Workspace.competitorIdeas)
+3862:    ? phase3Workspace.competitorIdeas
+3863:    : [];
+3864:  const phase3CompetitorSources = Array.isArray(phase3Workspace.competitorSources)
+3865:    ? phase3Workspace.competitorSources
+3866:    : [];
+3867:  const phase3ProofEvents = Array.isArray(phase3Workspace.proofEvents)
+3868:    ? phase3Workspace.proofEvents
+3869:    : [];
+3870:  const phase3CalendarSlots = Array.isArray(phase3Workspace.calendarSlots)
+3871:    ? phase3Workspace.calendarSlots
+3872:    : [];
+3873:  const phase3CreativeTemplates = Array.isArray(phase3Workspace.creativeTemplates)
+3874:    ? phase3Workspace.creativeTemplates
+3875:    : [];
+3876:  const phase3ImportedTemplates = Array.isArray(phase3Workspace.importedTemplates)
+3877:    ? phase3Workspace.importedTemplates
+3878:    : [];
+3879:  const phase3ApprovalReviewLinks = Array.isArray(phase3Workspace.approvalReviewLinks)
+3880:    ? phase3Workspace.approvalReviewLinks
+3881:    : [];
+3882:  const phase3ApprovalFeedback = Array.isArray(phase3Workspace.approvalFeedback)
+3883:    ? phase3Workspace.approvalFeedback
+3884:    : [];
+3885:  const phase3ReviewNotifications = Array.isArray(phase3Workspace.reviewNotifications)
+3886:    ? phase3Workspace.reviewNotifications
+3887:    : [];
+3888:  const phase3AssetLibraryItems = Array.isArray(phase3Workspace.assetLibraryItems)
+3889:    ? phase3Workspace.assetLibraryItems
+3890:    : [];
+3891:  const phase3PerformanceSnapshots = Array.isArray(phase3Workspace.performanceSnapshots)
+3892:    ? phase3Workspace.performanceSnapshots
+3893:    : [];
+3894:  const phase3AnalyticsInsights = Array.isArray(phase3Workspace.analyticsInsights)
+3895:    ? phase3Workspace.analyticsInsights
+3896:    : [];
+3897:  const phase3AnalyticsSummary = phase3Workspace.analyticsSummary || {};
+3898:  const phase3Usage = phase3Workspace.usage || {};
+3899:  const creatorStyleWorkflows = Array.isArray(phase3Workspace.creatorStyleWorkflows)
+3900:    ? phase3Workspace.creatorStyleWorkflows
+3901:    : [];
+3902:  const creatorStyleOptions = phase3Workspace.creatorStyleOptions || {};
+3903:  const creatorStyleStyles = Array.isArray(creatorStyleOptions.styles) ? creatorStyleOptions.styles : [];
+3904:  const creatorStyleActors = Array.isArray(creatorStyleOptions.actors) ? creatorStyleOptions.actors : [];
+3905:  const creatorStyleTemplates = Array.isArray(creatorStyleOptions.templates) ? creatorStyleOptions.templates : [];
+3906:  const mergeCreatorOptions = (preferredOptions, fallbackOptions) => {
+3907:    const byId = new Map();
+3908:    fallbackOptions.forEach((option) => byId.set(option.id, option));
+3909:    preferredOptions.forEach((option) => byId.set(option.id, { ...(byId.get(option.id) || {}), ...option }));
+3910:    return Array.from(byId.values());
+3911:  };
+3912:  const creatorStyleStyleChoices = creatorStyleStyles.length
+3913:    ? creatorStyleStyles
+3914:    : [
+3915:        {
+3916:          id: "motivational",
+3917:          label: "Motivational",
+3918:          summary: "Direct-to-camera encouragement with a clear reason to act now.",
+3919:        },
+3920:      ];
+3921:  const creatorStyleActorChoices = mergeCreatorOptions(creatorStyleActors, fallbackCreatorActorChoices);
+3922:  const creatorStyleTemplateChoices = mergeCreatorOptions(creatorStyleTemplates, fallbackCreatorTemplateChoices);
+3923:  const selectedCreatorWorkflow =
+3924:    creatorStyleWorkflows.find(
+3925:      (workflow) =>
+3926:        workflow.prompt === creatorStyleForm.prompt &&
+3927:        workflow.goal === creatorStyleForm.goal &&
+3928:        workflow.status !== "archived",
+3929:    ) ||
+3930:    creatorStyleWorkflows[0] ||
+3931:    null;
+3932:  const selectedCreatorIdeas = selectedCreatorWorkflow?.ideas || [];
+3933:  const selectedCreatorIdea =
+3934:    selectedCreatorIdeas.find((idea) => idea.id === creatorStyleForm.selectedIdeaId) ||
+3935:    selectedCreatorIdeas.find((idea) => idea.id === selectedCreatorWorkflow?.selectedIdeaId) ||
+3936:    selectedCreatorIdeas[0] ||
+3937:    null;
+3938:  const selectedCreatorCreative = selectedCreatorWorkflow?.creativeId
+3939:    ? phase3Creatives.find((creative) => creative.id === selectedCreatorWorkflow.creativeId)
+3940:    : null;
+3941:  const selectedCreatorCalendarSlot = selectedCreatorCreative
+3942:    ? phase3CalendarSlots.find((slot) => slot.creativeId === selectedCreatorCreative.id)
+3943:    : null;
+3944:  const selectedCreatorMediaAsset =
+3945:    selectedCreatorCreative?.mediaAssets?.find((asset) => asset.assetType === "creator_style_video_storyboard") ||
+3946:    selectedCreatorCreative?.mediaAssets?.[0] ||
+3947:    null;
+3948:  const selectedCreatorPackage = selectedCreatorCreative?.ugcVoiceoverPackages?.[0] || null;
+3949:  const selectedCreatorStyle =
+3950:    creatorStyleStyleChoices.find((style) => style.id === creatorStyleForm.styleId) ||

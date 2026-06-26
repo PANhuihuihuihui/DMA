@@ -1,0 +1,300 @@
+./src/routes/ReviewRoute.jsx:95:              Predis-style shared approval link for owner comments, change requests, and final approval notes.
+./src/routes/ReviewRoute.jsx:99:          <Link to="/app?module=approval-queue">Back to workspace</Link>
+./src/routes/ReviewRoute.jsx:169:                  disabled={pendingType === "approval_note"}
+./src/routes/ReviewRoute.jsx:170:                  onClick={() => submitFeedback("approval_note")}
+./src/routes/ReviewRoute.jsx:172:                  Send approval note
+./src/routes/DebugRoute.jsx:249:                    <span>v{selectedJob.approvalSnapshotSummary.versionNumber}</span>
+./src/routes/DebugRoute.jsx:266:                      <dd>{display(selectedJob.approvalSnapshotSummary.approvedAt)}</dd>
+./src/routes/DebugRoute.jsx:270:                      <dd>{display(selectedJob.approvalSnapshotSummary.idempotencyKeySuffix)}</dd>
+./src/api/publishingClient.js:96:  requestJson("/phase3/approval-feedback", {
+./src/api/publishingClient.js:184:export const approveDraftVersion = (draftId, approval) =>
+./src/api/publishingClient.js:187:    body: JSON.stringify(approval),
+./src/api/publishingClient.js:190:export const queueFakePublish = (approvalId) =>
+./src/api/publishingClient.js:191:  requestJson(`/approvals/${encodeURIComponent(approvalId)}/publish`, {
+./src/api/publishingClient.js:195:export const publishFacebookPost = (approvalId, payload) =>
+./src/api/publishingClient.js:196:  requestJson(`/approvals/${encodeURIComponent(approvalId)}/publish-facebook`, {
+./src/api/publishingClient.js:201:export const publishTiktokPost = (approvalId, payload = {}) =>
+./src/api/publishingClient.js:202:  requestJson(`/approvals/${encodeURIComponent(approvalId)}/publish-tiktok`, {
+./src/api/publishingClient.js:280:export const loadFacebookPages = (connectSession) =>
+./src/api/publishingClient.js:281:  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+./src/api/publishingClient.js:283:export const selectFacebookPage = (connectSession, pageId) =>
+./src/api/publishingClient.js:284:  requestJson("/facebook/pages/select", {
+./src/api/publishingClient.js:286:    body: JSON.stringify({ connectSession, pageId }),
+./src/api/publishingClient.js:290:  requestJson("/facebook/pages/switch", {
+./src/main.jsx:407:  "Insights and approvals": "洞察和审批",
+./src/main.jsx:444:  "Share client approval links without exposing the full workspace.":
+./src/main.jsx:447:  "Keep client comments, internal notes, and final approvals attached to each post.":
+./src/main.jsx:489:  "Schedule after owner approval": "商家批准后排期",
+./src/main.jsx:527:  "Review every channel plan, request changes, and prepare a no-login approval package.":
+./src/main.jsx:572:  "Owner approval note": "商家审批说明",
+./src/main.jsx:607:  "Calls, bookings, DMs, coupon scans, saves, and map clicks are mapped to the content before approval.":
+./src/main.jsx:616:  "Schedule video after owner approval": "商家批准后排期视频",
+./src/main.jsx:743:  "Drafted a local campaign with platform-specific captions, approval notes, and ROI events to track.":
+./src/main.jsx:811:  "I updated channel copy, approval notes, and local ROI tracking in the demo plan.":
+./src/main.jsx:814:  ". I added platform-specific captions, a Xiaohongshu angle, approval notes, and ROI events to track.":
+./src/main.jsx:914:    .replace(/^(.+) completed for (.+)\. I updated channel copy, approval notes, and local ROI tracking in the demo plan\.$/, "$1 已为 $2 完成。我已更新演示方案中的渠道文案、审批说明和本地 ROI 追踪。")
+./src/main.jsx:915:    .replace(/^Drafted a local campaign from "(.+)"\. I added platform-specific captions, a Xiaohongshu angle, approval notes, and ROI events to track\.$/, "已根据“$1”生成本地营销活动，并加入平台专属文案、小红书角度、审批说明和 ROI 追踪事件。");
+./src/main.jsx:1165:  approvals: "Content Library",
+./src/main.jsx:1166:  "approval-queue": "Content Library",
+./src/main.jsx:1191:    title: "Weekly local autoplan after approval",
+./src/main.jsx:1218:    kicker: "Owner approval",
+./src/main.jsx:1220:    view: "approvals",
+./src/main.jsx:1249:      ["Ready", "TikTok vertical cut", "Schedule after owner approval"],
+./src/main.jsx:1287:    summary: "Review every channel plan, request changes, and prepare a no-login approval package.",
+./src/main.jsx:1371:  ["promotional", "Promotional", "Offer-first carousel with deadline and owner approval."],
+./src/main.jsx:1407:        prompt: "Turn a testimonial-style beauty clip into a local proof post with approval language.",
+./src/main.jsx:1457:        prompt: "Create a myth-busting local service video with an owner approval step.",
+./src/main.jsx:1576:    "Will LocalPilot publish without owner approval?",
+./src/main.jsx:1681:  ["FAQs", "Explain OAuth, assisted channels, proof hooks, and owner approval."],
+./src/main.jsx:1744:  ["Avoid", "guaranteed savings, miracle fixes, scare tactics", "Risk guardrails before owner approval"],
+./src/main.jsx:1820:  approvalReviewLinks: [],
+./src/main.jsx:1821:  approvalFeedback: [],
+./src/main.jsx:1982:    summary: "A founder-style recommendation that feels personal and approval-ready.",
+./src/main.jsx:2177:    note: "Show filters, cards, editor, publish gating, and approval controls.",
+./src/main.jsx:2342:    proof: "Calls, bookings, DMs, coupon scans, saves, and map clicks are mapped to the content before approval.",
+./src/main.jsx:2358:    publishingMode: "Schedule video after owner approval",
+./src/main.jsx:2615:  if (plan?.approvalSnapshot?.draftVersionId) {
+./src/main.jsx:2631:  const approval = workflow.approvals.find(
+./src/main.jsx:2644:      approvalId: approval?.id || "",
+./src/main.jsx:2646:      approvalSnapshot: approval?.snapshot ? normalizeApprovalSnapshot(approval.snapshot) : null,
+./src/main.jsx:2666:      ownerAction: approval?.snapshot
+./src/main.jsx:2680:          text: approval?.snapshot ? "Backend approval snapshot frozen" : "Exact approval pending",
+./src/main.jsx:2681:          done: Boolean(approval?.snapshot),
+./src/main.jsx:2877:                  <div className="approval-pill">AI set</div>
+./src/main.jsx:3735:  const [approvalPending, setApprovalPending] = useState("");
+./src/main.jsx:3736:  const [approvalFeedbackPending, setApprovalFeedbackPending] = useState("");
+./src/main.jsx:3819:    approvalMember: false,
+./src/main.jsx:3830:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+./src/main.jsx:3879:  const phase3ApprovalReviewLinks = Array.isArray(phase3Workspace.approvalReviewLinks)
+./src/main.jsx:3880:    ? phase3Workspace.approvalReviewLinks
+./src/main.jsx:3882:  const phase3ApprovalFeedback = Array.isArray(phase3Workspace.approvalFeedback)
+./src/main.jsx:3883:    ? phase3Workspace.approvalFeedback
+./src/main.jsx:4005:  const approvalReviewLinksByCreativeId = useMemo(
+./src/main.jsx:4013:  const approvalFeedbackByCreativeId = useMemo(
+./src/main.jsx:4040:        ["Avoid", (phase3BrandKit.avoidTerms || []).join(", "), "Risk guardrails before owner approval"],
+./src/main.jsx:4054:      if (job.approvalId) {
+./src/main.jsx:4055:        jobs[job.approvalId] = job;
+./src/main.jsx:4066:          publishJob: plan.approvalId ? publishJobsByApprovalId[plan.approvalId] || null : null,
+./src/main.jsx:4240:  const approvalPercent = plans.length ? Math.round((approvedCount / plans.length) * 100) : 0;
+./src/main.jsx:4241:  const packageReadiness = Math.round((approvalPercent + checklistPercent) / 2);
+./src/main.jsx:4253:          ["Pending approvals", String(pendingPlans.length), "Need a decision before publishing"],
+./src/main.jsx:4581:    const connectSession = params.get("connectSession");
+./src/main.jsx:4582:    if (connectSession) {
+./src/main.jsx:4583:      loadFacebookPages(connectSession)
+./src/main.jsx:4587:          setPendingConnectSession(connectSession);
+./src/main.jsx:4960:        `Recreated "${item.title}" as a LocalPilot local-business campaign. Backend batch ${result?.batch?.id || ""} keeps approval and proof hooks attached.`,
+./src/main.jsx:4998:      approvalMember: false,
+./src/main.jsx:5052:      nextParams.delete("connectSession");
+./src/main.jsx:5244:    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+./src/main.jsx:5249:      showAppToast(`${plan.name} fake publish timeline is already loaded.`);
+./src/main.jsx:5255:      const queued = await queueFakePublish(plan.approvalId);
+./src/main.jsx:5259:      if (nextJob.approvalId) {
+./src/main.jsx:5262:          [nextJob.approvalId]: nextJob,
+./src/main.jsx:5266:      showAppToast(`${plan.name} fake publish timeline loaded.`);
+./src/main.jsx:5505:    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+./src/main.jsx:5510:      showAppToast(`${plan.name} publish timeline is already loaded.`);
+./src/main.jsx:5539:      const queued = await publishFacebookPost(plan.approvalId, payload);
+./src/main.jsx:5543:      if (nextJob.approvalId) {
+./src/main.jsx:5546:          [nextJob.approvalId]: nextJob,
+./src/main.jsx:5560:    if (nextJob.approvalId) {
+./src/main.jsx:5563:        [nextJob.approvalId]: nextJob,
+./src/main.jsx:5570:  const addApprovalFeedback = async (index, feedbackType = "approval_note") => {
+./src/main.jsx:5587:          ? `${plan?.name || creative.platform} change request: revise the copy before final approval and keep claim-safe language.`
+./src/main.jsx:5588:          : `${plan?.name || creative.platform} approval note: owner confirmed the CTA, proof hook, and schedule are ready for review.`,
+./src/main.jsx:5599:          : `${plan?.name || "Draft"} approval note saved to the review link.`,
+./src/main.jsx:5675:        `Generated backend batch ${result?.batch?.id || ""} from "${prompt || campaignInput.offer}". I added branded post, carousel, reel script, schedule slots, approval notes, and proof hooks.`,
+./src/main.jsx:6245:          <p>{phase3Usage.creditsUsed || 0}/{phase3Usage.monthlyCredits || 3200} credits used. Owner approval stays required before live publishing.</p>
+./src/main.jsx:6366:                      the result tied to owner approval, official account boundaries, and proof hooks.
+./src/main.jsx:6679:                        "LocalPilot is loading campaign, draft, media, channel, and approval records from the backend."}
+./src/main.jsx:6710:                          disabled={approvalPending === channel.id || channel.status === "Approved"}
+./src/main.jsx:6715:                        {channel.approvalSnapshot?.draftVersionId && !channel.publishJob?.id && (
+./src/main.jsx:6725:                        {channel.platform === "facebook" && channel.approvalSnapshot?.draftVersionId && !channel.publishJob?.id && (
+./src/main.jsx:6781:                        {approvalPending === channel.id && <small className="inline-pending">Freezing snapshot...</small>}
+./src/main.jsx:6860:                      <ApprovalSnapshot snapshot={channel.approvalSnapshot} />
+./src/main.jsx:6865:                <section className="publish-timeline-grid" aria-label="Per-platform fake publish timelines">
+./src/main.jsx:6993:                      by media compatibility, connected accounts, and explicit owner approval.
+./src/main.jsx:7153:                      LocalPilot adds proof hooks and approval checks to every format.
+./src/main.jsx:7316:                            directions from one approved local offer without changing the owner approval boundary.
+./src/main.jsx:7395:                            keep the same offer, proof hook, and owner approval flow while creating localized copy.
+./src/main.jsx:7648:                      reframes that as a weekly plan that still requires owner approval before any official publish request.
+./src/main.jsx:7699:                    <strong>{pendingPlans.length} approvals pending</strong>
+./src/main.jsx:7800:                          disabled={approvalPending === selectedPlan.id || selectedPlan.status === "Approved"}
+./src/main.jsx:7805:                        {selectedPlan.approvalSnapshot?.draftVersionId && !selectedPlan.publishJob?.id && (
+./src/main.jsx:7814:                        {selectedPlan.platform === "facebook" && selectedPlan.approvalSnapshot?.draftVersionId && !selectedPlan.publishJob?.id && (
+./src/main.jsx:7862:                      <ApprovalSnapshot snapshot={selectedPlan.approvalSnapshot} />
+./src/main.jsx:7885:                        "LocalPilot is loading campaign, draft, media, channel, and approval records from the backend."}
+./src/main.jsx:7924:            {config.view === "approvals" && (
+./src/main.jsx:7926:                <section className="approval-command-panel">
+./src/main.jsx:7938:                    disabled={approvalPending === "batch"}
+./src/main.jsx:7944:                <section className="approval-queue-grid">
+./src/main.jsx:7948:                      (reviewCreative && approvalReviewLinksByCreativeId[reviewCreative.id]) || reviewCreative?.reviewLink;
+./src/main.jsx:7950:                      (reviewCreative && approvalFeedbackByCreativeId[reviewCreative.id]) || reviewCreative?.approvalFeedback || [];
+./src/main.jsx:7956:                    const feedbackPendingKey = reviewCreative ? `${reviewCreative.id}:approval_note` : "";
+./src/main.jsx:7959:                      <article key={`${plan.id || plan.name}-approval`} className={plan.status === "Approved" ? "approved" : ""}>
+./src/main.jsx:7979:                        <div className="approval-feedback-panel">
+./src/main.jsx:7982:                          <div className="approval-notification-strip">
+./src/main.jsx:7990:                          <div className="approval-feedback-list">
+./src/main.jsx:8003:                                <p>Share the link, then keep owner comments and approval notes attached to this post.</p>
+./src/main.jsx:8011:                            disabled={approvalPending === plan.id || plan.status === "Approved"}
+./src/main.jsx:8018:                            disabled={approvalFeedbackPending === feedbackPendingKey}
+./src/main.jsx:8019:                            onClick={() => addApprovalFeedback(index, "approval_note")}
+./src/main.jsx:8021:                            Add approval note
+./src/main.jsx:8032:                            disabled={approvalFeedbackPending === changePendingKey}
+./src/main.jsx:8122:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+./src/main.jsx:8124:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+./src/main.jsx:8466:                      Make each channel native, branded, approval-ready, and measurable.
+./src/main.jsx:8525:                      server-side, extracts a demo brief, and can generate approval-ready posts from it.
+./src/main.jsx:9117:                      <strong>Owner approval first</strong>
+./src/main.jsx:9697:                            disabled={approvalFeedbackPending === libraryDetailCreative.id}
+./src/main.jsx:9698:                            onClick={() => addApprovalFeedback(libraryDetailIndex, "approval_note")}
+./src/main.jsx:9777:                        "How owner approval works before publishing",
+./src/main.jsx:9842:                                : "Selected destination is compatible with assisted owner-approval handoff."}
+./src/main.jsx:9924:                            checked={publishDraft.approvalMember}
+./src/main.jsx:9925:                            onChange={(event) => updatePublishDraft("approvalMember", event.target.checked)}
+./src/main.jsx:9927:                          Select Team Member for approval
+./src/main.jsx:9986:          <aside className="insights-panel" aria-label="Insights and approvals">
+./src/main.jsx:10017:              <div className="approval-list">
+./src/main.jsx:10025:                        disabled={approvalPending === plan.id}
+./src/components/ApprovalSnapshot.jsx:38:  const approval = normalizeApprovalSnapshot(snapshot);
+./src/components/ApprovalSnapshot.jsx:40:  if (!approval.draftVersionId) {
+./src/components/ApprovalSnapshot.jsx:42:      <section className="approval-snapshot-panel approval-snapshot-empty" aria-label="Approval snapshot">
+./src/components/ApprovalSnapshot.jsx:43:        <div className="approval-snapshot-head">
+./src/components/ApprovalSnapshot.jsx:48:          <strong>Awaiting approval</strong>
+./src/components/ApprovalSnapshot.jsx:56:    <section className="approval-snapshot-panel" aria-label={`${approval.platform} approval snapshot`}>
+./src/components/ApprovalSnapshot.jsx:57:      <div className="approval-snapshot-head">
+./src/components/ApprovalSnapshot.jsx:59:          <span>Frozen approval snapshot</span>
+./src/components/ApprovalSnapshot.jsx:61:            {approval.platform} draft v{approval.versionNumber}
+./src/components/ApprovalSnapshot.jsx:67:      <dl className="approval-snapshot-meta">
+./src/components/ApprovalSnapshot.jsx:71:            {approval.approver.name}
+./src/components/ApprovalSnapshot.jsx:72:            {approval.approver.email ? ` (${approval.approver.email})` : ""}
+./src/components/ApprovalSnapshot.jsx:77:          <dd>{approval.approvedAt || approval.createdAt}</dd>
+./src/components/ApprovalSnapshot.jsx:81:          <dd>{idSuffix(approval.idempotencyKey)}</dd>
+./src/components/ApprovalSnapshot.jsx:85:          <dd>{approval.connectedChannelRef.displayName || approval.connectedChannelRef.providerChannelId}</dd>
+./src/components/ApprovalSnapshot.jsx:89:      <div className="approval-snapshot-copy">
+./src/components/ApprovalSnapshot.jsx:92:          <p>{approval.caption}</p>
+./src/components/ApprovalSnapshot.jsx:96:          <p>{approval.body}</p>
+./src/components/ApprovalSnapshot.jsx:100:          <p>{approval.cta}</p>
+./src/components/ApprovalSnapshot.jsx:104:      <div className="approval-snapshot-grid">
+./src/components/ApprovalSnapshot.jsx:108:            {approval.mediaRefs.map((media) => (
+./src/components/ApprovalSnapshot.jsx:119:          <div className="approval-snapshot-pairs">{renderSummaryRows(approval.providerPayloadSummary)}</div>
+./src/components/ApprovalSnapshot.jsx:123:          <div className="approval-snapshot-pairs">{renderSummaryRows(approval.disclosureSettingsRef)}</div>
+./src/components/ApprovalSnapshot.jsx:127:          <div className="approval-snapshot-pairs">
+./src/components/ApprovalSnapshot.jsx:130:              <em>{approval.tokenBoundaryRef.id}</em>
+./src/components/ApprovalSnapshot.jsx:134:              <em>{approval.tokenBoundaryRef.provider}</em>
+./src/components/ApprovalSnapshot.jsx:138:              <em>{approval.tokenBoundaryRef.storageMode}</em>
+./src/components/ApprovalSnapshot.jsx:142:              <em>{approval.tokenBoundaryRef.credentialFingerprint}</em>
+./src/components/PublishTimeline.jsx:142:    <section className="publish-timeline-panel" aria-label={`${platform} fake publish timeline`}>
+./src/components/PublishTimeline.jsx:146:          <h3>{platform} fake publish timeline</h3>
+./src/models/publishing.js:152:const normalizeApproval = (approval = {}) => {
+./src/models/publishing.js:153:  const source = asObject(approval);
+./src/models/publishing.js:208:    approvalId: text(source.approvalId),
+./src/models/publishing.js:214:    approvalSnapshot: normalizeApprovalSnapshot(source.approvalSnapshot),
+./src/models/publishing.js:234:    approvals: asArray(source.approvals).map(normalizeApproval),
+./src/styles.css:2209:.approval-pill,
+./src/styles.css:3004:.approval-list small,
+./src/styles.css:3133:.approval-list button,
+./src/styles.css:3149:.approval-list button,
+./src/styles.css:3162:.approval-list button,
+./src/styles.css:3719:.approval-snapshot-panel {
+./src/styles.css:3730:.approval-snapshot-panel span,
+./src/styles.css:3731:.approval-snapshot-meta dt,
+./src/styles.css:3732:.approval-snapshot-copy span,
+./src/styles.css:3733:.approval-snapshot-grid > article > span,
+./src/styles.css:3734:.approval-snapshot-pairs strong {
+./src/styles.css:3747:.approval-snapshot-panel p,
+./src/styles.css:3748:.approval-snapshot-meta dd,
+./src/styles.css:3749:.approval-snapshot-grid li,
+./src/styles.css:3750:.approval-snapshot-pairs em {
+./src/styles.css:3755:.approval-snapshot-empty {
+./src/styles.css:3759:.approval-snapshot-head {
+./src/styles.css:3766:.approval-snapshot-head h3 {
+./src/styles.css:3773:.approval-snapshot-head > strong {
+./src/styles.css:3782:.approval-snapshot-meta {
+./src/styles.css:3789:.approval-snapshot-meta div,
+./src/styles.css:3790:.approval-snapshot-copy div,
+./src/styles.css:3791:.approval-snapshot-grid article {
+./src/styles.css:3799:.approval-snapshot-meta dt,
+./src/styles.css:3800:.approval-snapshot-meta dd {
+./src/styles.css:3804:.approval-snapshot-meta dd {
+./src/styles.css:3809:.approval-snapshot-copy {
+./src/styles.css:3815:.approval-snapshot-copy p {
+./src/styles.css:3820:.approval-snapshot-grid {
+./src/styles.css:3826:.approval-snapshot-grid article {
+./src/styles.css:3833:.approval-snapshot-grid ul {
+./src/styles.css:3841:.approval-snapshot-grid li {
+./src/styles.css:3847:.approval-snapshot-grid li strong,
+./src/styles.css:3848:.approval-snapshot-grid li small {
+./src/styles.css:3852:.approval-snapshot-pairs {
+./src/styles.css:3857:.approval-snapshot-pairs span {
+./src/styles.css:3863:.approval-snapshot-pairs em {
+./src/styles.css:3944:.publish-timeline-status--manual-fallback-required {
+./src/styles.css:4338:.debug-jobs-status--manual-fallback-required {
+./src/styles.css:4631:.approval-list {
+./src/styles.css:5195:.approval-command-panel,
+./src/styles.css:5213:.approval-command-panel h2,
+./src/styles.css:5224:.approval-command-panel p,
+./src/styles.css:5238:.approval-queue-grid article,
+./src/styles.css:5286:.approval-queue-grid,
+./src/styles.css:5297:.approval-queue-grid article,
+./src/styles.css:5308:.approval-queue-grid dt,
+./src/styles.css:5849:.approval-queue-grid article.approved {
+./src/styles.css:5854:.approval-queue-grid dl {
+./src/styles.css:5860:.approval-queue-grid dl div {
+./src/styles.css:5866:.approval-queue-grid dd {
+./src/styles.css:5870:.approval-feedback-panel {
+./src/styles.css:5881:.approval-feedback-panel input {
+./src/styles.css:5894:.approval-notification-strip {
+./src/styles.css:5903:.approval-notification-strip strong {
+./src/styles.css:5908:.approval-notification-strip small {
+./src/styles.css:5912:.approval-feedback-list {
+./src/styles.css:5917:.approval-feedback-list article {
+./src/styles.css:5927:.approval-feedback-list strong {
+./src/styles.css:6326:.approval-list article {
+./src/styles.css:6336:.approval-list small {
+./src/styles.css:6340:.approval-list button {
+./src/styles.css:7486:  .approval-snapshot-meta,
+./src/styles.css:7487:  .approval-snapshot-copy,
+./src/styles.css:7488:  .approval-snapshot-grid {
+./src/styles.css:7731:  .approval-command-panel,
+./src/styles.css:7770:  .approval-queue-grid,
+./src/styles.css:7963:  .approval-snapshot-head {
+./src/publishing/workflow.js:174:    approvalSnapshotSummary: summarizeApprovalSnapshot(source.approvalSnapshotSummary),
+./LOOPING_ENGINEERING_PLAN.md:155:- Publishing requires explicit owner approval before any post is sent.
+./LOOPING_ENGINEERING_PLAN.md:172:- Publishing must require explicit user approval before posts are sent.
+./LOOPING_ENGINEERING_PLAN.md:296:- owner approval before publish
+./LOOPING_ENGINEERING_PLAN.md:405:  - Review/approval states
+./docs/karen_demo_redesign_plan.md:40:- Right rail: approval queue, local ROI signals, competitor/trend alerts, and package readiness.
+./docs/karen_demo_redesign_plan.md:66:- Agency approval workflow: approve, request changes, checklist completion, and saved package.
+./docs/karen_demo_redesign_plan.md:74:- Add a package readiness summary that updates as approvals/checklist items change.
+./docs/karen_demo_redesign_plan.md:100:- Approvals: `/app?module=approvals`
+./docs/digital_marketing_agent_market_research.md:13:| Social media management software | Buffer, Later, Metricool, SocialBee, Hootsuite, Sprout Social | Scheduling, calendar, inbox, analytics, approvals, AI captions, some competitor tracking | From free to roughly $20-$100/month for SMB tools; Hootsuite/Sprout move into $199+/user/month territory |
+./docs/digital_marketing_agent_market_research.md:43:| Later | Visual-first planning for Instagram/TikTok-style workflows | Starter $18.75/month billed yearly; Growth and Scale add more social sets, users, analytics, UGC, and approvals |
+./docs/digital_marketing_agent_market_research.md:77:6. Human-in-the-loop approval: AI drafts everything, owner approves before posting; optional agency/freelancer mode for review.
+./docs/digital_marketing_agent_market_research.md:96:| Agency/Franchise | $999+/month | Multiple locations or agencies | Multi-location workflows, approvals, white-label reports, role permissions, templates |
+./docs/ceo_cto_plan_for_local_marketing_agent.md:61:5. Owner approval workflow  
+./docs/ceo_cto_plan_for_local_marketing_agent.md:98:- Calendar and approval queue.
+./docs/ceo_cto_plan_for_local_marketing_agent.md:117:- Team approval workflow.
+./docs/ceo_cto_plan_for_local_marketing_agent.md:146:| Agency / Franchise | $999+/month | Multi-location or agency | Role permissions, workspaces, approvals, white-label reports |
+./docs/ceo_cto_plan_for_local_marketing_agent.md:251:- approvals
+./docs/ceo_cto_plan_for_local_marketing_agent.md:259:4. Campaign calendar and approval queue.
+./docs/feature_gap_priority_review.md:9:LocalPilot AI already has the right product wedge: a local-business AI marketing operator, not another social scheduler. The current demo communicates the concept with a public landing page, fake login, platform-native channel plans, Xiaohongshu positioning, local ROI signals, approval actions, and reviewable module tabs.
+./docs/feature_gap_priority_review.md:23:- Calendar, inbox, analytics, reports, media library, approvals, clients, settings modules as reviewable demo surfaces.
+./docs/feature_gap_priority_review.md:37:| Approval queue with saved state | Agencies and owners need approve/request-change history, not temporary demo clicks. | Full-stack engineer owns approvals table/API. Frontend engineer owns queue UX. | Every generated asset has an approval status and revision note. |
+./docs/feature_gap_priority_review.md:61:| Team and agency workflow | Agencies need multiple clients, roles, approvals, and white-label reporting. | Full-stack engineer owns organizations, roles, client workspaces. | One agency can manage 3 client profiles. |
+./docs/feature_gap_priority_review.md:94:| Frontend engineer | Onboarding, campaign workbench, approval queue, export UI, ROI report views. |
+./docs/feature_gap_priority_review.md:95:| Backend/full-stack engineer | Auth, database, organizations, campaign APIs, approvals, conversion events, export service. |
+./docs/facebook-app-review-evidence.md:125:- Every draft approval creates a frozen snapshot (`approval_snapshot`) that includes the exact draft version, approver, and timestamp — ensuring the published content matches what was approved.
+./docs/app-review-evidence.md:113:   `/app?connectSession=<id>` and the inline Page picker renders the
+./docs/app-review-evidence.md:126:11. **Verify publish success.** The publish timeline updates to "Published"
+./docs/app-review-evidence.md:164:| 4 | Approval | "Every publish requires explicit owner approval. The approval freezes the exact draft version that will be published." |
+./docs/ceo_research_v2.html:221:  <p class="one-liner"><strong>Yes — the market is real, large, and painful.</strong> 36M US SMBs, 54% increasing social spend in 2026, ~45% of marketers already paying $100–5k/mo for marketing they hate. Our wedge (strategy-aware platform-native posts + owner approval + conversion attribution) is correct against Buffer/Hootsuite/agencies.</p>
+./docs/ceo_research_v2.html:326:<tr style="background:#fff8ec"><td><strong>LocalPilot AI (us)</strong></td><td><strong>$99–199/mo</strong></td><td><strong>Strategy + native posts + approval + attribution</strong></td></tr>
+./docs/ceo_research_v2.html:399:<div class="callout"><strong>🚨 This is a DIY competitor playbook in real time.</strong> Same wedge, manual labor, $70/mo/store. Our advantages: platform-native publishing + owner-approval workflow + multi-platform strategy engine + attribution. Their advantages: price + zero engineering.</div>
+./docs/ceo_research_v2.html:442:<tr style="background:#fff8ec"><td><strong>LocalPilot AI (us)</strong></td><td><strong>$99–199/mo</strong></td><td><strong>Strategy + native posts + approval + attribution</strong></td><td><strong>Pre-launch</strong></td></tr>
+./docs/ceo_research_v2.html:450:  <li>Owner approval before publish</li>
+./docs/ceo_research_v2.html:473:  <li><strong>Pricing</strong> — $99/mo Starter (single platform, weekly autopilot), $199/mo Growth (4 platforms + approval), $399/mo Multi-location. <strong>DO NOT price below $99</strong> — Z博士 playbook proves SMBs will pay $70–500/mo for AI marketing. The bar is "cheaper than the $500–5k agency," not "cheaper than Buffer."</li>
+./docs/ceo_research_v2.md:6:> Repo: https://github.com/PANhuihuihuihui/DMA — LocalPilot AI (one idea → platform-native posts, owner approval)
+./docs/ceo_research_v2.md:33:LocalPilot's wedge (strategy-aware platform-native + owner approval + conversion loop) is **still correct**, but the bar is now visibly higher:
+./docs/ceo_research_v2.md:79:| **LocalPilot AI (us)** | **$99-199/mo** | **Strategy + native posts + approval + attribution** |
+./docs/ceo_research_v2.md:161:2. **Owner-approval workflow** — they skip this
+./docs/ceo_research_v2.md:205:- Owner approval before publish

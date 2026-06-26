@@ -1,0 +1,75 @@
+3660:      {showReplaceWarning && (
+3661:        <Modal
+3662:          eyebrow="Replace draft"
+3663:          title="Replace your current onboarding draft?"
+3664:          onClose={() => {
+3665:            setShowReplaceWarning(false);
+3666:            setPendingUrl("");
+3667:          }}
+3668:        >
+3669:          <div className="onboarding-modal-copy">
+3670:            <p>This will replace your current profile draft with fresh website crawl data.</p>
+3671:            <div className="onboarding-actions">
+3672:              <button
+3673:                className="secondary-action"
+3674:                type="button"
+3675:                onClick={() => {
+3676:                  setShowReplaceWarning(false);
+3677:                  setPendingUrl("");
+3678:                }}
+3679:              >
+3680:                Keep current draft
+3681:              </button>
+3682:              <button className="primary-action" type="button" onClick={() => handleCrawl(pendingUrl)}>
+3683:                Replace draft
+3684:              </button>
+3685:            </div>
+3686:          </div>
+3687:        </Modal>
+3688:      )}
+3689:    </section>
+3690:  );
+3691:}
+3692:
+3693:export function AppDemo() {
+3694:  const navigate = useNavigate();
+3695:  const location = useLocation();
+3696:  const [session, setSession] = useState(null);
+3697:  const [authStatus, setAuthStatus] = useState("loading");
+3698:  const [onboardingProfile, setOnboardingProfile] = useState(null);
+3699:  const [onboardingResolved, setOnboardingResolved] = useState(false);
+3700:
+3701:  useEffect(() => {
+3702:    let cancelled = false;
+3703:    loadSession()
+3704:      .then((data) => {
+3705:        if (!cancelled) {
+3706:          setSession(data);
+3707:          setAuthStatus("authenticated");
+3708:        }
+3709:      })
+3710:      .catch(() => {
+3711:        if (!cancelled) {
+3712:          setAuthStatus("unauthenticated");
+3713:          navigate("/");
+3714:        }
+3715:      });
+3716:    return () => { cancelled = true; };
+3717:  }, [navigate]);
+3718:  const initialModule = useMemo(() => {
+3719:    const queryModule = moduleFromSlug(new URLSearchParams(location.search).get("module"));
+3720:    return queryModule || loadStoredModule();
+3721:  }, [location.search]);
+3722:  const [activeModule, setActiveModule] = useState(initialModule);
+3723:  const [selectedPost, setSelectedPost] = useState(() => loadStoredIndex("localpilot-demo-selected-post"));
+3724:  const [selectedChannel, setSelectedChannel] = useState(() => loadStoredIndex("localpilot-demo-selected-channel"));
+3725:  const [selectedInbox, setSelectedInbox] = useState(() => loadStoredIndex("localpilot-demo-selected-inbox"));
+3726:  const [selectedWalkthrough, setSelectedWalkthrough] = useState(() =>
+3727:    loadStoredIndex("localpilot-demo-selected-walkthrough"),
+3728:  );
+3729:  const [workflow, setWorkflow] = useState(() => normalizeWorkflow());
+3730:  const [workflowStatus, setWorkflowStatus] = useState("loading");
+3731:  const [workflowError, setWorkflowError] = useState("");
+3732:  const [phase3Workspace, setPhase3Workspace] = useState(emptyPhase3Workspace);
+3733:  const [phase3Status, setPhase3Status] = useState("loading");
+3734:  const [phase3Error, setPhase3Error] = useState("");

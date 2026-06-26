@@ -1,0 +1,26 @@
+{
+  "id": "a3d76ab1-43af-4bb0-be5b-6bac32d71b48",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-submitLogin (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-submitLogin",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 108,
+  "started_at": "2026-06-26T06:59:31.336Z",
+  "finished_at": "2026-06-26T06:59:31.355Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 19,
+  "stdout_bytes": 1365,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/a3d76ab1-43af-4bb0-be5b-6bac32d71b48.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/a3d76ab1-43af-4bb0-be5b-6bac32d71b48.stderr"
+}

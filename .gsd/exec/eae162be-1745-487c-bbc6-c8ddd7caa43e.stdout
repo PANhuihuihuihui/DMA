@@ -1,0 +1,105 @@
+5200:        mediaRefs: plan.mediaRefs.map((media) => media.mediaAssetId),
+5201:      });
+5202:      await reloadWorkflow({ silent: true });
+5203:      showAppToast(`${plan.name} draft v${plan.currentVersion.versionNumber} approved.`);
+5204:    } catch (error) {
+5205:      showAppToast(error instanceof Error ? error.message : "Approval failed.");
+5206:    } finally {
+5207:      setApprovalPending("");
+5208:    }
+5209:  };
+5210:
+5211:  const approveSafeDrafts = async () => {
+5212:    const approvablePlans = plans.filter(
+5213:      (plan) => plan?.id && plan.currentVersion?.id && plan.status !== "Approved",
+5214:    );
+5215:    if (!approvablePlans.length) {
+5216:      showAppToast("All available drafts are already approved.");
+5217:      return;
+5218:    }
+5219:
+5220:    setApprovalPending("batch");
+5221:    try {
+5222:      for (const plan of approvablePlans) {
+5223:        await approveDraftVersion(plan.id, {
+5224:          draftVersionId: plan.currentVersion.id,
+5225:          confirmation: "APPROVE_EXACT_VERSION",
+5226:          approver: {
+5227:            name: session?.name || "Karen Li",
+5228:            email: session?.email || "karen@example.com",
+5229:          },
+5230:          mediaRefs: plan.mediaRefs.map((media) => media.mediaAssetId),
+5231:        });
+5232:      }
+5233:      await reloadWorkflow({ silent: true });
+5234:      showAppToast(`${approvablePlans.length} exact draft versions approved for owner sign-off.`);
+5235:    } catch (error) {
+5236:      showAppToast(error instanceof Error ? error.message : "Approve-all failed.");
+5237:    } finally {
+5238:      setApprovalPending("");
+5239:    }
+5240:  };
+5241:
+5242:  const queuePublishJob = async (index) => {
+5243:    const plan = plans[index];
+5244:    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+5245:      showAppToast("Approve this exact draft before starting a fake publish job.");
+5246:      return;
+5247:    }
+5248:    if (plan.publishJob?.id) {
+5249:      showAppToast(`${plan.name} fake publish timeline is already loaded.`);
+5250:      return;
+5251:    }
+5252:
+5253:    setPublishPending(plan.id);
+5254:    try {
+5255:      const queued = await queueFakePublish(plan.approvalId);
+5256:      const queuedJob = normalizePublishJob(queued?.job);
+5257:      const loaded = queuedJob.id ? await loadPublishJob(queuedJob.id) : null;
+5258:      const nextJob = normalizePublishJob(loaded?.job || queuedJob);
+5259:      if (nextJob.approvalId) {
+5260:        setQueuedPublishJobs((currentJobs) => ({
+5261:          ...currentJobs,
+5262:          [nextJob.approvalId]: nextJob,
+5263:        }));
+5264:      }
+5265:      await reloadWorkflow({ silent: true });
+5266:      showAppToast(`${plan.name} fake publish timeline loaded.`);
+5267:    } catch (error) {
+5268:      showAppToast(error instanceof Error ? error.message : "Fake publish queue failed.");
+5269:    } finally {
+5270:      setPublishPending("");
+5271:    }
+5272:  };
+5273:
+5274:  const updateFacebookPublishForm = (field, value) => {
+5275:    setFacebookPublishForm((current) => ({
+5276:      ...current,
+5277:      [field]: value,
+5278:    }));
+5279:  };
+5280:
+5281:  const updateCompetitorSourceForm = (field, value) => {
+5282:    setCompetitorSourceForm((current) => ({
+5283:      ...current,
+5284:      [field]: value,
+5285:    }));
+5286:  };
+5287:
+5288:  const updateContentSourceForm = (field, value) => {
+5289:    setContentSourceForm((current) => ({
+5290:      ...current,
+5291:      [field]: value,
+5292:    }));
+5293:  };
+5294:
+5295:  const updateContentImageForm = (field, value) => {
+5296:    setContentImageForm((current) => ({
+5297:      ...current,
+5298:      [field]: value,
+5299:    }));
+5300:  };
+5301:
+5302:  const updateCreatorStyleForm = (field, value) => {
+5303:    setCreatorStyleForm((current) => ({
+5304:      ...current,

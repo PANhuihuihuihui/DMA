@@ -1,0 +1,26 @@
+{
+  "id": "7c4f2d61-bd9c-49ee-a9cf-807be5bf6704",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-start-frontend-simple (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-start-frontend-simple",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 211,
+  "started_at": "2026-06-26T06:53:13.057Z",
+  "finished_at": "2026-06-26T06:53:14.072Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 1015,
+  "stdout_bytes": 80,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/7c4f2d61-bd9c-49ee-a9cf-807be5bf6704.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/7c4f2d61-bd9c-49ee-a9cf-807be5bf6704.stderr"
+}

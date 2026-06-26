@@ -1,0 +1,26 @@
+{
+  "id": "a08b6cb5-86a2-4f24-93c6-c3cebab4909a",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-start-services (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-start-services",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 364,
+  "started_at": "2026-06-26T06:52:38.354Z",
+  "finished_at": "2026-06-26T06:53:08.359Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": true,
+  "force_resolved": false,
+  "duration_ms": 30005,
+  "stdout_bytes": 0,
+  "stderr_bytes": 201,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/a08b6cb5-86a2-4f24-93c6-c3cebab4909a.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/a08b6cb5-86a2-4f24-93c6-c3cebab4909a.stderr"
+}

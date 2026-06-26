@@ -1,0 +1,26 @@
+{
+  "id": "c7d5ecfe-ae42-4de7-af04-3af2b5efdeb0",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-api-facebook (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-api-facebook",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 62,
+  "started_at": "2026-06-26T06:54:36.673Z",
+  "finished_at": "2026-06-26T06:54:36.689Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 16,
+  "stdout_bytes": 1131,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/c7d5ecfe-ae42-4de7-af04-3af2b5efdeb0.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/c7d5ecfe-ae42-4de7-af04-3af2b5efdeb0.stderr"
+}

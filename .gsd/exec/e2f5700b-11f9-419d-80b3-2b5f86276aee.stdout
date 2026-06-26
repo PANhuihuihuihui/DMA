@@ -1,0 +1,131 @@
+  8040	                  })}
+  8041	                </section>
+  8042	              </div>
+  8043	            )}
+  8044	
+  8045	            {config.view === "accounts" && (
+  8046	              <div className="predis-surface">
+  8047	                <section className="accounts-hero">
+  8048	                  <div>
+  8049	                    <p className="app-kicker">Brand & Social Accounts</p>
+  8050	                    <h2>Clickable auth, brand details, style, integrations, and exports.</h2>
+  8051	                    <p>
+  8052	                      Predis parity needs an account and brand hub. LocalPilot keeps the secure boundary explicit:
+  8053	                      users click OAuth to grant access, and provider credentials stay server-side.
+  8054	                    </p>
+  8055	                  </div>
+  8056	                  <button className="primary-action" type="button" onClick={connectFacebook}>
+  8057	                    {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+  8058	                  </button>
+  8059	                </section>
+  8060	                <div className="brand-account-tabs" role="tablist" aria-label="Brand and social account sections">
+  8061	                  {brandAccountTabs.map((tab) => (
+  8062	                    <button
+  8063	                      className={activeBrandAccountTab === tab ? "active" : ""}
+  8064	                      type="button"
+  8065	                      role="tab"
+  8066	                      aria-selected={activeBrandAccountTab === tab}
+  8067	                      key={tab}
+  8068	                      onClick={() => setActiveBrandAccountTab(tab)}
+  8069	                    >
+  8070	                      {tab}
+  8071	                    </button>
+  8072	                  ))}
+  8073	                </div>
+  8074	                {activeBrandAccountTab === "Social Platforms" && (
+  8075	                  <section className="account-grid social-platform-grid">
+  8076	                    {socialPlatformRows.map((platform) => (
+  8077	                      <article className={platform.provider === "Facebook" ? "expanded" : ""} key={platform.provider}>
+  8078	                        <div className={`social-platform-icon ${platform.tone}`}>{platform.icon}</div>
+  8079	                        <div className="social-platform-copy">
+  8080	                          <strong>{platform.provider}</strong>
+  8081	                          <p>{platform.accountType}</p>
+  8082	                        </div>
+  8083	                        <div className="social-platform-actions">
+  8084	                          {platform.watch && (
+  8085	                            <button type="button" onClick={() => openSocialDialog(platform.provider, "video")}>
+  8086	                              <span className="social-action-icon">▦</span>
+  8087	                              Watch Videos
+  8088	                            </button>
+  8089	                          )}
+  8090	                          <button type="button" onClick={() => openSocialDialog(platform.provider, "faq")}>
+  8091	                            <span className="social-action-icon">?</span>
+  8092	                            FAQ
+  8093	                          </button>
+  8094	                          <button type="button" onClick={() => handleSocialAdd(platform)}>
+  8095	                            Add
+  8096	                          </button>
+  8097	                        </div>
+  8098	                        {platform.provider === "Facebook" && (
+  8099	                          <div className="social-connected-card">
+  8100	                            <div className="social-connected-avatar">●</div>
+  8101	                            <strong>{selectedFacebookPage?.name || campaignInput.business}</strong>
+  8102	                            <small>{selectedFacebookPage?.pageId || "1243605852158721_"}</small>
+  8103	                            <button type="button" onClick={() => showAppToast("Demo unlink keeps OAuth tokens server-side.")}>
+  8104	                              Unlink
+  8105	                            </button>
+  8106	                          </div>
+  8107	                        )}
+  8108	                      </article>
+  8109	                    ))}
+  8110	                  </section>
+  8111	                )}
+  8112	                {activeBrandAccountTab === "Social Platforms" && (
+  8113	                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden={!pendingConnectSession}>
+  8114	                    <div>
+  8115	                      <span>Facebook Page selection</span>
+  8116	                      <h3>Choose the Page LocalPilot should use after OAuth.</h3>
+  8117	                      <p>
+  8118	                        Select a Page to connect. LocalPilot will publish on its behalf.
+  8119	                      </p>
+  8120	                    </div>
+  8121	                    <div className="page-card-grid">
+  8122	                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+  8123	                        <button
+  8124	                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+  8125	                          type="button"
+  8126	                          key={page.pageId}
+  8127	                          onClick={pendingConnectSession ? () => handleConnectSessionPageSelect(page.pageId) : () => setSelectedFacebookPageId(page.pageId)}
+  8128	                        >
+  8129	                          <strong>{page.name || page.pageId}</strong>
+  8130	                          <span>{page.category || "Facebook Page"}</span>
+  8131	                          <small>{(page.tasks || []).join(" · ") || "Page permissions pending"}</small>
+  8132	                        </button>
+  8133	                      ))}
+  8134	                    </div>
+  8135	                    <div className="permission-health-card">
+  8136	                      <span>Permission health</span>
+  8137	                      <strong>{facebookConnection.configured ? "OAuth configured" : "Backend env required"}</strong>
+  8138	                      <p>
+  8139	                        Required scopes: {(facebookConnection.scopes || []).join(", ") || "pages_show_list, pages_read_engagement, pages_manage_posts"}.
+  8140	                      </p>
+  8141	                      <small>{facebookConnection.redirectUri || "Backend callback not loaded"}</small>
+  8142	                    </div>
+  8143	                    <button className="primary-action" type="button" onClick={saveSelectedFacebookPage}>
+  8144	                      Save selected Page
+  8145	                    </button>
+  8146	                  </section>
+  8147	                )}
+  8148	                {activeBrandAccountTab === "Brand Details" && (
+  8149	                  <section className="brand-details-workspace" aria-label="Brand Details">
+  8150	                    <nav className="brand-details-inner-nav" aria-label="Brand Details sections">
+  8151	                      {brandDetailSections.map((section) => (
+  8152	                        <button
+  8153	                          className={activeBrandDetailSection === section ? "active" : ""}
+  8154	                          type="button"
+  8155	                          key={section}
+  8156	                          onClick={() => setActiveBrandDetailSection(section)}
+  8157	                        >
+  8158	                          {section}
+  8159	                        </button>
+  8160	                      ))}
+  8161	                    </nav>
+  8162	                    <div className="brand-details-main">
+  8163	                      {activeBrandDetailSection === "Business identity" && (
+  8164	                        <div className="brand-identity-panel">
+  8165	                          <h3>Business identity</h3>
+  8166	                          <div className="brand-details-form">
+  8167	                            {[
+  8168	                              ["Business name", campaignInput.business],
+  8169	                              ["Business description", phase3BrandKit.voice?.promise || "Local team with honest recommendations and fast scheduling."],
+  8170	                              ["Website", phase3BrandKit.website || "https://auroraheatcool.example"],

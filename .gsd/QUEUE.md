@@ -1,5 +1,3 @@
 # Queue
 
-- 🔄 **M002: Phase 4**
-- 🔄 **M003: Phase 11**
-- 🔄 **M004: Phase 12**
+- 🔄 **M005: Platform Auth and E2E Connectivity**

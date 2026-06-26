@@ -1,0 +1,65 @@
+3800:    type: "All",
+3801:    search: "",
+3802:    date: "This month",
+3803:    tags: "",
+3804:    users: "All users",
+3805:    createdFrom: "All sources",
+3806:    archived: false,
+3807:  });
+3808:  const [libraryDetailCreativeId, setLibraryDetailCreativeId] = useState("");
+3809:  const [publishDraft, setPublishDraft] = useState({
+3810:    creativeId: "",
+3811:    platform: "Facebook",
+3812:    postType: "Feed post",
+3813:    step: "platform",
+3814:    scheduleDay: 22,
+3815:    scheduleHour: "05",
+3816:    scheduleMinute: "15",
+3817:    scheduleMeridiem: "PM",
+3818:    aiSuggestedTime: false,
+3819:    approvalMember: false,
+3820:    confirmed: false,
+3821:  });
+3822:  const [calendarView, setCalendarView] = useState("Monthly");
+3823:  const [selectedTimezone, setSelectedTimezone] = useState("America/Detroit");
+3824:  const [selectedCalendarSlotId, setSelectedCalendarSlotId] = useState("");
+3825:  const [activeBrandAccountTab, setActiveBrandAccountTab] = useState("Social Platforms");
+3826:  const [activeBrandDetailSection, setActiveBrandDetailSection] = useState("Content settings");
+3827:  const [socialActionDialog, setSocialActionDialog] = useState(null);
+3828:  const [helpFlyoutOpen, setHelpFlyoutOpen] = useState(false);
+3829:  const [selectedFacebookPageId, setSelectedFacebookPageId] = useState("");
+3830:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+3831:  const [pendingConnectSession, setPendingConnectSession] = useState("");
+3832:  const [helpDraft, setHelpDraft] = useState("");
+3833:  const [activeHelpAction, setActiveHelpAction] = useState(helpActions[0]?.[0] || "FAQs");
+3834:  const [cookingCreativeId, setCookingCreativeId] = useState("");
+3835:  const [queuedPublishJobs, setQueuedPublishJobs] = useState({});
+3836:  const [aiResponse, setAiResponse] = useState(
+3837:    "I will create platform-native posts, reserve Xiaohongshu for searchable recommendations, and track calls, DMs, coupon scans, bookings, and map clicks.",
+3838:  );
+3839:  const [appToast, setAppToast] = useState("");
+3840:  const [genCatalog, setGenCatalog] = useState([]);
+3841:  const [genCredits, setGenCredits] = useState({ accountId: "", balance: 0, reserved: 0, available: 0 });
+3842:  const [genJobs, setGenJobs] = useState([]);
+3843:  const [genSelectedModel, setGenSelectedModel] = useState("");
+3844:  const [genPrompt, setGenPrompt] = useState("");
+3845:  const [genLaunchPending, setGenLaunchPending] = useState(false);
+3846:  const [genRetryPending, setGenRetryPending] = useState("");
+3847:  const [genAttachPending, setGenAttachPending] = useState("");
+3848:  const [genDetailJobId, setGenDetailJobId] = useState("");
+3849:  const [genStatus, setGenStatus] = useState("idle");
+3850:  const campaignInput = workflowCampaignInput(workflow);
+3851:  const phase3Creatives = Array.isArray(phase3Workspace.generatedCreatives)
+3852:    ? phase3Workspace.generatedCreatives
+3853:    : [];
+3854:  const phase3BrandKit = phase3Workspace.brandKit || {};
+3855:  const phase3ContentSources = Array.isArray(phase3Workspace.contentSources)
+3856:    ? phase3Workspace.contentSources
+3857:    : [];
+3858:  const phase3AssistantReplies = Array.isArray(phase3Workspace.aiAssistantReplies)
+3859:    ? phase3Workspace.aiAssistantReplies
+3860:    : [];
+3861:  const phase3Ideas = Array.isArray(phase3Workspace.competitorIdeas)
+3862:    ? phase3Workspace.competitorIdeas
+3863:    : [];
+3864:  const phase3CompetitorSources = Array.isArray(phase3Workspace.competitorSources)

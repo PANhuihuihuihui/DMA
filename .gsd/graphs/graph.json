@@ -172,6 +172,43 @@
       "confidence": "EXTRACTED"
     },
     {
+      "id": "slice:M002:S02",
+      "label": "S02: Remediation: Verify R002-R006 implementations and fix UAT seeding",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M002/slices/S02/S02-PLAN.md"
+    },
+    {
+      "id": "task:M002:S02:T01",
+      "label": "T01: R003 verified: 19 tests prove Fernet encrypt/decrypt round-trip, ciphertext-not-plaintext, production fails-closed, vault encrypted storage, and reconnect marking",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M002:S02:T02",
+      "label": "T02: R004 verified: 12 new tests prove validate_facebook_media rejects multi-image, private hosts, bad extensions, oversized files, bad content-types, and passes valid single images",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M002:S02:T03",
+      "label": "T03: R005 verified: 16 new tests prove classify_error_class maps all 7 error classes correctly and routing taxonomy covers retryable vs manual_fallback",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M002:S02:T04",
+      "label": "T04: R006 verified: 4 existing tests prove build_publish_job_evidence returns redacted bundle with required fields, admin endpoint works, and non-operator access rejected",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M002:S02:T05",
+      "label": "T05: S01 UAT seeding gaps resolved: existing test_facebook_oauth.py proves full OAuth→connectSession→select_page flow; combined 59-test suite covers all 3 failed acceptance criteria at the code level",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
       "id": "milestone:M003",
       "label": "M003: Phase 11",
       "type": "milestone",
@@ -330,7 +367,43 @@
       "to": "task:M002:S01:T04",
       "type": "contains",
       "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M002",
+      "to": "slice:M002:S02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S02",
+      "to": "task:M002:S02:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S02",
+      "to": "task:M002:S02:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S02",
+      "to": "task:M002:S02:T03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S02",
+      "to": "task:M002:S02:T04",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S02",
+      "to": "task:M002:S02:T05",
+      "type": "contains",
+      "confidence": "EXTRACTED"
     }
   ],
-  "builtAt": "2026-06-26T06:45:24.165Z"
+  "builtAt": "2026-06-26T16:33:11.304Z"
 }

@@ -1,0 +1,21 @@
+161:  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}`, {
+167:  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}/variants`, {
+173:  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}/layer-layout`, {
+179:  requestJson(`/phase3/media-assets/${encodeURIComponent(assetId)}/render`, {
+184:export const approveDraftVersion = (draftId, approval) =>
+185:  requestJson(`/drafts/${encodeURIComponent(draftId)}/approve`, {
+196:  requestJson(`/approvals/${encodeURIComponent(approvalId)}/publish-facebook`, {
+238:export const disconnectChannel = (channelId) =>
+239:  requestJson(`/channels/${encodeURIComponent(channelId)}/disconnect`, {
+243:export const reconnectChannel = (channelId) =>
+244:  requestJson(`/channels/${encodeURIComponent(channelId)}/reconnect`, {
+257:export const loadTiktokMediaPolicy = () => requestJson("/tiktok/media-policy");
+259:export const loadFacebookConnection = () => requestJson("/facebook/connection");
+280:export const loadFacebookPages = (connectSession) =>
+281:  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+283:export const selectFacebookPage = (connectSession, pageId) =>
+284:  requestJson("/facebook/pages/select", {
+286:    body: JSON.stringify({ connectSession, pageId }),
+290:  requestJson("/facebook/pages/switch", {
+316:export const attachGenerationOutputToDraft = (draftId, generationOutputId) =>
+317:  requestJson(`/drafts/${encodeURIComponent(draftId)}/media`, {

@@ -1,0 +1,148 @@
+backend/app/fake_publisher.py:175:            "terminalStatus": "manual_fallback_required",
+backend/app/fake_publisher.py:183:                "result": "manual_fallback_required",
+backend/app/fake_publisher.py:185:                "nextRecommendedAction": "manual_fallback",
+backend/app/fake_publisher.py:186:                "nextAction": "manual_fallback",
+src/api/publishingClient.js:280:export const loadFacebookPages = (connectSession) =>
+src/api/publishingClient.js:281:  requestJson(`/facebook/pages?connectSession=${encodeURIComponent(connectSession)}`);
+src/api/publishingClient.js:283:export const selectFacebookPage = (connectSession, pageId) =>
+src/api/publishingClient.js:284:  requestJson("/facebook/pages/select", {
+src/api/publishingClient.js:286:    body: JSON.stringify({ connectSession, pageId }),
+src/api/publishingClient.js:290:  requestJson("/facebook/pages/switch", {
+backend/app/facebook_token_vault.py:94:def mark_reconnect_required(page_id, conn=None):
+backend/app/facebook_token_vault.py:98:        store.mark_facebook_page_reconnect_required(conn, page_id)
+backend/app/contracts.py:20:    "manual_fallback_required",
+backend/app/contracts.py:30:    "oauth" + "_payload",
+backend/app/tiktok_publisher.py:5:required scopes, creator-settings compatibility, disclosure confirmations, and
+backend/app/tiktok_publisher.py:177:    "scope": (403, "TikTok rejected the request: a required scope is missing."),
+backend/app/tiktok_publisher.py:223:        "requiredScopesGranted": bool(eligibility.get("scopesGranted")),
+backend/app/tiktok_publisher.py:355:    manual_fallback = outcome["attemptStatus"] == "failed" and store.should_manual_fallback(error_class)
+backend/app/tiktok_publisher.py:356:    if manual_fallback:
+backend/app/tiktok_publisher.py:357:        outcome["terminalStatus"] = "manual_fallback_required"
+backend/app/tiktok_publisher.py:361:        store.mark_publish_job_manual_fallback(conn, job["id"], error_class, outcome["summary"])
+backend/app/facebook_publisher.py:26:    from backend.app import facebook_oauth
+backend/app/facebook_publisher.py:42:        health = facebook_oauth.active_page_health(conn)
+backend/app/facebook_publisher.py:114:    manual_fallback = outcome["attemptStatus"] == "failed" and store.should_manual_fallback(error_class)
+backend/app/facebook_publisher.py:115:    if manual_fallback:
+backend/app/facebook_publisher.py:116:        outcome["terminalStatus"] = "manual_fallback_required"
+backend/app/facebook_publisher.py:118:        facebook_token_vault.mark_reconnect_required(str(page_id), conn=conn)
+backend/app/facebook_publisher.py:120:    if manual_fallback:
+backend/app/facebook_publisher.py:129:        store.mark_publish_job_manual_fallback(conn, job["id"], error_class, outcome["summary"])
+backend/app/facebook_publisher.py:151:    return "manual_fallback"
+backend/app/facebook_publisher.py:155:    from backend.app import facebook_oauth
+backend/app/facebook_publisher.py:167:    health = facebook_oauth.active_page_health(conn)
+backend/app/facebook_publisher.py:210:    manual_fallback = outcome["attemptStatus"] == "failed" and store.should_manual_fallback(error_class)
+backend/app/facebook_publisher.py:211:    if manual_fallback:
+backend/app/facebook_publisher.py:212:        outcome["terminalStatus"] = "manual_fallback_required"
+backend/app/facebook_publisher.py:214:        facebook_token_vault.mark_reconnect_required(str(page_id), conn=conn)
+backend/app/facebook_publisher.py:216:    if manual_fallback:
+backend/app/facebook_publisher.py:218:        store.mark_publish_job_manual_fallback(conn, job_id, error_class, outcome["summary"])
+backend/app/facebook_oauth.py:11:FACEBOOK_DIALOG_BASE = "https://www.facebook.com/v25.0/dialog/oauth"
+backend/app/facebook_oauth.py:13:DEFAULT_REDIRECT_URI = "http://127.0.0.1:8787/api/v1/facebook/oauth/callback"
+backend/app/facebook_oauth.py:22:def oauth_config():
+backend/app/facebook_oauth.py:34:    config = oauth_config()
+backend/app/facebook_oauth.py:52:    config = oauth_config()
+backend/app/facebook_oauth.py:80:    config = oauth_config()
+backend/app/facebook_oauth.py:100:    return f"{return_url}{separator}connectSession={parse.quote(session_id)}"
+backend/app/facebook_oauth.py:172:    return graph_get(f"{config['graphBase']}/oauth/access_token?{parse.urlencode(params)}")
+backend/app/facebook_oauth.py:183:        return graph_get(f"{config['graphBase']}/oauth/access_token?{parse.urlencode(params)}")
+backend/app/facebook_oauth.py:226:    if page_row.get("status") == "reconnect_required":
+backend/app/facebook_oauth.py:227:        return "reconnect_required"
+backend/app/facebook_oauth.py:248:    return {"activePageId": None, "health": "reconnect_required", "canPublish": False}
+backend/app/server.py:26:from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher, website_crawl
+backend/app/server.py:440:                    self.send_json(facebook_oauth.connection_status(conn=conn))
+backend/app/server.py:442:            if method == "GET" and path == "/api/v1/facebook/pages":
+backend/app/server.py:444:                session_id = (query.get("connectSession") or [None])[0]
+backend/app/server.py:445:                self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id)})
+backend/app/server.py:447:            if method == "POST" and path == "/api/v1/facebook/pages/select":
+backend/app/server.py:450:                    self.send_json(facebook_oauth.select_page(conn, body.get("connectSession"), body.get("pageId")), status=201)
+backend/app/server.py:452:            if method == "POST" and path == "/api/v1/facebook/pages/switch":
+backend/app/server.py:455:                    self.send_json(facebook_oauth.switch_active_page(conn, body.get("pageId")))
+backend/app/server.py:457:            if method == "GET" and path == "/api/v1/facebook/oauth/start":
+backend/app/server.py:459:                self.send_redirect(facebook_oauth.build_login_url(return_url=(query.get("returnTo") or [None])[0]))
+backend/app/server.py:461:            if method == "GET" and path == "/api/v1/facebook/oauth/callback":
+backend/app/server.py:463:                    self.send_redirect(facebook_oauth.complete_callback(conn, parse_qs(parsed.query)))
+backend/app/server.py:606:            raise store.StoreError(401, "Authentication required.")
+src/models/publishing.js:18:  "manual_fallback_required",
+backend/app/google_auth.py:17:            from google.oauth2 import id_token as google_id_token
+backend/app/google_auth.py:19:            payload = google_id_token.verify_oauth2_token(
+src/styles.css:3944:.publish-timeline-status--manual-fallback-required {
+src/styles.css:4338:.debug-jobs-status--manual-fallback-required {
+src/styles.css:11735:.fb-health-badge.reconnect-required { color: var(--red); }
+src/styles.css:11736:.fb-health-badge.reconnect-required::before { background: var(--red); }
+src/publishing/workflow.js:18:  manual_fallback_required: "Manual fallback required",
+src/components/PublishTimeline.jsx:14:  manual_fallback_required: "Manual fallback required",
+src/components/PublishTimeline.jsx:17:const terminalStates = new Set(["published", "failed", "manual_fallback_required"]);
+src/components/PublishTimeline.jsx:120:    return "Facebook authorization expired or missing. Reconnect this Page to resume publishing.";
+src/components/PublishTimeline.jsx:134:export function PublishTimeline({ platform, job, fallbackStatus = "needs_review", onReconnect }) {
+src/components/PublishTimeline.jsx:167:      {currentStatus === "manual_fallback_required" && (
+src/components/PublishTimeline.jsx:168:        <div className="manual-fallback-hint" role="status">
+src/components/PublishTimeline.jsx:170:          {isAuthError(normalizedJob.latestAttempt?.errorClass) && onReconnect && (
+src/components/PublishTimeline.jsx:171:            <button className="manual-fallback-reconnect" onClick={onReconnect} type="button">
+src/components/PublishTimeline.jsx:172:              Reconnect Facebook
+backend/app/store.py:51:    "reconnect_required",
+backend/app/store.py:62:    "revoked": "reconnect_required",
+backend/app/store.py:63:    "needs_reconnect": "reconnect_required",
+backend/app/store.py:64:    "reconnect": "reconnect_required",
+backend/app/store.py:246:          required_scopes_json text not null,
+backend/app/store.py:1231:            {"defaultPublishRoute": "manual_fallback"},
+backend/app/store.py:1240:            {"defaultPublishRoute": "manual_fallback"},
+backend/app/store.py:1249:            {"defaultPublishRoute": "manual_fallback"},
+backend/app/store.py:1257:              required_scopes_json, platform_config_json, created_at, updated_at
+backend/app/store.py:1678:        from backend.app import facebook_oauth
+backend/app/store.py:1680:        page_health = facebook_oauth.active_page_health(conn=conn, merchant_id=channel_row["merchant_id"])
+backend/app/store.py:1761:    # by each publisher; this gate is the disconnect / reconnect-required backstop.
+backend/app/store.py:3452:            raise StoreError(400, "Source URL is required.")
+backend/app/store.py:3509:        raise StoreError(400, "AI Assistant prompt is required.")
+backend/app/store.py:4689:        raise StoreError(400, "layerId is required.")
+backend/app/store.py:5596:        raise StoreError(400, "creativeId is required.")
+backend/app/store.py:5609:        raise StoreError(400, "Feedback body is required.")
+backend/app/store.py:5652:            raise StoreError(400, "creativeId or reviewLinkId is required.")
+backend/app/store.py:5703:        raise StoreError(400, "Review token is required.")
+backend/app/store.py:5961:        raise StoreError(400, "Competitor source URL is required.")
+backend/app/store.py:6360:        raise StoreError(400, "Carousel idea text is required.")
+backend/app/store.py:6363:            raise StoreError(400, "Carousel sourceUrl is required.")
+backend/app/store.py:6489:        raise StoreError(400, "modelId is required.")
+backend/app/store.py:6491:        raise StoreError(400, "Prompt is required.")
+backend/app/store.py:7023:        raise StoreError(400, "At least one target language is required.")
+backend/app/store.py:7482:def should_manual_fallback(error_class):
+backend/app/store.py:7490:            raise StoreError(401, "Operator session is required.")
+backend/app/store.py:7537:def mark_publish_job_manual_fallback(conn, job_id, error_class, summary):
+backend/app/store.py:7538:    if not should_manual_fallback(error_class):
+backend/app/store.py:7542:    parts = [f"Manual fallback required after {failure_label} failure."]
+backend/app/store.py:7549:    update_publish_job_status(conn, job_id, "manual_fallback_required")
+backend/app/store.py:7553:        "manual_fallback_required",
+backend/app/store.py:7847:    required_scopes = []
+backend/app/store.py:7851:            "select required_scopes_json from channel_registry where id = ?",
+backend/app/store.py:7855:            required_scopes = json_loads(registry["required_scopes_json"], [])
+backend/app/store.py:7858:        "requiredScopes": required_scopes,
+backend/app/store.py:7859:        "grantedScopesSatisfied": ((diagnostics.get("directPost") or {}).get("checks") or {}).get("requiredScopesGranted"),
+backend/app/store.py:7935:        raise StoreError(400, "generationOutputId is required.")
+backend/app/store.py:8028:def mark_facebook_page_reconnect_required(conn, page_id):
+backend/app/store.py:8030:        "update facebook_page_tokens set status = 'reconnect_required', updated_at = ? where page_id = ?",
+src/main.jsx:50:import { PublishTimeline } from "./components/PublishTimeline.jsx";
+src/main.jsx:133:  "No credit card required": "无需信用卡",
+src/main.jsx:1581:  "What permissions are required to connect this account?",
+src/main.jsx:2850:              <span>No credit card required</span>
+src/main.jsx:3096:              <input name="name" type="text" placeholder="Your name" required />
+src/main.jsx:3100:              <input name="business" type="text" placeholder="Sunny Side Bistro" required />
+src/main.jsx:3104:              <input name="email" type="email" placeholder="you@business.com" required />
+src/main.jsx:3830:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+src/main.jsx:4581:    const connectSession = params.get("connectSession");
+src/main.jsx:4582:    if (connectSession) {
+src/main.jsx:4583:      loadFacebookPages(connectSession)
+src/main.jsx:4587:          setPendingConnectSession(connectSession);
+src/main.jsx:5052:      nextParams.delete("connectSession");
+src/main.jsx:5475:    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+src/main.jsx:6245:          <p>{phase3Usage.creditsUsed || 0}/{phase3Usage.monthlyCredits || 3200} credits used. Owner approval stays required before live publishing.</p>
+src/main.jsx:6765:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:6868:                      <PublishTimeline
+src/main.jsx:6871:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+src/main.jsx:7831:                              {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:7863:                      <PublishTimeline
+src/main.jsx:7866:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+src/main.jsx:8057:                    {facebookConnection.connectedPages.length ? "Reconnect Facebook" : "Connect Facebook"}
+src/main.jsx:8122:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+src/main.jsx:8124:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+src/main.jsx:8137:                      <strong>{facebookConnection.configured ? "OAuth configured" : "Backend env required"}</strong>
+src/main.jsx:8384:                      <span>Facebook connection required</span>
+src/main.jsx:8849:                                  {genAttachPending === output.id ? "Attaching..." : "Use for Facebook post"}

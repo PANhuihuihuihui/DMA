@@ -1,0 +1,26 @@
+{
+  "id": "7569948f-ae93-4d68-b0ce-77df9c565236",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-read-appdemo-auth (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-read-appdemo-auth",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 154,
+  "started_at": "2026-06-26T06:58:48.244Z",
+  "finished_at": "2026-06-26T06:58:48.275Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 31,
+  "stdout_bytes": 3500,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/7569948f-ae93-4d68-b0ce-77df9c565236.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/7569948f-ae93-4d68-b0ce-77df9c565236.stderr"
+}

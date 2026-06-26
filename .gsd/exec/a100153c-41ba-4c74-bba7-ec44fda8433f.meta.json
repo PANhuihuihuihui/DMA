@@ -1,0 +1,26 @@
+{
+  "id": "a100153c-41ba-4c74-bba7-ec44fda8433f",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC1-search-connect-backend (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC1-search-connect-backend",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 366,
+  "started_at": "2026-06-26T07:08:44.173Z",
+  "finished_at": "2026-06-26T07:08:44.235Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 62,
+  "stdout_bytes": 2197,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/a100153c-41ba-4c74-bba7-ec44fda8433f.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/a100153c-41ba-4c74-bba7-ec44fda8433f.stderr"
+}

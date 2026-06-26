@@ -1,6 +1,8 @@
 import html
+import logging
 import re
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, urlparse
 
 from backend.app import sessions
@@ -19,6 +21,9 @@ from backend.app.contracts import (
     utc_now,
 )
 from backend.app.token_boundary import create_token_boundary
+
+
+logger = logging.getLogger(__name__)
 
 
 DEMO_MERCHANT_ID = "merchant_northstar"
@@ -799,6 +804,18 @@ def initialize_database(conn):
 
         create unique index if not exists idx_fb_page_tokens_unique
           on facebook_page_tokens(merchant_id, connected_channel_id, page_id);
+
+        create table if not exists oauth_sessions (
+          id text primary key,
+          provider text not null,
+          session_type text not null,
+          payload_json text not null,
+          created_at text not null,
+          expires_at text not null
+        );
+
+        create index if not exists idx_oauth_sessions_lookup
+          on oauth_sessions(provider, session_type, id);
         """
     )
     migrate_database(conn)
@@ -810,6 +827,22 @@ def column_names(conn, table_name):
 
 
 def migrate_database(conn):
+    conn.executescript(
+        """
+        create table if not exists oauth_sessions (
+          id text primary key,
+          provider text not null,
+          session_type text not null,
+          payload_json text not null,
+          created_at text not null,
+          expires_at text not null
+        );
+
+        create index if not exists idx_oauth_sessions_lookup
+          on oauth_sessions(provider, session_type, id);
+        """
+    )
+
     connected_channel_columns = column_names(conn, "connected_channels")
     if "channel_registry_id" not in connected_channel_columns:
         conn.execute("alter table connected_channels add column channel_registry_id text references channel_registry(id)")
@@ -8037,6 +8070,72 @@ def get_active_facebook_page_row(conn, merchant_id=DEMO_MERCHANT_ID):
         "select * from facebook_page_tokens where merchant_id = ? and is_active = 1",
         (merchant_id,),
     ).fetchone()
+
+
+def _oauth_session_expires_at(ttl_seconds):
+    return (
+        datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+    ).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def create_oauth_session(conn, provider, session_type, payload, ttl_seconds):
+    session_id = new_id("oauth")
+    created_at = utc_now()
+    expires_at = _oauth_session_expires_at(ttl_seconds)
+    conn.execute(
+        """insert into oauth_sessions
+           (id, provider, session_type, payload_json, created_at, expires_at)
+           values (?, ?, ?, ?, ?, ?)""",
+        (session_id, provider, session_type, json_dumps(payload or {}), created_at, expires_at),
+    )
+    logger.info(
+        "oauth_session_created provider=%s type=%s session_id=%s expires_at=%s",
+        provider,
+        session_type,
+        session_id,
+        expires_at,
+    )
+    return session_id
+
+
+def get_oauth_session(conn, session_id, session_type, consume=False):
+    row = conn.execute(
+        "select * from oauth_sessions where id = ? and session_type = ?",
+        (session_id, session_type),
+    ).fetchone()
+    if row is None:
+        raise StoreError(400, "OAuth session not found.")
+    if row["expires_at"] <= utc_now():
+        conn.execute("delete from oauth_sessions where id = ?", (session_id,))
+        raise StoreError(400, "OAuth session expired.")
+
+    payload = json_loads(row["payload_json"], {})
+    if consume:
+        conn.execute("delete from oauth_sessions where id = ?", (session_id,))
+        logger.info(
+            "oauth_session_consumed provider=%s type=%s session_id=%s",
+            row["provider"],
+            row["session_type"],
+            session_id,
+        )
+    else:
+        logger.info(
+            "oauth_session_loaded provider=%s type=%s session_id=%s",
+            row["provider"],
+            row["session_type"],
+            session_id,
+        )
+    return payload
+
+
+def cleanup_expired_oauth_sessions(conn):
+    cursor = conn.execute(
+        "delete from oauth_sessions where expires_at <= ?",
+        (utc_now(),),
+    )
+    removed = cursor.rowcount or 0
+    logger.info("oauth_session_cleanup removed=%s", removed)
+    return removed
 
 
 class StoreError(Exception):

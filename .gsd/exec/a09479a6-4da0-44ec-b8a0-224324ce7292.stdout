@@ -1,0 +1,8 @@
+3697:  const [authStatus, setAuthStatus] = useState("loading");
+3703:    loadSession()
+3707:          setAuthStatus("authenticated");
+3712:          setAuthStatus("unauthenticated");
+3713:          navigate("/");
+5093:    setAuthStatus("unauthenticated");
+5094:    navigate("/");
+6181:  if (authStatus === "loading") {

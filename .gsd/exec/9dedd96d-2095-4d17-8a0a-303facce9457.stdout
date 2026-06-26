@@ -1,0 +1,299 @@
+  9800	                        ? "Choose the optimal time for your post to go live."
+  9801	                        : "Choose the specific social media platform below to publish/schedule your post."}
+  9802	                    </h2>
+  9803	                  </div>
+  9804	                  {publishDraft.step === "platform" ? (
+  9805	                    <>
+  9806	                      <div className="publish-reference-body">
+  9807	                        <section className="publish-ready-panel" aria-label="Ready to post">
+  9808	                          <h3>Ready to post</h3>
+  9809	                          <button
+  9810	                            className={publishDraft.platform === "Facebook" && publishDraft.postType === "Feed post" ? "active" : ""}
+  9811	                            type="button"
+  9812	                            onClick={() => {
+  9813	                              updatePublishDraft("platform", "Facebook");
+  9814	                              updatePublishDraft("postType", "Feed post");
+  9815	                            }}
+  9816	                          >
+  9817	                            <span>{publishDraft.platform === "Facebook" && publishDraft.postType === "Feed post" ? "✓" : ""}</span>
+  9818	                            <strong>f</strong>
+  9819	                            Facebook
+  9820	                            <i>›</i>
+  9821	                          </button>
+  9822	                          <button
+  9823	                            className={publishDraft.platform === "Facebook Reel" || publishDraft.postType === "Reel/Short" ? "active" : ""}
+  9824	                            type="button"
+  9825	                            onClick={() => {
+  9826	                              updatePublishDraft("platform", "Facebook Reel");
+  9827	                              updatePublishDraft("postType", "Reel/Short");
+  9828	                            }}
+  9829	                          >
+  9830	                            <span>{publishDraft.platform === "Facebook Reel" || publishDraft.postType === "Reel/Short" ? "✓" : ""}</span>
+  9831	                            <strong>▣</strong>
+  9832	                            Facebook Reel
+  9833	                            <i>›</i>
+  9834	                          </button>
+  9835	                        </section>
+  9836	                        <section className="publish-reference-status">
+  9837	                          <article className={publishUnsupported ? "warning" : ""}>
+  9838	                            <strong>{publishUnsupported ? "Not Supported" : "Supported"}</strong>
+  9839	                            <p>
+  9840	                              {publishUnsupported
+  9841	                                ? "Videos media type are not supported by this destination."
+  9842	                                : "Selected destination is compatible with assisted owner-approval handoff."}
+  9843	                            </p>
+  9844	                          </article>
+  9845	                          <article>
+  9846	                            <div>
+  9847	                              <strong>{publishMissingAccount && !publishAssisted ? "Accounts not linked" : "Accounts ready"}</strong>
+  9848	                              <button type="button" onClick={() => selectModule("Brand & Social Accounts")}>
+  9849	                                Link account
+  9850	                              </button>
+  9851	                            </div>
+  9852	                            <p>Please connect the accounts below to publish/schedule this post!</p>
+  9853	                            <div className="publish-account-icons" aria-label="Supported account connectors">
+  9854	                              {["IG", "in", "P", "f", "♪", "X", "▶", "+"].map((icon) => (
+  9855	                                <span key={icon}>{icon}</span>
+  9856	                              ))}
+  9857	                            </div>
+  9858	                          </article>
+  9859	                        </section>
+  9860	                        {publishAssisted && (
+  9861	                          <div className="publish-assisted">
+  9862	                            <strong>Assisted package</strong>
+  9863	                            <p>This path creates a handoff package. It is not autonomous publishing.</p>
+  9864	                          </div>
+  9865	                        )}
+  9866	                      </div>
+  9867	                      <button className="primary-action publish-reference-continue" type="button" disabled={!publishCanContinue} onClick={continuePublishSchedule}>
+  9868	                        Continue
+  9869	                      </button>
+  9870	                    </>
+  9871	                  ) : (
+  9872	                    <>
+  9873	                      <div className="publish-schedule-body">
+  9874	                        <section className="publish-schedule-calendar" aria-label="Schedule calendar">
+  9875	                          <div className="publish-schedule-month">
+  9876	                            <button type="button" aria-label="Previous month">‹</button>
+  9877	                            <strong>June 2026</strong>
+  9878	                            <button type="button" aria-label="Next month">›</button>
+  9879	                          </div>
+  9880	                          <div className="publish-schedule-days">
+  9881	                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
+  9882	                              <span key={day}>{day}</span>
+  9883	                            ))}
+  9884	                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 1, 2, 3, 4, 5].map((day, index) => (
+  9885	                              <button
+  9886	                                className={publishDraft.scheduleDay === day && index < 30 ? "active" : ""}
+  9887	                                type="button"
+  9888	                                key={`${day}-${index}`}
+  9889	                                onClick={() => updatePublishDraft("scheduleDay", day)}
+  9890	                              >
+  9891	                                {day}
+  9892	                              </button>
+  9893	                            ))}
+  9894	                          </div>
+  9895	                        </section>
+  9896	                        <section className="publish-schedule-time" aria-label="Schedule time">
+  9897	                          <h3>Monday, June {publishDraft.scheduleDay}, 2026</h3>
+  9898	                          <p>Brand Timezone : (GMT -4:00) America/Detroit</p>
+  9899	                          <div className="publish-time-picker">
+  9900	                            {["scheduleHour", "scheduleMinute", "scheduleMeridiem"].map((field) => (
+  9901	                              <label key={field}>
+  9902	                                <span>⌃</span>
+  9903	                                <input
+  9904	                                  value={publishDraft[field]}
+  9905	                                  onChange={(event) => updatePublishDraft(field, event.target.value)}
+  9906	                                  aria-label={field}
+  9907	                                />
+  9908	                                <span>⌄</span>
+  9909	                              </label>
+  9910	                            ))}
+  9911	                          </div>
+  9912	                        </section>
+  9913	                        <label className="publish-schedule-check">
+  9914	                          <input
+  9915	                            type="checkbox"
+  9916	                            checked={publishDraft.aiSuggestedTime}
+  9917	                            onChange={(event) => updatePublishDraft("aiSuggestedTime", event.target.checked)}
+  9918	                          />
+  9919	                          Apply AI suggested time for publishing
+  9920	                        </label>
+  9921	                        <label className="publish-schedule-check">
+  9922	                          <input
+  9923	                            type="checkbox"
+  9924	                            checked={publishDraft.approvalMember}
+  9925	                            onChange={(event) => updatePublishDraft("approvalMember", event.target.checked)}
+  9926	                          />
+  9927	                          Select Team Member for approval
+  9928	                        </label>
+  9929	                      </div>
+  9930	                      <button className="publish-immediate-link" type="button" onClick={schedulePublishPost}>
+  9931	                        Publish Immediately Instead?
+  9932	                      </button>
+  9933	                      <div className="publish-schedule-actions">
+  9934	                        <button type="button" onClick={() => updatePublishDraft("step", "platform")}>
+  9935	                          Back
+  9936	                        </button>
+  9937	                        <button className="primary-action" type="button" onClick={schedulePublishPost}>
+  9938	                          Schedule Post
+  9939	                        </button>
+  9940	                      </div>
+  9941	                    </>
+  9942	                  )}
+  9943	                </section>
+  9944	              </div>
+  9945	            )}
+  9946	
+  9947	            {!config.view && (
+  9948	              <div className="module-workflow">
+  9949	                <section className="module-brief">
+  9950	                  <div>
+  9951	                    <span>{moduleWorkflows[activeModule]?.focus || config.title}</span>
+  9952	                    <h3>{config.title}</h3>
+  9953	                    <p>{moduleWorkflows[activeModule]?.summary || "This module uses fake demo data for customer review."}</p>
+  9954	                  </div>
+  9955	                  <button className="primary-action" type="button" onClick={() => showAppToast(`${activeModule} demo action saved.`)}>
+  9956	                    Run demo action
+  9957	                  </button>
+  9958	                </section>
+  9959	
+  9960	                <div className="module-cards">
+  9961	                  {config.cards.map(([title, body]) => (
+  9962	                    <article className="module-card" key={title}>
+  9963	                      <span>Capability</span>
+  9964	                      <strong>{title}</strong>
+  9965	                      <p>{body}</p>
+  9966	                    </article>
+  9967	                  ))}
+  9968	                </div>
+  9969	
+  9970	                <div className="module-steps" aria-label={`${activeModule} workflow`}>
+  9971	                  {(moduleWorkflows[activeModule]?.steps || []).map(([status, title, action]) => (
+  9972	                    <article key={`${status}-${title}`}>
+  9973	                      <span>{status}</span>
+  9974	                      <strong>{title}</strong>
+  9975	                      <p>{action}</p>
+  9976	                      <button type="button" onClick={() => showAppToast(`${title} marked in ${activeModule}.`)}>
+  9977	                        Mark
+  9978	                      </button>
+  9979	                    </article>
+  9980	                  ))}
+  9981	                </div>
+  9982	              </div>
+  9983	            )}
+  9984	          </section>
+  9985	
+  9986	          <aside className="insights-panel" aria-label="Insights and approvals">
+  9987	            <section className="insight-card readiness-card">
+  9988	              <div className="panel-head compact-head">
+  9989	                <h2>Package readiness</h2>
+  9990	                <span>{packageReadiness}%</span>
+  9991	              </div>
+  9992	              <div className="readiness-meter" aria-label={`Package readiness ${packageReadiness}%`}>
+  9993	                <i style={{ width: `${packageReadiness}%` }} />
+  9994	              </div>
+  9995	              <p>
+  9996	                {approvedCount}/{plans.length} channels approved. Complete checklist items, then save the assisted publishing package.
+  9997	              </p>
+  9998	            </section>
+  9999	            <section className="insight-card">
+ 10000	              <div className="panel-head compact-head">
+ 10001	                <h2>What needs attention</h2>
+ 10002	                <span>{pendingPlans.length} items</span>
+ 10003	              </div>
+ 10004	              <ul className="recommendation-list">
+ 10005	                {pendingPlans.slice(0, 3).map((plan) => (
+ 10006	                  <li key={plan.name}>
+ 10007	                    {plan.name} is still pending. Review the {plan.kpi.toLowerCase()} angle before publishing.
+ 10008	                  </li>
+ 10009	                ))}
+ 10010	              </ul>
+ 10011	            </section>
+ 10012	            <section className="insight-card">
+ 10013	              <div className="panel-head compact-head">
+ 10014	                <h2>Approval queue</h2>
+ 10015	                <span>{pendingPlans.length} pending</span>
+ 10016	              </div>
+ 10017	              <div className="approval-list">
+ 10018	                {plans.map((plan, index) =>
+ 10019	                  plan.status === "Approved" ? null : (
+ 10020	                    <article key={plan.name}>
+ 10021	                      <strong>{plan.name} plan</strong>
+ 10022	                      <small>{plan.status} · KPI: {plan.kpi}</small>
+ 10023	                      <button
+ 10024	                        type="button"
+ 10025	                        disabled={approvalPending === plan.id}
+ 10026	                        onClick={() => approvePlan(index)}
+ 10027	                      >
+ 10028	                        Approve exact draft
+ 10029	                      </button>
+ 10030	                    </article>
+ 10031	                  ),
+ 10032	                )}
+ 10033	                {pendingPlans.length === 0 && (
+ 10034	                  <article>
+ 10035	                    <strong>All channels approved</strong>
+ 10036	                    <small>Ready to save the posting package</small>
+ 10037	                    <button type="button" onClick={exportPackage}>
+ 10038	                      Save
+ 10039	                    </button>
+ 10040	                  </article>
+ 10041	                )}
+ 10042	              </div>
+ 10043	            </section>
+ 10044	            <section className="insight-card roi-card">
+ 10045	              <h2>Local ROI loop</h2>
+ 10046	              <div className="mini-metrics">
+ 10047	                {[
+ 10048	                  ["28", "calls"],
+ 10049	                  ["17", "bookings"],
+ 10050	                  ["34", "DMs"],
+ 10051	                  ["76", "map clicks"],
+ 10052	                ].map(([value, label]) => (
+ 10053	                  <span key={label}>
+ 10054	                    <strong>{value}</strong> {label}
+ 10055	                  </span>
+ 10056	                ))}
+ 10057	              </div>
+ 10058	            </section>
+ 10059	          </aside>
+ 10060	        </section>
+ 10061	          </>
+ 10062	        )}
+ 10063	      </main>
+ 10064	      {appToast && <div className="app-toast">{appToast}</div>}
+ 10065	    </div>
+ 10066	  );
+ 10067	}
+ 10068	
+ 10069	function App() {
+ 10070	  return (
+ 10071	    <LanguageProvider>
+ 10072	      <TranslationLayer />
+ 10073	      <AppRoutes appElement={<AppDemo />} landingElement={<LandingPage />} />
+ 10074	    </LanguageProvider>
+ 10075	  );
+ 10076	}
+ 10077	
+ 10078	const rootElement = document.getElementById("root");
+ 10079	
+ 10080	if (!rootElement) {
+ 10081	  throw new Error("LocalPilot root element was not found.");
+ 10082	}
+ 10083	
+ 10084	const rootStoreKey = "__localpilotReactRoot";
+ 10085	const existingRoot = window[rootStoreKey];
+ 10086	const localPilotRoot =
+ 10087	  existingRoot && existingRoot._internalRoot?.containerInfo === rootElement
+ 10088	    ? existingRoot
+ 10089	    : createRoot(rootElement);
+ 10090	window[rootStoreKey] = localPilotRoot;
+ 10091	localPilotRoot.render(<App />);
+ 10092	
+ 10093	if (import.meta.hot) {
+ 10094	  import.meta.hot.dispose(() => {
+ 10095	    // Intentionally no root disposal here. Keep the existing root between module updates
+ 10096	    // to avoid duplicate createRoot() calls and child-removal consistency errors.
+ 10097	  });
+ 10098	}

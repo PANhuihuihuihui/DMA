@@ -1,0 +1,51 @@
+124:  "Log in": "登录",
+247:  "Log in to the LocalPilot AI app demo": "登录 LocalPilot AI 应用演示",
+281:  "TikTok, IG, FB, RED, Google": "TikTok、IG、FB、小红书、Google",
+462:  "Mock TikTok, Instagram, Facebook, Xiaohongshu, and Google Business workflows.":
+463:    "模拟 TikTok、Instagram、Facebook、小红书和 Google 商家流程。",
+494:  "Google Local update": "Google 本地更新",
+502:  "Create Google Local and RED keyword set": "创建 Google 本地和小红书关键词组",
+524:  "Google profile image": "Google 资料图片",
+535:  "Google Local offer window": "Google 本地优惠窗口",
+550:  "TikTok, Instagram, Facebook, RED, Google": "TikTok、Instagram、Facebook、小红书、Google",
+594:  "Facebook and Google Local drove call taps.": "Facebook 和 Google 本地带来了电话点击。",
+599:  "Google Local captured nearby searchers.": "Google 本地捕获了附近搜索用户。",
+712:  "Google Business profile update": "Google 商家资料更新",
+734:  "Calls and map clicks attached to Google Local and Facebook.": "来电和地图点击已关联到 Google 本地和 Facebook。",
+747:  "LocalPilot connects the content plan to business actions: calls from Facebook and Google, DMs from Instagram, saves from Xiaohongshu, and coupon scans from TikTok.":
+748:    "LocalPilot 把内容计划连接到生意动作：Facebook 和 Google 带来来电，Instagram 带来私信，小红书带来收藏，TikTok 带来优惠券扫码。",
+793:  "TikTok earns attention, Instagram captures DMs, Facebook builds local trust, Xiaohongshu creates searchable Chinese discovery, and Google Local captures high-intent visits.":
+794:    "TikTok 获取注意力，Instagram 捕获私信，Facebook 建立本地信任，小红书创造可搜索中文发现，Google 本地捕获高意图到店用户。",
+1252:      ["Ready", "Google Local update", "Confirm hours and offer window"],
+1260:      ["Rising", "Weekend near me searches", "Create Google Local and RED keyword set"],
+1282:      ["Available", "Google profile image", "Ready for local update"],
+1292:      ["Pending", "Google Local offer window", "Confirm hours and phone CTA"],
+1309:      ["Mocked", "Social accounts", "TikTok, Instagram, Facebook, RED, Google"],
+1544:const publishPlatformOptions = ["Facebook", "Facebook Reel", "TikTok", "Google Business Profile", "Assisted Package"];
+1557:  { provider: "Google Business Profile", accountType: "Profile", icon: "G", tone: "google", watch: false },
+1699:  ["Schedule", "Fill calendar", "Place the week across Facebook, Instagram, TikTok, and Google."],
+1731:  ["28", "Calls", "Facebook and Google Local drove call taps."],
+1736:  ["76", "Map clicks", "Google Local captured nearby searchers."],
+1794:  ["Call taps", "28", "Mobile visitors tapped to call from Facebook or Google."],
+1804:  ["Google Business Profile", "Assisted local update", "Call and direction proof hooks are attached before publishing."],
+2255:      "Google Local": ["Today’s special is live near you.", "Get directions", "Map clicks + calls"],
+2270:      "Google Local": ["AC tune-up appointments near you.", "Call now", "Map clicks + calls"],
+2285:      "Google Local": ["Hair color appointments near you.", "Book appointment", "Map clicks + calls"],
+2300:      "Google Local": ["Wellness appointments near you.", "Call clinic", "Calls + directions"],
+2315:      "Google Local": ["New decor arrivals near you.", "Get directions", "Map clicks + calls"],
+2449:    name: "Google Local",
+2455:    publishingMode: "Google Business profile update",
+2509:    const isGoogle = plan.name === "Google Local";
+2520:        cover: isRed ? `${template.label}推荐` : isGoogle ? `${normalizedInput.offer} near me` : normalizedInput.offer,
+2523:      whyItWorks: isGoogle
+2528:      ownerAction: isGoogle
+2755:      await devLogin();
+2807:            Log in
+3128:        <Modal title="Log in to LocalPilot AI" eyebrow="Sign in" onClose={() => { setLoginOpen(false); setLoginError(""); }}>
+3131:            <GoogleSignInButton onSuccess={handleLoginSuccess} onError={handleLoginError} />
+3136:              <p className="modal-copy">Development mode — backend dev login is enabled.</p>
+3142:            <p className="modal-copy">Google sign-in is not configured in this environment.</p>
+3154:function GoogleSignInButton({ onSuccess, onError }) {
+4176:    publishDraft.platform === "Google Business Profile";
+6587:                      Xiaohongshu creates searchable Chinese discovery, and Google Local captures high-intent visits.
+6919:                        <li>Calls and map clicks attached to Google Local and Facebook.</li>

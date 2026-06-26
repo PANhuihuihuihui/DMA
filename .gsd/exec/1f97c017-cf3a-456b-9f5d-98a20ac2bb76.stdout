@@ -1,0 +1,120 @@
+   606	            raise store.StoreError(401, "Authentication required.")
+   607	        try:
+   608	            resolved = sessions.resolve_session(conn, token)
+   609	        except sessions.SessionError as exc:
+   610	            raise store.StoreError(401, str(exc)) from exc
+   611	        return resolved["merchant_id"]
+   612	
+   613	    def _session_token(self, parsed):
+   614	        token = self._parse_cookie("lp_session")
+   615	        if not token:
+   616	            token = self.headers.get("X-LocalPilot-Session")
+   617	        if not token:
+   618	            token = (parse_qs(parsed.query).get("session") or [None])[0]
+   619	        return token
+   620	
+   621	    def match_approval_action(self, path):
+   622	        parts = path.split("/")
+   623	        if len(parts) == 6 and parts[:4] == ["", "api", "v1", "approvals"]:
+   624	            return {"approval_id": parts[4], "action": parts[5]}
+   625	        return None
+   626	
+   627	    def match_publish_job(self, path):
+   628	        parts = path.split("/")
+   629	        if len(parts) == 5 and parts[:4] == ["", "api", "v1", "publish-jobs"]:
+   630	            return {"job_id": parts[4], "action": None}
+   631	        if len(parts) == 6 and parts[:4] == ["", "api", "v1", "publish-jobs"]:
+   632	            return {"job_id": parts[4], "action": parts[5]}
+   633	        return None
+   634	
+   635	    def match_generation_job(self, path):
+   636	        parts = path.split("/")
+   637	        if len(parts) == 6 and parts[:5] == ["", "api", "v1", "generation", "jobs"]:
+   638	            return {"job_id": parts[5], "action": None}
+   639	        if len(parts) == 7 and parts[:5] == ["", "api", "v1", "generation", "jobs"]:
+   640	            return {"job_id": parts[5], "action": parts[6]}
+   641	        return None
+   642	
+   643	    def match_admin_publish_job(self, path):
+   644	        parts = path.split("/")
+   645	        if len(parts) == 6 and parts[:5] == ["", "api", "v1", "admin", "publish-jobs"]:
+   646	            return {"job_id": parts[5], "action": None}
+   647	        if len(parts) == 7 and parts[:5] == ["", "api", "v1", "admin", "publish-jobs"]:
+   648	            return {"job_id": parts[5], "action": parts[6]}
+   649	        return None
+   650	
+   651	    def retry_publish_job(self, conn, job_id, body=None):
+   652	        body = body or {}
+   653	        job_row = conn.execute("select platform from publish_jobs where id = ?", (job_id,)).fetchone()
+   654	        if job_row and job_row["platform"] == "facebook":
+   655	            return facebook_publisher.retry_facebook_publish(conn, job_id)
+   656	        return fake_publisher.retry_fake_publish(
+   657	            conn,
+   658	            job_id,
+   659	            diagnostics_fixture=body.get("diagnosticsFixture"),
+   660	        )
+   661	
+   662	    def read_json(self):
+   663	        length = int(self.headers.get("Content-Length", "0") or "0")
+   664	        if length == 0:
+   665	            return {}
+   666	        return json.loads(self.rfile.read(length).decode("utf-8"))
+   667	
+   668	    def send_json(self, payload, status=200, cookies=None):
+   669	        body = json.dumps(payload, sort_keys=True).encode("utf-8")
+   670	        self.send_response(status)
+   671	        self.send_header("Content-Type", "application/json; charset=utf-8")
+   672	        self.send_header("Content-Length", str(len(body)))
+   673	        for cookie in (cookies or []):
+   674	            self.send_header("Set-Cookie", cookie)
+   675	        self.end_headers()
+   676	        self.wfile.write(body)
+   677	
+   678	    def send_redirect(self, location, status=302):
+   679	        self.send_response(status)
+   680	        self.send_header("Location", location)
+   681	        self.send_header("Content-Length", "0")
+   682	        self.end_headers()
+   683	
+   684	    def send_error_json(self, status, message):
+   685	        phrase = HTTPStatus(status).phrase if status in HTTPStatus._value2member_map_ else "Error"
+   686	        self.send_json({"error": {"status": status, "message": message, "code": phrase}}, status=status)
+   687	
+   688	
+   689	def create_app(host="127.0.0.1", port=8787, db_path=DEFAULT_DB_PATH):
+   690	    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+   691	    store.ensure_database(db_path)
+   692	
+   693	    class BoundHandler(JsonHandler):
+   694	        pass
+   695	
+   696	    BoundHandler.db_path = db_path
+   697	    return ThreadingHTTPServer((host, port), BoundHandler)
+   698	
+   699	
+   700	def run(host="127.0.0.1", port=8787, db_path=DEFAULT_DB_PATH):
+   701	    server = create_app(host=host, port=port, db_path=db_path)
+   702	    print(
+   703	        f"LocalPilot backend listening at http://{host}:{server.server_address[1]} "
+   704	        f"(db: {db_path})",
+   705	        flush=True,
+   706	    )
+   707	    try:
+   708	        server.serve_forever()
+   709	    except KeyboardInterrupt:
+   710	        pass
+   711	    finally:
+   712	        server.server_close()
+   713	
+   714	
+   715	def main():
+   716	    parser = argparse.ArgumentParser(description="Run LocalPilot backend API")
+   717	    parser.add_argument("--host", default="127.0.0.1")
+   718	    parser.add_argument("--port", type=int, default=8787)
+   719	    parser.add_argument("--db", default=DEFAULT_DB_PATH)
+   720	    args = parser.parse_args()
+   721	    run(host=args.host, port=args.port, db_path=args.db)
+   722	
+   723	
+   724	if __name__ == "__main__":
+   725	    main()

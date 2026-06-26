@@ -1,0 +1,204 @@
+===== class StoreError @ 8042 =====
+8038:         (merchant_id,),
+8039:     ).fetchone()
+8040: 
+8041: 
+8042: class StoreError(Exception):
+8043:     def __init__(self, status, message):
+8044:         super().__init__(message)
+8045:         self.status = status
+8046:         self.message = message
+
+===== def initialize_database @ 88 =====
+84:     conn.execute("pragma foreign_keys = on")
+85:     return conn
+86: 
+87: 
+88: def initialize_database(conn):
+89:     conn.executescript(
+90:         """
+91:         create table if not exists merchants (
+92:           id text primary key,
+93:           name text not null,
+94:           created_at text not null
+95:         );
+96: 
+97:         create table if not exists users (
+98:           id text primary key,
+99:           merchant_id text not null references merchants(id),
+100:           name text not null,
+101:           email text not null,
+102:           role text not null,
+103:           created_at text not null
+104:         );
+105: 
+106:         create table if not exists sessions (
+
+===== create table if not exists facebook_page_tokens @ 785 =====
+781:           confidence text not null,
+782:           created_at text not null
+783:         );
+784: 
+785:         create table if not exists facebook_page_tokens (
+786:           id text primary key,
+787:           merchant_id text not null references merchants(id),
+788:           connected_channel_id text not null,
+789:           page_id text not null,
+790:           ciphertext blob not null,
+791:           credential_fingerprint text not null,
+792:           token_expires_at text,
+793:           issued_at text,
+794:           status text not null default 'active',
+795:           is_active integer not null default 0,
+796:           created_at text not null,
+797:           updated_at text not null
+798:         );
+799: 
+800:         create unique index if not exists idx_fb_page_tokens_unique
+801:           on facebook_page_tokens(merchant_id, connected_channel_id, page_id);
+802:         """
+803:     )
+
+===== def upsert_facebook_page_token @ 7976 =====
+7972:     conn.commit()
+7973:     return get_serialized_draft(conn, draft_id)
+7974: 
+7975: 
+7976: def upsert_facebook_page_token(conn, merchant_id, connected_channel_id, page_id, ciphertext, credential_fingerprint, expires_at=None, issued_at=None, status="active"):
+7977:     now = utc_now()
+7978:     existing = conn.execute(
+7979:         "select id from facebook_page_tokens where merchant_id = ? and connected_channel_id = ? and page_id = ?",
+7980:         (merchant_id, connected_channel_id, str(page_id)),
+7981:     ).fetchone()
+7982:     if existing:
+7983:         conn.execute(
+7984:             """update facebook_page_tokens
+7985:                set ciphertext = ?, credential_fingerprint = ?, token_expires_at = ?,
+7986:                    issued_at = ?, status = ?, updated_at = ?
+7987:                where id = ?""",
+7988:             (ciphertext, credential_fingerprint, expires_at, issued_at, status, now, existing["id"]),
+7989:         )
+7990:         return existing["id"]
+7991:     row_id = new_id("fpt")
+7992:     conn.execute(
+7993:         """insert into facebook_page_tokens
+7994:            (id, merchant_id, connected_channel_id, page_id, ciphertext, credential_fingerprint,
+
+===== def get_facebook_page_token_row @ 8003 =====
+7999:     )
+8000:     return row_id
+8001: 
+8002: 
+8003: def get_facebook_page_token_row(conn, page_id, merchant_id=DEMO_MERCHANT_ID):
+8004:     return conn.execute(
+8005:         "select * from facebook_page_tokens where page_id = ? and merchant_id = ?",
+8006:         (str(page_id), merchant_id),
+8007:     ).fetchone()
+8008: 
+8009: 
+8010: def list_facebook_page_token_rows(conn, merchant_id=DEMO_MERCHANT_ID):
+8011:     return conn.execute(
+8012:         "select * from facebook_page_tokens where merchant_id = ? order by page_id",
+8013:         (merchant_id,),
+8014:     ).fetchall()
+8015: 
+8016: 
+8017: def set_active_facebook_page(conn, merchant_id, page_id):
+8018:     conn.execute(
+8019:         "update facebook_page_tokens set is_active = 0, updated_at = ? where merchant_id = ?",
+8020:         (utc_now(), merchant_id),
+8021:     )
+
+===== def list_facebook_page_token_rows @ 8010 =====
+8006:         (str(page_id), merchant_id),
+8007:     ).fetchone()
+8008: 
+8009: 
+8010: def list_facebook_page_token_rows(conn, merchant_id=DEMO_MERCHANT_ID):
+8011:     return conn.execute(
+8012:         "select * from facebook_page_tokens where merchant_id = ? order by page_id",
+8013:         (merchant_id,),
+8014:     ).fetchall()
+8015: 
+8016: 
+8017: def set_active_facebook_page(conn, merchant_id, page_id):
+8018:     conn.execute(
+8019:         "update facebook_page_tokens set is_active = 0, updated_at = ? where merchant_id = ?",
+8020:         (utc_now(), merchant_id),
+8021:     )
+8022:     conn.execute(
+8023:         "update facebook_page_tokens set is_active = 1, updated_at = ? where merchant_id = ? and page_id = ?",
+8024:         (utc_now(), merchant_id, str(page_id)),
+8025:     )
+8026: 
+8027: 
+8028: def mark_facebook_page_reconnect_required(conn, page_id):
+
+===== def get_active_facebook_page_row @ 8035 =====
+8031:         (utc_now(), str(page_id)),
+8032:     )
+8033: 
+8034: 
+8035: def get_active_facebook_page_row(conn, merchant_id=DEMO_MERCHANT_ID):
+8036:     return conn.execute(
+8037:         "select * from facebook_page_tokens where merchant_id = ? and is_active = 1",
+8038:         (merchant_id,),
+8039:     ).fetchone()
+8040: 
+8041: 
+8042: class StoreError(Exception):
+8043:     def __init__(self, status, message):
+8044:         super().__init__(message)
+8045:         self.status = status
+8046:         self.message = message
+
+===== def set_active_facebook_page @ 8017 =====
+8013:         (merchant_id,),
+8014:     ).fetchall()
+8015: 
+8016: 
+8017: def set_active_facebook_page(conn, merchant_id, page_id):
+8018:     conn.execute(
+8019:         "update facebook_page_tokens set is_active = 0, updated_at = ? where merchant_id = ?",
+8020:         (utc_now(), merchant_id),
+8021:     )
+8022:     conn.execute(
+8023:         "update facebook_page_tokens set is_active = 1, updated_at = ? where merchant_id = ? and page_id = ?",
+8024:         (utc_now(), merchant_id, str(page_id)),
+8025:     )
+8026: 
+8027: 
+8028: def mark_facebook_page_reconnect_required(conn, page_id):
+8029:     conn.execute(
+8030:         "update facebook_page_tokens set status = 'reconnect_required', updated_at = ? where page_id = ?",
+8031:         (utc_now(), str(page_id)),
+8032:     )
+8033: 
+8034: 
+8035: def get_active_facebook_page_row(conn, merchant_id=DEMO_MERCHANT_ID):
+
+===== def mark_facebook_page_reconnect_required @ 8028 =====
+8024:         (utc_now(), merchant_id, str(page_id)),
+8025:     )
+8026: 
+8027: 
+8028: def mark_facebook_page_reconnect_required(conn, page_id):
+8029:     conn.execute(
+8030:         "update facebook_page_tokens set status = 'reconnect_required', updated_at = ? where page_id = ?",
+8031:         (utc_now(), str(page_id)),
+8032:     )
+8033: 
+8034: 
+8035: def get_active_facebook_page_row(conn, merchant_id=DEMO_MERCHANT_ID):
+8036:     return conn.execute(
+8037:         "select * from facebook_page_tokens where merchant_id = ? and is_active = 1",
+8038:         (merchant_id,),
+8039:     ).fetchone()
+8040: 
+8041: 
+8042: class StoreError(Exception):
+8043:     def __init__(self, status, message):
+8044:         super().__init__(message)
+8045:         self.status = status
+8046:         self.message = message
+

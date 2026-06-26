@@ -1,0 +1,26 @@
+{
+  "id": "ccbbc0e6-264c-4af3-b1d7-8c4dfe0f208e",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-main-route-lines2 (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-main-route-lines2",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 67,
+  "started_at": "2026-06-26T06:58:20.209Z",
+  "finished_at": "2026-06-26T06:58:20.227Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 18,
+  "stdout_bytes": 6585,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ccbbc0e6-264c-4af3-b1d7-8c4dfe0f208e.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ccbbc0e6-264c-4af3-b1d7-8c4dfe0f208e.stderr"
+}

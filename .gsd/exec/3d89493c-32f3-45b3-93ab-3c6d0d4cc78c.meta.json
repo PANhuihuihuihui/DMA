@@ -1,0 +1,26 @@
+{
+  "id": "3d89493c-32f3-45b3-93ab-3c6d0d4cc78c",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-grep-publishing-client (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-grep-publishing-client",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 86,
+  "started_at": "2026-06-26T06:55:08.657Z",
+  "finished_at": "2026-06-26T06:55:08.663Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 6,
+  "stdout_bytes": 1485,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/3d89493c-32f3-45b3-93ab-3c6d0d4cc78c.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/3d89493c-32f3-45b3-93ab-3c6d0d4cc78c.stderr"
+}

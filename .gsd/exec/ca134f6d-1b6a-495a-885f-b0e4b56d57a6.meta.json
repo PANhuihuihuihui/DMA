@@ -1,0 +1,26 @@
+{
+  "id": "ca134f6d-1b6a-495a-885f-b0e4b56d57a6",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-restart-frontend-5173 (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-restart-frontend-5173",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 206,
+  "started_at": "2026-06-26T06:53:29.567Z",
+  "finished_at": "2026-06-26T06:53:30.587Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 1020,
+  "stdout_bytes": 6,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ca134f6d-1b6a-495a-885f-b0e4b56d57a6.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ca134f6d-1b6a-495a-885f-b0e4b56d57a6.stderr"
+}

@@ -1,0 +1,39 @@
+  5470	  const connectFacebook = () => {
+  5471	    if (!facebookConnection.configured) {
+  5472	      showAppToast("Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET on the backend.");
+  5473	      return;
+  5474	    }
+  5475	    window.location.href = `/api/v1/facebook/oauth/start?returnTo=${encodeURIComponent(window.location.href)}`;
+  5476	  };
+  5477	
+  5478	  const openSocialDialog = (provider, mode) => {
+  5479	    setSocialActionDialog({ provider, mode });
+  5480	  };
+  5481	
+  5482	  const closeSocialDialog = () => {
+  5483	    setSocialActionDialog(null);
+  5484	  };
+  5485	
+  5486	  const handleSocialAdd = (platform) => {
+  5487	    if (platform.provider === "Facebook") {
+  5488	      connectFacebook();
+  5489	      return;
+  5490	    }
+  5491	    openSocialDialog(platform.provider, "add");
+  5492	  };
+  5493	
+  5494	  const handleSocialConnectionChoice = (choice) => {
+  5495	    showAppToast(`${socialActionDialog?.provider || "Account"} ${choice.title} connection path selected for demo setup.`);
+  5496	    closeSocialDialog();
+  5497	  };
+  5498	
+  5499	  const publishFacebookLive = async (index) => {
+  5500	    const plan = plans[index];
+  5501	    if (plan?.platform !== "facebook") {
+  5502	      showAppToast("Live publishing is available for Facebook drafts first.");
+  5503	      return;
+  5504	    }
+  5505	    if (!plan?.approvalId || !plan.approvalSnapshot?.draftVersionId) {
+  5506	      showAppToast("Approve this exact Facebook draft before publishing live.");
+  5507	      return;
+  5508	    }

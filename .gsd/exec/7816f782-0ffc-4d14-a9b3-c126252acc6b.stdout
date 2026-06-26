@@ -1,0 +1,72 @@
+===== def encryption_available @ 19 =====
+16:     return raw.encode("utf-8") if raw else None
+17: 
+18: 
+19: def encryption_available():
+20:     return resolve_key() is not None
+21: 
+22: 
+23: def encrypt_secret(plaintext):
+24:     key = resolve_key()
+25:     if key is None:
+26:         if is_production():
+27:             raise TokenEncryptionError(
+28:                 "Refusing to handle tokens without LOCALPILOT_TOKEN_KEY in production"
+29:             )
+30:         raise TokenEncryptionError(
+31:             "LOCALPILOT_TOKEN_KEY is not set — cannot encrypt"
+32:         )
+33:     from cryptography.fernet import Fernet
+34: 
+35:     return Fernet(key).encrypt(plaintext.encode("utf-8"))
+36: 
+37: 
+
+===== def encrypt_secret @ 23 =====
+20:     return resolve_key() is not None
+21: 
+22: 
+23: def encrypt_secret(plaintext):
+24:     key = resolve_key()
+25:     if key is None:
+26:         if is_production():
+27:             raise TokenEncryptionError(
+28:                 "Refusing to handle tokens without LOCALPILOT_TOKEN_KEY in production"
+29:             )
+30:         raise TokenEncryptionError(
+31:             "LOCALPILOT_TOKEN_KEY is not set — cannot encrypt"
+32:         )
+33:     from cryptography.fernet import Fernet
+34: 
+35:     return Fernet(key).encrypt(plaintext.encode("utf-8"))
+36: 
+37: 
+38: def decrypt_secret(ciphertext):
+39:     key = resolve_key()
+40:     if key is None:
+41:         if is_production():
+
+===== def decrypt_secret @ 38 =====
+35:     return Fernet(key).encrypt(plaintext.encode("utf-8"))
+36: 
+37: 
+38: def decrypt_secret(ciphertext):
+39:     key = resolve_key()
+40:     if key is None:
+41:         if is_production():
+42:             raise TokenEncryptionError(
+43:                 "Refusing to handle tokens without LOCALPILOT_TOKEN_KEY in production"
+44:             )
+45:         raise TokenEncryptionError(
+46:             "LOCALPILOT_TOKEN_KEY is not set — cannot decrypt"
+47:         )
+48:     from cryptography.fernet import Fernet
+49: 
+50:     return Fernet(key).decrypt(ciphertext).decode("utf-8")
+51: 
+52: 
+53: def emit_insecure_warning():
+54:     global _INSECURE_WARNING_EMITTED
+55:     if not _INSECURE_WARNING_EMITTED:
+56:         _INSECURE_WARNING_EMITTED = True
+

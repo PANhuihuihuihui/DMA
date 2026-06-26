@@ -1,0 +1,26 @@
+{
+  "id": "5f6f2126-2b74-4140-b465-6fc0917b761e",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-find-normalizeWorkflow (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-find-normalizeWorkflow",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 136,
+  "started_at": "2026-06-26T07:18:48.462Z",
+  "finished_at": "2026-06-26T07:18:48.474Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 12,
+  "stdout_bytes": 11765,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/5f6f2126-2b74-4140-b465-6fc0917b761e.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/5f6f2126-2b74-4140-b465-6fc0917b761e.stderr"
+}

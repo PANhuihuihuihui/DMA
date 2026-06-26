@@ -1,0 +1,26 @@
+{
+  "id": "0997b53a-6438-4ea0-ba48-1b15ab787fd4",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-connect-handlers (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-connect-handlers",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 183,
+  "started_at": "2026-06-26T07:01:35.412Z",
+  "finished_at": "2026-06-26T07:01:35.433Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 21,
+  "stdout_bytes": 1420,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/0997b53a-6438-4ea0-ba48-1b15ab787fd4.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/0997b53a-6438-4ea0-ba48-1b15ab787fd4.stderr"
+}

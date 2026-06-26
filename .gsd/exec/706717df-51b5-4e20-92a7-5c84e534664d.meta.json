@@ -1,0 +1,26 @@
+{
+  "id": "706717df-51b5-4e20-92a7-5c84e534664d",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC1-backend-log-grep-pages (uat-log-inspection)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC1-backend-log-grep-pages",
+    "intent": "uat-log-inspection"
+  },
+  "script_chars": 101,
+  "started_at": "2026-06-26T07:14:13.000Z",
+  "finished_at": "2026-06-26T07:14:13.008Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 8,
+  "stdout_bytes": 449,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/706717df-51b5-4e20-92a7-5c84e534664d.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/706717df-51b5-4e20-92a7-5c84e534664d.stderr"
+}

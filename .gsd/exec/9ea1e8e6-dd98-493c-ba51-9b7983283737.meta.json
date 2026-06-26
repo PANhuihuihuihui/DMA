@@ -1,0 +1,19 @@
+{
+  "id": "9ea1e8e6-dd98-493c-ba51-9b7983283737",
+  "runtime": "bash",
+  "purpose": "Verify manual-fallback-hint in PublishTimeline.jsx and build",
+  "script_chars": 281,
+  "started_at": "2026-06-26T06:35:43.157Z",
+  "finished_at": "2026-06-26T06:35:44.443Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 1286,
+  "stdout_bytes": 914,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/9ea1e8e6-dd98-493c-ba51-9b7983283737.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/9ea1e8e6-dd98-493c-ba51-9b7983283737.stderr"
+}

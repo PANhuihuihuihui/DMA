@@ -1,0 +1,61 @@
+   400	                    self.send_json(store.get_channel_health(conn, merchant_id, platform=platform))
+   401	                return
+   402	            channel_action = self.match_channel_action(path)
+   403	            if channel_action and method == "POST" and channel_action["action"] == "disconnect":
+   404	                with closing(store.connect(self.db_path)) as conn:
+   405	                    merchant_id = self.resolve_merchant_id(conn, parsed)
+   406	                    self.send_json(
+   407	                        store.disconnect_channel(conn, merchant_id, channel_action["channel_id"]),
+   408	                        status=201,
+   409	                    )
+   410	                return
+   411	            if channel_action and method == "POST" and channel_action["action"] == "reconnect":
+   412	                with closing(store.connect(self.db_path)) as conn:
+   413	                    merchant_id = self.resolve_merchant_id(conn, parsed)
+   414	                    self.send_json(
+   415	                        store.set_channel_health(conn, merchant_id, channel_action["channel_id"], "connected"),
+   416	                        status=201,
+   417	                    )
+   418	                return
+   419	            if method == "GET" and path == "/api/v1/tiktok/creator-info":
+   420	                query = parse_qs(parsed.query)
+   421	                channel_id = (query.get("channelId") or [store.TIKTOK_CHANNEL_ID])[0]
+   422	                with closing(store.connect(self.db_path)) as conn:
+   423	                    self.resolve_merchant_id(conn, parsed)
+   424	                    self.send_json({"creatorInfo": store.get_tiktok_creator_info(conn, channel_id)})
+   425	                return
+   426	            if method == "GET" and path == "/api/v1/tiktok/media-policy":
+   427	                with closing(store.connect(self.db_path)) as conn:
+   428	                    self.resolve_merchant_id(conn, parsed)
+   429	                    self.send_json({"mediaPolicy": store.strictest_channel_media_policy(conn)})
+   430	                return
+   431	            if method == "POST" and path == "/api/v1/tiktok/creator-info/refresh":
+   432	                with closing(store.connect(self.db_path)) as conn:
+   433	                    self.resolve_merchant_id(conn, parsed)
+   434	                    body = self.read_json()
+   435	                    channel_id = body.get("channelId") or store.TIKTOK_CHANNEL_ID
+   436	                    self.send_json({"creatorInfo": store.refresh_tiktok_creator_info(conn, channel_id)}, status=201)
+   437	                return
+   438	            if method == "GET" and path == "/api/v1/facebook/connection":
+   439	                with closing(store.connect(self.db_path)) as conn:
+   440	                    self.send_json(facebook_oauth.connection_status(conn=conn))
+   441	                return
+   442	            if method == "GET" and path == "/api/v1/facebook/pages":
+   443	                query = parse_qs(parsed.query)
+   444	                session_id = (query.get("connectSession") or [None])[0]
+   445	                self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id)})
+   446	                return
+   447	            if method == "POST" and path == "/api/v1/facebook/pages/select":
+   448	                with closing(store.connect(self.db_path)) as conn:
+   449	                    body = self.read_json()
+   450	                    self.send_json(facebook_oauth.select_page(conn, body.get("connectSession"), body.get("pageId")), status=201)
+   451	                return
+   452	            if method == "POST" and path == "/api/v1/facebook/pages/switch":
+   453	                with closing(store.connect(self.db_path)) as conn:
+   454	                    body = self.read_json()
+   455	                    self.send_json(facebook_oauth.switch_active_page(conn, body.get("pageId")))
+   456	                return
+   457	            if method == "GET" and path == "/api/v1/facebook/oauth/start":
+   458	                query = parse_qs(parsed.query)
+   459	                self.send_redirect(facebook_oauth.build_login_url(return_url=(query.get("returnTo") or [None])[0]))
+   460	                return

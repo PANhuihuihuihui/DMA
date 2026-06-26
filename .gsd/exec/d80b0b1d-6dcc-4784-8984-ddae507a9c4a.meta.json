@@ -1,0 +1,26 @@
+{
+  "id": "d80b0b1d-6dcc-4784-8984-ddae507a9c4a",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-restart-frontend-clean (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-restart-frontend-clean",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 174,
+  "started_at": "2026-06-26T06:53:43.855Z",
+  "finished_at": "2026-06-26T06:53:45.873Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 2018,
+  "stdout_bytes": 6,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/d80b0b1d-6dcc-4784-8984-ddae507a9c4a.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/d80b0b1d-6dcc-4784-8984-ddae507a9c4a.stderr"
+}

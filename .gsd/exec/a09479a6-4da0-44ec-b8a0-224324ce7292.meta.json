@@ -1,0 +1,26 @@
+{
+  "id": "a09479a6-4da0-44ec-b8a0-224324ce7292",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-authStatus (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-authStatus",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 95,
+  "started_at": "2026-06-26T07:02:18.620Z",
+  "finished_at": "2026-06-26T07:02:18.630Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 10,
+  "stdout_bytes": 319,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/a09479a6-4da0-44ec-b8a0-224324ce7292.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/a09479a6-4da0-44ec-b8a0-224324ce7292.stderr"
+}

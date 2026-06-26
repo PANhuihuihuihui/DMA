@@ -1,0 +1,55 @@
+5070:    }
+5071:    updateFacebookPublishForm("pageId", page.pageId);
+5072:    showAppToast(`${page.name || "Facebook Page"} selected. Official publish still requires OAuth connection.`);
+5073:  };
+5074:
+5075:  const submitHelpDraft = (event) => {
+5076:    event.preventDefault();
+5077:    const draft = helpDraft.trim();
+5078:    if (!draft) {
+5079:      showAppToast("Write a support message draft first.");
+5080:      return;
+5081:    }
+5082:    showAppToast("Message drafted locally. Nothing was sent.");
+5083:    setHelpDraft("");
+5084:  };
+5085:
+5086:  const logout = async () => {
+5087:    try {
+5088:      await logoutSession();
+5089:    } catch {
+5090:      // best-effort
+5091:    }
+5092:    setSession(null);
+5093:    setAuthStatus("unauthenticated");
+5094:    navigate("/");
+5095:  };
+5096:
+5097:  const selectModule = (module) => {
+5098:    const nextModule = moduleFromSlug(module) || module;
+5099:    setCalendarDrawerOpen(false);
+5100:    setHelpFlyoutOpen(false);
+5101:    setActiveModule(nextModule);
+5102:    navigate(`/app?module=${moduleSlug(nextModule)}`, { replace: true });
+5103:  };
+5104:
+5105:  const openInspirationCollectionNudge = (sectionTitle) => {
+5106:    setPendingInspirationCollection(sectionTitle);
+5107:    setWaitNudgeOpen(true);
+5108:  };
+5109:
+5110:  const continueInspirationAfterNudge = () => {
+5111:    const nextCollection = pendingInspirationCollection || "Trending collection";
+5112:    setActiveInspirationCollection(nextCollection);
+5113:    setActiveInspirationCategory("All");
+5114:    setPendingInspirationCollection("");
+5115:    setWaitNudgeOpen(false);
+5116:  };
+5117:
+5118:  const closeInspirationNudge = () => {
+5119:    setPendingInspirationCollection("");
+5120:    setWaitNudgeOpen(false);
+5121:  };
+5122:
+5123:  const downloadPostFromInspirationNudge = () => {
+5124:    setPendingInspirationCollection("");

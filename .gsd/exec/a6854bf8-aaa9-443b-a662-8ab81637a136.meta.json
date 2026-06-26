@@ -1,0 +1,26 @@
+{
+  "id": "a6854bf8-aaa9-443b-a662-8ab81637a136",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-restart-backend-8790 (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-restart-backend-8790",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 249,
+  "started_at": "2026-06-26T07:05:57.036Z",
+  "finished_at": "2026-06-26T07:05:59.060Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 2024,
+  "stdout_bytes": 0,
+  "stderr_bytes": 65,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/a6854bf8-aaa9-443b-a662-8ab81637a136.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/a6854bf8-aaa9-443b-a662-8ab81637a136.stderr"
+}

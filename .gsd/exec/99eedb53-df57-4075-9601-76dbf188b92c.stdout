@@ -1,0 +1,9 @@
+src/routes/DebugRoute.jsx:4:import { loadDebugPublishJobs } from "../api/publishingClient.js";
+src/routes/DebugRoute.jsx:79:      const payload = await loadDebugPublishJobs();
+src/routes/DebugRoute.jsx:135:              Read-only support records for fake publish jobs, attempts, trace IDs, and redacted provider diagnostics.
+src/routes/DebugRoute.jsx:150:                <h2>Backend publish jobs</h2>
+src/routes/DebugRoute.jsx:174:                <strong>No publish jobs yet</strong>
+src/api/publishingClient.js:214:export const loadDebugPublishJobs = () => requestJson("/debug/publish-jobs");
+src/components/PublishTimeline.jsx:249:          <strong>No publish jobs yet</strong>
+backend/app/server.py:354:            if method == "GET" and path == "/api/v1/debug/publish-jobs":
+backend/app/store.py:1748:    # Preserve historical drafts, approvals, and publish jobs; only flip the live

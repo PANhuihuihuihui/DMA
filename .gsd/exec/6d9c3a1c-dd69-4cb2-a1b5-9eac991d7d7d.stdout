@@ -1,0 +1,80 @@
+4700:        setCreatorWorkflowStep("idea");
+4701:      }
+4702:      showAppToast(`${payload?.workflow?.ideas?.length || 0} creator-style ideas generated.`);
+4703:      return payload?.workflow || null;
+4704:    } catch (error) {
+4705:      showAppToast(error instanceof Error ? error.message : "Creator-style ideas could not be generated.");
+4706:      return null;
+4707:    } finally {
+4708:      setCreatorStylePending("");
+4709:    }
+4710:  };
+4711:
+4712:  const generateCreatorStyleVideo = async () => {
+4713:    setCreatorStylePending("generate");
+4714:    startCooking("creator-style-video");
+4715:    try {
+4716:      let workflow =
+4717:        creatorStyleWorkflows.find(
+4718:          (item) => item.prompt === creatorStyleForm.prompt && item.goal === creatorStyleForm.goal,
+4719:        ) || selectedCreatorWorkflow;
+4720:    if (!workflow?.id) {
+4721:        const ideasPayload = await createPhase3CreatorStyleVideoWorkflow({
+4722:          prompt: creatorStyleForm.prompt,
+4723:          goal: creatorStyleForm.goal,
+4724:          styleId: creatorStyleForm.styleId,
+4725:          actorId: creatorStyleForm.actorId,
+4726:          templateId: creatorStyleForm.templateId,
+4727:          aspectRatio: creatorStyleForm.aspectRatio,
+4728:        });
+4729:        applyCreatorStylePayload(ideasPayload);
+4730:        workflow = ideasPayload?.workflow;
+4731:      }
+4732:      if (!workflow?.id) {
+4733:        showAppToast("Generate ideas before creating the creator-style video.");
+4734:        return;
+4735:      }
+4736:      const payload = await generatePhase3CreatorStyleVideo(workflow.id, {
+4737:        prompt: creatorStyleForm.prompt,
+4738:        goal: creatorStyleForm.goal,
+4739:        selectedIdeaId: creatorStyleForm.selectedIdeaId || workflow.selectedIdeaId || workflow.ideas?.[0]?.id,
+4740:        styleId: creatorStyleForm.styleId,
+4741:        actorId: creatorStyleForm.actorId,
+4742:        templateId: creatorStyleForm.templateId,
+4743:        aspectRatio: creatorStyleForm.aspectRatio,
+4744:      });
+4745:      applyCreatorStylePayload(payload);
+4746:      setCreatorWorkflowStep("generated");
+4747:      setAiResponse(
+4748:        `${payload?.creative?.title || "Creator-style video"} is storyboard-ready with actor, scenes, UGC package, and calendar slot.`,
+4749:      );
+4750:      showAppToast("Creator-style video generated into backend workspace.");
+4751:      return payload;
+4752:    } catch (error) {
+4753:      showAppToast(error instanceof Error ? error.message : "Creator-style video generation failed.");
+4754:      return null;
+4755:    } finally {
+4756:      setCreatorStylePending("");
+4757:    }
+4758:  };
+4759:
+4760:  const openCreatorSchedule = () => {
+4761:    if (!selectedCreatorCreative?.id) {
+4762:      showAppToast("Generate the creator-style video before scheduling it.");
+4763:      return;
+4764:    }
+4765:    if (selectedCreatorCalendarSlot?.id) {
+4766:      setSelectedCalendarSlotId(selectedCreatorCalendarSlot.id);
+4767:    }
+4768:    setCreatorWorkflowOpen(false);
+4769:    selectModule("Content Calendar");
+4770:    setCalendarDrawerOpen(true);
+4771:    showAppToast("Creator-style video schedule opened in Content Calendar.");
+4772:  };
+4773:
+4774:  const applyCreatorWorkflowOption = (value, options, fallback) =>
+4775:    options.some((option) => option.id === value) ? value : fallback;
+4776:
+4777:  const openCreatorWorkflow = (step = "prompt") => {
+4778:    setCreatorStyleForm((current) => ({
+4779:      ...current,

@@ -1,0 +1,26 @@
+{
+  "id": "a81bc67f-774e-469b-a142-5d15eca90b55",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC1-rg-connectSession-usage (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC1-rg-connectSession-usage",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 183,
+  "started_at": "2026-06-26T07:07:51.463Z",
+  "finished_at": "2026-06-26T07:07:51.498Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 35,
+  "stdout_bytes": 615,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/a81bc67f-774e-469b-a142-5d15eca90b55.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/a81bc67f-774e-469b-a142-5d15eca90b55.stderr"
+}

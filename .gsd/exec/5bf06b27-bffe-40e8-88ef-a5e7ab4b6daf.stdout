@@ -1,0 +1,120 @@
+42:  updatePhase3BrandKit,
+300:  "Branded client reporting": "品牌化客户报告",
+434:  "Brand folders": "品牌文件夹",
+464:  "Brand knowledge": "品牌知识",
+1126:  "Brand & Social Accounts",
+1139:  "Brand & Social Accounts": "▣",
+1150:  "brand-kit": "Brand & Social Accounts",
+1151:  "brand-and-social-accounts": "Brand & Social Accounts",
+1167:  settings: "Brand & Social Accounts",
+1168:  "connected-accounts": "Brand & Social Accounts",
+1222:  "Brand & Social Accounts": {
+1223:    kicker: "Brand and social accounts",
+1224:    title: "Brand & Social Accounts",
+1550:const brandAccountTabs = ["Social Platforms", "Brand Details", "Integrations", "Exports"];
+1682:  ["Brand Elements", "Show where logos, fonts, colors, and approved phrases live."],
+1698:  ["Brand", "Apply brand kit", "Use local voice, colors, approved phrases, and audience rules."],
+2187:    module: "Brand & Social Accounts",
+2709:function Brand() {
+2796:          <Brand />
+3083:          <Brand />
+3513:      showToast?.("Brand profile confirmed.");
+3825:  const [activeBrandAccountTab, setActiveBrandAccountTab] = useState("Social Platforms");
+3826:  const [activeBrandDetailSection, setActiveBrandDetailSection] = useState("Content settings");
+3854:  const phase3BrandKit = phase3Workspace.brandKit || {};
+4034:  const brandKitDisplayCards = phase3BrandKit.id
+4036:        ["Business", campaignInput.business, phase3BrandKit.voice?.audience || campaignInput.audience],
+4037:        ["Tone", phase3BrandKit.voice?.tone || "trusted, prompt, local", phase3BrandKit.voice?.promise || "Helpful local expert"],
+4038:        ["Colors", (phase3BrandKit.colors || []).join(", "), "Applied to cards, carousels, and proof reports"],
+4039:        ["Approved words", (phase3BrandKit.approvedTerms || []).join(", "), "Used by the generator before every draft"],
+4040:        ["Avoid", (phase3BrandKit.avoidTerms || []).join(", "), "Risk guardrails before owner approval"],
+4041:        ["Examples", `${(phase3BrandKit.examples || []).length} saved examples`, "Used as the brand voice calibration seed"],
+4224:  const pageTitle = config.view === "create" && activeCreateFormat ? createFlowTitle : config.title;
+4226:    config.view === "create"
+4389:    if (!carouselBrandReady) {
+4496:  const carouselBrandReady = Boolean(phase3BrandKit?.id);
+4511:    !carouselBrandReady ||
+4588:          setActiveBrandAccountTab("Social Platforms");
+4597:    if (!brandAccountTabs.includes(activeBrandAccountTab)) {
+4598:      setActiveBrandAccountTab("Brand Details");
+4600:  }, [activeBrandAccountTab]);
+5739:  const saveBrandKitCalibration = async () => {
+5742:        ...(phase3BrandKit.voice || {}),
+5745:      const payload = await updatePhase3BrandKit({
+5747:        website: phase3BrandKit.website || "https://auroraheatcool.example",
+5748:        socialHandle: phase3BrandKit.socialHandle || "@auroraheatcool",
+5749:        hashtags: phase3BrandKit.hashtags || ["#AnnArbor", "#HVAC", "#LocalService"],
+5751:          ...(phase3BrandKit.typography || {}),
+5752:          title: phase3BrandKit.typography?.title || "Fraunces-style bold service headline",
+5753:          subtitle: phase3BrandKit.typography?.subtitle || "Readable sans caption for local offers",
+5756:          ...(phase3BrandKit.logos || {}),
+5757:          light: phase3BrandKit.logos?.light || phase3BrandKit.logoRef || "localpilot-brand/aurora/logo.svg",
+5758:          dark: phase3BrandKit.logos?.dark || "localpilot-brand/aurora/logo-dark.svg",
+5760:        integrations: phase3BrandKit.integrations || [
+5765:        approvedTerms: phase3BrandKit.approvedTerms || ["same-week", "local team"],
+5771:      showAppToast("Brand kit calibration saved to backend.");
+5773:      showAppToast(error instanceof Error ? error.message : "Brand kit save failed.");
+6193:          <Brand />
+6330:              {config.view === "library" && (
+6339:              {config.view === "calendar" && (
+6358:            {config.view === "create" && (
+6448:                        <em>Brand locked from saved kit · MiniMax default model · 3:4 portrait</em>
+6452:                      <span>Brand linked</span>
+6453:                      <strong>{phase3BrandKit.voice?.tone || "trusted, prompt, local"}</strong>
+6454:                      <p>{(phase3BrandKit.approvedTerms || ["same-week", "local team"]).join(" · ")}</p>
+6471:            {config.view === "inspirations" && (
+6572:            {config.view === "workbench" && (
+6599:                    <span>Brands</span>
+6601:                    <p>Brand kits for generation and publishing</p>
+6871:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+6937:            {config.view === "brand" && (
+6941:                    <p className="app-kicker">Brand kit</p>
+6950:                    <div className="brand-swatches" aria-label="Brand colors">
+6978:                  <button className="primary-action" type="button" onClick={saveBrandKitCalibration}>
+6985:            {config.view === "library" && (
+7640:            {config.view === "autopost" && (
+7686:            {config.view === "calendar" && (
+7866:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+7924:            {config.view === "approvals" && (
+8045:            {config.view === "accounts" && (
+8049:                    <p className="app-kicker">Brand & Social Accounts</p>
+8060:                <div className="brand-account-tabs" role="tablist" aria-label="Brand and social account sections">
+8063:                      className={activeBrandAccountTab === tab ? "active" : ""}
+8066:                      aria-selected={activeBrandAccountTab === tab}
+8068:                      onClick={() => setActiveBrandAccountTab(tab)}
+8074:                {activeBrandAccountTab === "Social Platforms" && (
+8112:                {activeBrandAccountTab === "Social Platforms" && (
+8148:                {activeBrandAccountTab === "Brand Details" && (
+8149:                  <section className="brand-details-workspace" aria-label="Brand Details">
+8150:                    <nav className="brand-details-inner-nav" aria-label="Brand Details sections">
+8153:                          className={activeBrandDetailSection === section ? "active" : ""}
+8156:                          onClick={() => setActiveBrandDetailSection(section)}
+8163:                      {activeBrandDetailSection === "Business identity" && (
+8169:                              ["Business description", phase3BrandKit.voice?.promise || "Local team with honest recommendations and fast scheduling."],
+8170:                              ["Website", phase3BrandKit.website || "https://auroraheatcool.example"],
+8171:                              ["Social handle", phase3BrandKit.socialHandle || "@auroraheatcool"],
+8172:                              ["Hashtags", (phase3BrandKit.hashtags || ["#AnnArbor", "#HVAC", "#LocalService"]).join(" ")],
+8186:                      {activeBrandDetailSection === "Style" && (
+8196:                          <div className="brand-style-grid" aria-label="Brand Style">
+8198:                              ["Title typography", phase3BrandKit.typography?.title || "Fraunces-style bold service headline"],
+8199:                              ["Subtitle typography", phase3BrandKit.typography?.subtitle || "Clean sans caption for readable local offers"],
+8200:                              ["Light logo", phase3BrandKit.logos?.light || phase3BrandKit.logoRef || "localpilot-brand/aurora/logo.svg"],
+8201:                              ["Dark logo", phase3BrandKit.logos?.dark || "localpilot-brand/aurora/logo-dark.svg"],
+8210:                              <div className="brand-swatches" aria-label="Brand font colors">
+8211:                                {(phase3BrandKit.colors || ["#172033", "#2563eb", "#f4a62a", "#fff7e8"]).map((color) => (
+8220:                      {activeBrandDetailSection === "Content settings" && (
+8250:                              Brand Ethnicity
+8258:                              Brand Voiceover <span aria-label="Voiceover info">ⓘ</span>
+8270:                              Brand Avatar
+8283:                        <button type="button" onClick={saveBrandKitCalibration}>
+8290:                {activeBrandAccountTab === "Integrations" && (
+8338:                {activeBrandAccountTab === "Exports" && (
+8370:            {config.view === "ideas" && (
+8390:                        setActiveBrandAccountTab("Social Platforms");
+8391:                        selectModule("Brand & Social Accounts");
+8450:            {config.view === "ai" && (
+8607:            {config.view === "generation" && (
+8702:                        <p>Brand locked from saved kit. Aspect ratio stays fixed at 3:4. MiniMax is the default merchant-facing model.</p>
+8704:                          <small>{carouselBrandReady ? "Brand locked from saved kit" : "Finish brand kit first"}</small>
+8722:                      {!carouselBrandReady && (
+8920:            {config.view === "month" && (

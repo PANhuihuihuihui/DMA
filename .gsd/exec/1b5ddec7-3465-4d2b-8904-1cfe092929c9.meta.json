@@ -1,0 +1,26 @@
+{
+  "id": "1b5ddec7-3465-4d2b-8904-1cfe092929c9",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-rg-oauth-start-line (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-rg-oauth-start-line",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 92,
+  "started_at": "2026-06-26T07:00:33.465Z",
+  "finished_at": "2026-06-26T07:00:33.487Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 22,
+  "stdout_bytes": 732,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/1b5ddec7-3465-4d2b-8904-1cfe092929c9.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/1b5ddec7-3465-4d2b-8904-1cfe092929c9.stderr"
+}

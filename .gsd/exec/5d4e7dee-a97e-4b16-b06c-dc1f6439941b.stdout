@@ -1,0 +1,10 @@
+3831:  const [pendingConnectSession, setPendingConnectSession] = useState("");
+4583:      loadFacebookPages(connectSession)
+5045:  const handleConnectSessionPageSelect = async (pageId) => {
+5047:      await selectFacebookPage(pendingConnectSession, pageId);
+5486:  const handleSocialAdd = (platform) => {
+8094:                          <button type="button" onClick={() => handleSocialAdd(platform)}>
+8113:                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden={!pendingConnectSession}>
+8122:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+8124:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+8127:                          onClick={pendingConnectSession ? () => handleConnectSessionPageSelect(page.pageId) : () => setSelectedFacebookPageId(page.pageId)}

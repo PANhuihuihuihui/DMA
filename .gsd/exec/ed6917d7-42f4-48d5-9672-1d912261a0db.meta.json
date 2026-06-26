@@ -1,0 +1,26 @@
+{
+  "id": "ed6917d7-42f4-48d5-9672-1d912261a0db",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-main-route-snippet (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-main-route-snippet",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 156,
+  "started_at": "2026-06-26T06:58:25.270Z",
+  "finished_at": "2026-06-26T06:58:25.304Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 34,
+  "stdout_bytes": 355,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/ed6917d7-42f4-48d5-9672-1d912261a0db.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/ed6917d7-42f4-48d5-9672-1d912261a0db.stderr"
+}

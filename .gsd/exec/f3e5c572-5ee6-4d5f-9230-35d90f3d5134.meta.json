@@ -1,0 +1,26 @@
+{
+  "id": "f3e5c572-5ee6-4d5f-9230-35d90f3d5134",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-server-facebook-routes (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-server-facebook-routes",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 48,
+  "started_at": "2026-06-26T06:55:49.819Z",
+  "finished_at": "2026-06-26T06:55:49.826Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 7,
+  "stdout_bytes": 8345,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/f3e5c572-5ee6-4d5f-9230-35d90f3d5134.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/f3e5c572-5ee6-4d5f-9230-35d90f3d5134.stderr"
+}

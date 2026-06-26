@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-26T06:44:13Z | Files: 187 | Described: 0/187
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-26T06:44:13Z","fingerprint":"1e6ebbc8a143406ab43c58077d9b71c661c67fc5","fileCount":187,"truncated":false} -->
+Generated: 2026-06-26T16:44:49Z | Files: 189 | Described: 0/189
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-26T16:44:49Z","fingerprint":"b2c780080c613047bc3dfe5ea7d967770ff89b44","fileCount":189,"truncated":false} -->
 
 ### (root)/
 - `.gitignore`
@@ -117,7 +117,7 @@ Generated: 2026-06-26T06:44:13Z | Files: 187 | Described: 0/187
 - `backend/scripts/smoke_s04.py`
 
 ### backend/tests/
-- *(27 files: 27 .py)*
+- *(29 files: 29 .py)*
 
 ### config/
 - `config/mcporter.json`

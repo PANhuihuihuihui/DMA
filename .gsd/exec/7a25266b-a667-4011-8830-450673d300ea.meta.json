@@ -1,0 +1,26 @@
+{
+  "id": "7a25266b-a667-4011-8830-450673d300ea",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC2-db-schema (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC2-db-schema",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 317,
+  "started_at": "2026-06-26T07:15:41.964Z",
+  "finished_at": "2026-06-26T07:15:41.986Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 22,
+  "stdout_bytes": 1965,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/7a25266b-a667-4011-8830-450673d300ea.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/7a25266b-a667-4011-8830-450673d300ea.stderr"
+}

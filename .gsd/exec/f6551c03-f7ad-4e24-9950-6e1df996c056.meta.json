@@ -1,0 +1,26 @@
+{
+  "id": "f6551c03-f7ad-4e24-9950-6e1df996c056",
+  "runtime": "bash",
+  "purpose": "UAT M002/S01/TC0-server-facebook-snippet (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M002",
+    "sliceId": "S01",
+    "checkId": "TC0-server-facebook-snippet",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 477,
+  "started_at": "2026-06-26T06:55:52.292Z",
+  "finished_at": "2026-06-26T06:55:52.324Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 32,
+  "stdout_bytes": 4438,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/f6551c03-f7ad-4e24-9950-6e1df996c056.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/f6551c03-f7ad-4e24-9950-6e1df996c056.stderr"
+}

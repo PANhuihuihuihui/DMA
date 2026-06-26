@@ -1,0 +1,12 @@
+168:        <div className="manual-fallback-hint" role="status">
+134:export function PublishTimeline({ platform, job, fallbackStatus = "needs_review", onReconnect }) {
+170:          {isAuthError(normalizedJob.latestAttempt?.errorClass) && onReconnect && (
+171:            <button className="manual-fallback-reconnect" onClick={onReconnect} type="button">
+6850:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+7845:                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
+=== grep checks pass ===
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.05s

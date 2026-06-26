@@ -1,0 +1,28 @@
+test_callback_rejects_invalid_state (backend.tests.test_facebook_oauth.FacebookOAuthTest.test_callback_rejects_invalid_state) ... ok
+test_callback_returns_connect_session_without_auto_committing (backend.tests.test_facebook_oauth.FacebookOAuthTest.test_callback_returns_connect_session_without_auto_committing) ... ok
+test_login_url_uses_code_flow_scopes_redirect_uri_and_state (backend.tests.test_facebook_oauth.FacebookOAuthTest.test_login_url_uses_code_flow_scopes_redirect_uri_and_state) ... ok
+test_select_page_commits_active_token_and_hides_secrets (backend.tests.test_facebook_oauth.FacebookOAuthTest.test_select_page_commits_active_token_and_hides_secrets) ... ok
+test_mark_reconnect_required (backend.tests.test_facebook_token_store.TestFacebookPageTokensStore.test_mark_reconnect_required) ... ok
+test_missing_page_returns_none (backend.tests.test_facebook_token_store.TestFacebookPageTokensStore.test_missing_page_returns_none) ... ok
+test_set_active_page_single_active (backend.tests.test_facebook_token_store.TestFacebookPageTokensStore.test_set_active_page_single_active) ... ok
+test_upsert_stores_ciphertext_only (backend.tests.test_facebook_token_store.TestFacebookPageTokensStore.test_upsert_stores_ciphertext_only) ... ok
+test_upsert_updates_in_place (backend.tests.test_facebook_token_store.TestFacebookPageTokensStore.test_upsert_updates_in_place) ... ok
+test_list_connected_pages_no_token_field (backend.tests.test_facebook_token_store.TestFacebookTokenVault.test_list_connected_pages_no_token_field) ... ok
+test_mark_reconnect_required_through_vault (backend.tests.test_facebook_token_store.TestFacebookTokenVault.test_mark_reconnect_required_through_vault) ... ok
+test_set_active_page_through_vault (backend.tests.test_facebook_token_store.TestFacebookTokenVault.test_set_active_page_through_vault) ... ok
+test_vault_dev_fallback_no_key (backend.tests.test_facebook_token_store.TestFacebookTokenVault.test_vault_dev_fallback_no_key) ... ok
+test_vault_encrypted_round_trip (backend.tests.test_facebook_token_store.TestFacebookTokenVault.test_vault_encrypted_round_trip) ... ok
+test_ciphertext_not_equal_to_plaintext (backend.tests.test_facebook_token_store.TestTokenCrypto.test_ciphertext_not_equal_to_plaintext) ... ok
+test_dev_no_key_encrypt_raises (backend.tests.test_facebook_token_store.TestTokenCrypto.test_dev_no_key_encrypt_raises) ... ok
+test_dev_no_key_encryption_not_available (backend.tests.test_facebook_token_store.TestTokenCrypto.test_dev_no_key_encryption_not_available) ... ok
+test_encryption_available_with_key (backend.tests.test_facebook_token_store.TestTokenCrypto.test_encryption_available_with_key) ... ok
+test_generate_dev_key (backend.tests.test_facebook_token_store.TestTokenCrypto.test_generate_dev_key) ... ok
+test_is_production (backend.tests.test_facebook_token_store.TestTokenCrypto.test_is_production) ... ok
+test_prod_no_key_fails_closed_decrypt (backend.tests.test_facebook_token_store.TestTokenCrypto.test_prod_no_key_fails_closed_decrypt) ... ok
+test_prod_no_key_fails_closed_encrypt (backend.tests.test_facebook_token_store.TestTokenCrypto.test_prod_no_key_fails_closed_encrypt) ... ok
+test_round_trip (backend.tests.test_facebook_token_store.TestTokenCrypto.test_round_trip) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 0.299s
+
+OK

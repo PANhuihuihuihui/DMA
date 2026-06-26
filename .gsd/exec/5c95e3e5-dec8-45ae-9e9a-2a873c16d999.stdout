@@ -1,0 +1,3 @@
+src/api/publishingClient.js:214:export const loadDebugPublishJobs = () => requestJson("/debug/publish-jobs");
+src/routes/DebugRoute.jsx:4:import { loadDebugPublishJobs } from "../api/publishingClient.js";
+src/routes/DebugRoute.jsx:79:      const payload = await loadDebugPublishJobs();
