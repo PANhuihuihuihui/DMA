@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-06-26T03:43:55.490792+00:00",
+  "checks": [
+    {
+      "name": "CATALOG_COSTS",
+      "status": "PASS",
+      "detail": "openai_video=180, heygen=220",
+      "elapsed_ms": 20
+    },
+    {
+      "name": "INSUFFICIENT_BALANCE",
+      "status": "PASS",
+      "detail": "Got expected StoreError status=404: Credit account not configured.",
+      "elapsed_ms": 19
+    },
+    {
+      "name": "MODEL_API_SURFACE",
+      "status": "PASS",
+      "detail": "openai_video creditCost=180, heygen creditCost=220",
+      "elapsed_ms": 530
+    },
+    {
+      "name": "SORA2_REAL_GEN",
+      "status": "SKIP",
+      "detail": "OPENAI_API_KEY not set",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "HEYGEN_REAL_GEN",
+      "status": "SKIP",
+      "detail": "HEYGEN_API_KEY not set",
+      "elapsed_ms": 0
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "pass": 3,
+    "skip": 2,
+    "fail": 0
+  }
+}
