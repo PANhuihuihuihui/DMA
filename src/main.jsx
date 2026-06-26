@@ -6847,6 +6847,7 @@ export function AppDemo() {
                       <PublishTimeline
                         fallbackStatus={planLifecycleStatus(plan)}
                         job={plan.publishJob}
+                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
                         platform={plan.name}
                       />
                       {safeSelectedChannel === index && canRetryPublishJob(plan.publishJob) && (
@@ -7841,6 +7842,7 @@ export function AppDemo() {
                       <PublishTimeline
                         fallbackStatus={planLifecycleStatus(selectedPlan)}
                         job={selectedPlan.publishJob}
+                        onReconnect={() => setActiveModule("Brand & Social Accounts")}
                         platform={selectedPlan.name}
                       />
                       {canRetryPublishJob(selectedPlan.publishJob) && (

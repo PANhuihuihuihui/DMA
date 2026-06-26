@@ -115,7 +115,23 @@ const groupEventsByAttempt = (events, attempts) => {
   });
 };
 
-export function PublishTimeline({ platform, job, fallbackStatus = "needs_review" }) {
+const fallbackHintText = (errorClass) => {
+  if (errorClass === "authentication" || errorClass === "missing_permission") {
+    return "Facebook authorization expired or missing. Reconnect this Page to resume publishing.";
+  }
+  if (errorClass === "validation") {
+    return "The post content or image failed validation. Edit the draft and re-approve.";
+  }
+  if (errorClass === "rate_limit") {
+    return "Facebook rate limit reached. Retry after the limit window passes.";
+  }
+  return "This post requires manual review before it can be published.";
+};
+
+const isAuthError = (errorClass) =>
+  errorClass === "authentication" || errorClass === "missing_permission";
+
+export function PublishTimeline({ platform, job, fallbackStatus = "needs_review", onReconnect }) {
   const normalizedJob = normalizePublishJob(job);
   const currentStatus = normalizedJob.id ? normalizedJob.currentStatus : fallbackStatus;
   const currentIndex = Math.max(LIFECYCLE_STATES.indexOf(currentStatus), 0);
@@ -147,6 +163,17 @@ export function PublishTimeline({ platform, job, fallbackStatus = "needs_review"
           );
         })}
       </ol>
+
+      {currentStatus === "manual_fallback_required" && (
+        <div className="manual-fallback-hint" role="status">
+          <p>{fallbackHintText(normalizedJob.latestAttempt?.errorClass)}</p>
+          {isAuthError(normalizedJob.latestAttempt?.errorClass) && onReconnect && (
+            <button className="manual-fallback-reconnect" onClick={onReconnect} type="button">
+              Reconnect Facebook
+            </button>
+          )}
+        </div>
+      )}
 
       {attemptGroups.length ? (
         <div className="publish-timeline-attempts" aria-label={`${platform} backend attempt history`}>
