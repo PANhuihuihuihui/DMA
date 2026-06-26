@@ -1,10 +1,11 @@
-# GSD context snapshot (2026-06-26T04:22:07.745Z)
+# GSD context snapshot (2026-06-26T06:34:29.221Z)
 
-## Top project memories
-- [MEM003] (pattern) Frontend generation job polling uses exponential backoff (3s→30s cap) with dependency on genActiveJobs.length to reset on new job activation. This pattern efficiently tracks long-running async operations without hammering the API while remaining responsive to user actions.
-- [MEM004] (pattern) Video materialization follows the carousel pattern exactly: materialize_*_package called on job success in both async and sync dispatch paths, creates generated_creative + media_asset rows, updates output metadata with creativeId for phase3Workspace linkage. This pattern is now proven for two asset types and can be replicated for future capabilities (images, documents, etc.) without modification.
-- [MEM006] (architecture) The creativeId metadata linkage (stored in generation_outputs.metadata_json by materialize_*_package, surfaced by serialize_generation_job) is the authoritative bridge between the generation engine and phase3Workspace visibility. Never query generated_creatives by merchant_id alone in tests—use the creativeId from the job's serialized metadata to avoid picking up demo or pre-seeded data.
-- [MEM005] (gotcha) The dispatch engine has two paths: _dispatch_job (async, adapter.poll()) and dispatch_generation_job (sync, adapter.submit returns full result). The adapter interfaces are incompatible. Test fixtures must match the path they're testing, or they'll fail silently or with confusing errors. Use _dispatch_job + _patch_registry for poll-based adapters, never try to shim poll() results into sync dispatch.
-- [MEM007] (convention) Frontend openEditor functions (openCarouselEditor, openVideoEditor) follow a strict pattern: reload workspace, find creative by ID, set selected post + detail creative ID, navigate to target route, show toast. Copy this pattern exactly for new editor types—it ensures phase3Workspace consistency and ModalDismiss cleanup.
-- [MEM001] (architecture) Which provider to use for
-…[truncated]
+## Active context
+Active: M002 / S01 / T02 - Add manual fallback next-step hint and Reconnect CTA in PublishTimeline
+
+## Recent gsd_exec runs
+- [3b0adc93-8dd1-40ae-a2e1-9ee104c5fc36] bash exit:0 — Syntax check main.jsx via vite build dry-run
+- [eb1fbd40-7c7f-434e-9447-59527d185752] bash exit:0 — Verify connectSession wiring in main.jsx
+- [df9e85b3-d004-41bc-88ae-9c0b83f4f654] node exit:0 — extract S01 task completion payloads
+- [37409587-5e20-4589-a408-63864a7b356e] node exit:0 — extract M001 task summary metadata for drift repair
+- [0c537347-82eb-4310-a5a9-15dd0e8b628c] node exit:0 — summarize M001 tasks for drift repair

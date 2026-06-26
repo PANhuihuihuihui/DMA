@@ -1,0 +1,19 @@
+{
+  "id": "37409587-5e20-4589-a408-63864a7b356e",
+  "runtime": "node",
+  "purpose": "extract M001 task summary metadata for drift repair",
+  "script_chars": 1247,
+  "started_at": "2026-06-26T06:01:19.077Z",
+  "finished_at": "2026-06-26T06:01:19.105Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 28,
+  "stdout_bytes": 24104,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/37409587-5e20-4589-a408-63864a7b356e.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/37409587-5e20-4589-a408-63864a7b356e.stderr"
+}

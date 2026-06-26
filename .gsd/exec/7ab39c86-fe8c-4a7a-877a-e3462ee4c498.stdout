@@ -1,0 +1,223 @@
+{
+  "S01": {
+    "goal": "Backend server starts cleanly, generation_dispatch.py drives async job lifecycle with Sora 2 and HeyGen adapters, credits settle on success and release on failure, contract tests pass.",
+    "demo": "Backend server starts without ImportError. `pytest tests/ -x -q` passes adapter contract tests and job lifecycle state transition tests. A POST /api/v1/generation/jobs with dispatch:false returns a job record with status=queued and credits reserved. A manual dispatch call drives a simulated job to succeeded and confirms credits settled; a simulated failure confirms credits released.",
+    "successCriteria": "- pytest backend/tests/ -x -q passes with no ImportError. POST /api/v1/generation/jobs (dispatch:false) → 201 with status=queued and credits reserved. Simulated dispatch drives job to succeeded → credits settled. Simulated failure → credits released.",
+    "proofLevel": "- This slice proves: Contract + Integration: pytest contract tests pass; server starts without ImportError; POST /api/v1/generation/jobs with dispatch:false returns queued job with credits reserved; dispatch:true drives a simulated run to terminal state with correct credit settlement.",
+    "integrationClosure": "generation_dispatch exports exactly start_async_dispatch(db_path, job_id) and retry_generation_job(db_path, merchant_id, job_id, dispatch) — matching the two call sites in server.py lines 179 and 193. Provider adapters implement a shared contract (submit/poll/cancel). Credit settle/release calls the existing store functions; no new schema changes.",
+    "observabilityImpact": "",
+    "tasks": [
+      {
+        "taskId": "T01",
+        "title": "Created generation_dispatch.py skeleton — server now starts without ImportError",
+        "description": "Create backend/app/generation_dispatch.py exporting the two functions server.py calls: start_async_dispatch(db_path, job_id) and retry_generation_job(db_path, merchant_id, job_id, dispatch). start_async_dispatch spawns a threading.Thread targeting a _run_dispatch worker; retry_generation_job creates a new attempt and optionally dispatches. Goal is to unblock server startup and establish the module boundary. No real provider calls yet.",
+        "estimate": "30m",
+        "files": [
+          "backend/app/generation_dispatch.py"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && python -c 'from backend.app import generation_dispatch; print(\"ok\")'",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T02",
+        "title": "Created generation_providers package with OpenAI Sora 2 video adapter and adapter registry",
+        "description": "Create backend/app/generation_providers/__init__.py and backend/app/generation_providers/openai_adapter.py implementing the OpenAI Sora 2 text-to-video adapter. Shared contract: submit(job_record, settings) -> attempt_id, poll(attempt_id) -> {status, output_url?, error?}, cancel(attempt_id). submit calls POST /v1/video/generations via direct HTTP with OPENAI_API_KEY from env. poll calls GET /v1/video/generations/{id}. Normalized ProviderError on failure. get_adapter(provider_key) factory in __init__.py.",
+        "estimate": "1h",
+        "files": [
+          "backend/app/generation_providers/__init__.py",
+          "backend/app/generation_providers/openai_adapter.py"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && python -c 'from backend.app.generation_providers import get_adapter; a = get_adapter(\"openai_video\"); print(type(a).__name__)'",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T03",
+        "title": "Created HeyGen avatar adapter and updated catalog seed from ccdance_stub to heygen:ready",
+        "description": "Create backend/app/generation_providers/heygen_adapter.py implementing HeyGen v2 UGC avatar adapter. submit calls POST /v2/video/generate with avatar_id, script, voiceover from HEYGEN_API_KEY env. poll calls GET /v1/video_status.get?video_id={id}. Update store.py seed_generation_model_catalog: replace provider_key 'ccdance_stub' with 'heygen' and readiness_status 'preview' with 'ready' for the avatar model entry.",
+        "estimate": "1h",
+        "files": [
+          "backend/app/generation_providers/heygen_adapter.py",
+          "backend/app/store.py"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && python -c 'from backend.app.generation_providers import get_adapter; a = get_adapter(\"heygen\"); print(type(a).__name__)'",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T04",
+        "title": "Dispatch loop fully wired: submit→exponential-poll→settle/release with adapter registry",
+        "description": "Implement the _run_dispatch worker in generation_dispatch.py. Load job from store, read model catalog for provider_key and credit_cost, call get_adapter(provider_key).submit(), poll at exponential backoff (2s→4s→8s→30s cap, max 60 attempts). On succeeded: settle_generation_credits + update job status. On failed/timeout: release_generation_credits + update job status to failed with normalized error. Log each state transition. retry_generation_job creates a new generation_attempt row and conditionally re-dispatches.",
+        "estimate": "1.5h",
+        "files": [
+          "backend/app/generation_dispatch.py"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && python -c 'from backend.app import generation_dispatch; import inspect; print(inspect.signature(generation_dispatch.retry_generation_job))'",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T05",
+        "title": "15 contract tests pass; full 168-test suite green",
+        "description": "Write backend/tests/test_generation_dispatch.py. (1) Adapter contract: get_adapter raises for unknown provider_key; adapters instantiate without API keys at import time. (2) Job lifecycle: POST /api/v1/generation/jobs dispatch:false returns 201 status=queued with credit reservation; GET job returns it. (3) Credit correctness: mock adapter success path settles credits; failure path releases credits; balance correct after each. Use ApiCase pattern from test_fake_publish_lifecycle.py. Mock adapter via monkeypatching get_adapter.",
+        "estimate": "1.5h",
+        "files": [
+          "backend/tests/test_generation_dispatch.py"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && python -m pytest backend/tests/test_generation_dispatch.py -v 2>&1 | tail -20",
+        "inputs": [],
+        "expectedOutput": []
+      }
+    ]
+  },
+  "S02": {
+    "goal": "npm run build succeeds and the AI Studio generation flow works end-to-end in the browser: model catalog loads, a video job can be submitted, async status polls until resolved, and the job result is visible in the job list.",
+    "demo": "npm run build succeeds without import errors. AI Studio → Create New → Short Ad Video submits a job and shows async status (queued/running with spinner). Polling advances to succeeded or failed with appropriate UI feedback.",
+    "successCriteria": "- npm run build exits 0. GET /api/v1/generation/models returns Sora 2 and HeyGen models in the browser. A Short Ad Video job can be submitted and its status transitions from queued → running → succeeded/failed are reflected in the UI without page reload.",
+    "proofLevel": "",
+    "integrationClosure": "",
+    "observabilityImpact": "",
+    "tasks": [
+      {
+        "taskId": "T01",
+        "title": "Created src/api/generationClient.js with all required generation API client functions",
+        "description": "Create the generation API client module. Exports: loadGenerationModels(), loadGenerationCredits(), loadGenerationJobs(), launchGenerationJob(payload), retryGenerationJob(jobId). Mirror the requestJson/parseJson pattern from publishingClient.js. All endpoints are under /api/v1/generation/.",
+        "estimate": "30m",
+        "files": [
+          "src/api/generationClient.js"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && node --input-type=module < src/api/generationClient.js && echo ok",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T02",
+        "title": "Created src/models/generation.js with defensive normalizers for generation models, jobs, and credit summaries.",
+        "description": "Create the generation model normalizer. Exports: normalizeGenerationCatalog(payload), normalizeCreditSummary(credits), normalizeGenerationJob(job), normalizeGenerationJobsList(payload). Mirror the defensive text()/number()/asArray()/asObject() pattern from models/publishing.js. normalizeGenerationJob must carry capability, workflowType, carouselStage, completedSlides, and outputs fields used by main.jsx derived state.",
+        "estimate": "30m",
+        "files": [
+          "src/models/generation.js"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && node --input-type=module < src/models/generation.js && echo ok",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T03",
+        "title": "Added async job polling useEffect with exponential backoff to track long-running generation jobs",
+        "description": "Add a useEffect in AppDemo that polls GET /api/v1/generation/jobs while genActiveJobs.length > 0. Use exponential backoff: start at 3s, double each tick up to 30s cap, reset to 3s when a new job becomes active. On each tick call reloadGenerationWorkspace(). Clean up the interval/timeout on unmount and when genActiveJobs drops to zero. This is the only place long-running video jobs surface their status in the UI.",
+        "estimate": "45m",
+        "files": [
+          "src/main.jsx"
+        ],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && grep -n 'genActiveJobs' src/main.jsx | grep -q useEffect && echo polling-wired",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T04",
+        "title": "Vite build passes clean with all three new S02 modules integrated (57 modules, no errors)",
+        "description": "",
+        "estimate": "20m",
+        "files": [],
+        "verify": "cd /Users/huijie/DMA/.gsd-worktrees/M001 && npm run build 2>&1 | tail -5",
+        "inputs": [],
+        "expectedOutput": []
+      }
+    ]
+  },
+  "S03": {
+    "goal": "Succeeded text-to-video and UGC avatar video jobs open in the Creative Editor as owner-approvable packages. Merchant uses the existing approve/request-changes surface to provide feedback, and approval state persists through page refresh via backend-stored phase3 creative feedback.",
+    "demo": "A succeeded video job opens in the Creative Editor as an approvable package. Merchant can approve or request changes. The approval state persists through page refresh.",
+    "successCriteria": "- A video generation job with capability \"video\" or \"avatar_video\" that succeeds creates a generated_creative record with the video URL as a creative_media_asset. serialize_generation_job returns workflowType \"video\" and creativeId for succeeded video jobs. AI Studio shows succeeded video jobs with a thumbnail preview and \"Open in Creative Editor\" button. Clicking that button opens the library-detail modal with a video player. Approve and Request changes buttons in the modal call addApprovalFeedback which persists to the DB. npm run build succeeds; pytest test_generation_dispatch.py -q passes including new video materialization tests.",
+    "proofLevel": "- This slice proves: integration — real dispatch engine tested with mock adapters; frontend build verified statically; no real provider calls required in this slice",
+    "integrationClosure": "Upstream: generation_dispatch._dispatch_job (S01), store.serialize_generation_job (S01), generationClient.loadGenerationJobs (S02), polling useEffect (S02), phase3Workspace.generatedCreatives (existing Content Library), addApprovalFeedback/createPhase3ApprovalFeedback (existing). New wiring: materialize_video_package called from both dispatch paths on video job success → generated_creative created → appears in phase3Workspace → openVideoEditor → Content Library modal. Remaining before milestone end-to-end: S04 real provider smoke against Sora 2 + HeyGen with real credits.",
+    "observabilityImpact": "",
+    "tasks": [
+      {
+        "taskId": "T01",
+        "title": "Added VIDEO_CAPABILITIES constant, materialize_video_package, and build_video_job_handoff to store.py, and wired build_video_job_handoff into serialize_generation_job.",
+        "description": "Why: Carousel jobs call materialize_carousel_package on success to create a generated_creative; video jobs need the same pattern so they surface in the Content Library and can be approved.",
+        "estimate": "1.5h",
+        "files": [
+          "backend/app/store.py"
+        ],
+        "verify": "python3 -m pytest backend/tests/test_generation_dispatch.py -q --tb=short",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T02",
+        "title": "Wired materialize_video_package into both _dispatch_job (async) and dispatch_generation_job (sync) succeeded branches so video jobs produce a generated_creative record on success.",
+        "description": "Why: store.py now has the function but nothing calls it from the dispatch engine; without wiring, no creative is created when a video job succeeds.",
+        "estimate": "45m",
+        "files": [
+          "backend/app/generation_dispatch.py"
+        ],
+        "verify": "python3 -m pytest backend/tests/test_generation_dispatch.py -q --tb=short",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T03",
+        "title": "Added MockVideoSuccessAdapter, MockUgcVideoSuccessAdapter, and VideoPackageHandoffTest with 3 tests asserting generated_creative creation, ugc_video format, and video media asset after dispatch",
+        "description": "Why: T01 and T02 add the store function and dispatch wiring but the existing tests only verify credits and lifecycle; we need tests that assert a generated_creative is created and creativeId appears in the serialized job.",
+        "estimate": "45m",
+        "files": [
+          "backend/tests/test_generation_dispatch.py"
+        ],
+        "verify": "python3 -m pytest backend/tests/test_generation_dispatch.py -q --tb=short",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T04",
+        "title": "Added openVideoEditor function, video output section in AI Studio, video player in library detail modal, and approval buttons for video creatives.",
+        "description": "Why: The backend now creates generated_creatives for video jobs, but the AI Studio has no output section for video (only carousel), the Creative Editor cannot render video assets, and there are no approval buttons in the library detail modal.",
+        "estimate": "1.5h",
+        "files": [
+          "src/main.jsx",
+          "src/styles.css"
+        ],
+        "verify": "npm run build",
+        "inputs": [],
+        "expectedOutput": []
+      }
+    ]
+  },
+  "S04": {
+    "goal": "Validate pre-release readiness: catalog credit costs match expected provider billing, the insufficient-balance gate returns a clear 409, model credit cost is visible in the API, and real provider smoke (Sora 2 + HeyGen) completes end-to-end when API keys are present. Produce a machine-readable diagnostics report as the milestone deliverable.",
+    "demo": "One real Sora 2 generation and one real HeyGen generation each complete end-to-end with correct credit delta recorded. Credit cost is visible in the model selector before launch. A job submitted with insufficient balance is blocked at the API with a clear error. Smoke diagnostics file captured.",
+    "successCriteria": "- python3 -m pytest backend/tests/test_smoke_catalog.py -q --tb=short exits 0 (catalog costs, model API surface, and insufficient-balance gate all pass). python3 backend/scripts/smoke_s04.py exits 0 and writes backend/scripts/smoke_s04_report.json with CATALOG_COSTS, INSUFFICIENT_BALANCE, and MODEL_API_SURFACE as PASS; real provider checks are PASS when keys are present and SKIP otherwise.",
+    "proofLevel": "- This slice proves: operational — integration-level without keys; real-provider dispatch with Sora 2 and HeyGen when OPENAI_API_KEY / HEYGEN_API_KEY are set",
+    "integrationClosure": "Upstream surfaces consumed: store.py (create_generation_job, get_generation_credit_summary, seed_generation_model_catalog, OPENAI_VIDEO_MODEL_ID, CCDANCE_AVATAR_MODEL_ID, DEMO_MERCHANT_ID), generation_dispatch.py (start_async_dispatch, _dispatch_job), openai_adapter.py, heygen_adapter.py. New wiring introduced: test_smoke_catalog.py (CI-safe assertions), smoke_s04.py (orchestration script). What remains before the milestone is truly usable end-to-end: nothing — this slice closes M001.",
+    "observabilityImpact": "",
+    "tasks": [
+      {
+        "taskId": "T01",
+        "title": "Created backend/tests/test_smoke_catalog.py with 13 passing tests covering catalog credit costs, API surface, and insufficient-balance gating.",
+        "description": "Why: The milestone requires proof that credit cost is visible before launch and insufficient balance is blocked with a clear 409 error. Existing tests drain credits iteratively rather than asserting exact catalog values or the precise error message. We need direct assertions on the seeded credit_cost values (180 for Sora 2, 220 for HeyGen) and on the HTTP error contract.",
+        "estimate": "45m",
+        "files": [
+          "backend/tests/test_smoke_catalog.py"
+        ],
+        "verify": "python3 -m pytest backend/tests/test_smoke_catalog.py -q --tb=short",
+        "inputs": [],
+        "expectedOutput": []
+      },
+      {
+        "taskId": "T02",
+        "title": "Created backend/scripts/smoke_s04.py with 5 checks (3 PASS, 2 SKIP); smoke_s04_report.json written successfully.",
+        "description": "Why: The milestone deliverable requires a 'smoke diagnostics file captured' artifact and evidence that the full pipeline runs end-to-end. The smoke script is the single runnable entry point: it validates all pre-release gates and writes backend/scripts/smoke_s04_report.json. When real API keys are absent (expected in CI), provider checks are SKIP and the script exits 0. When OPENAI_API_KEY or HEYGEN_API_KEY are present, it dispatches real generation jobs and records credit deltas.",
+        "estimate": "1h",
+        "files": [
+          "backend/scripts/smoke_s04.py"
+        ],
+        "verify": "python3 backend/scripts/smoke_s04.py && test -f backend/scripts/smoke_s04_report.json",
+        "inputs": [],
+        "expectedOutput": []
+      }
+    ]
+  }
+}

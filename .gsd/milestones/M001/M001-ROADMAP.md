@@ -7,7 +7,7 @@
 - One real text-to-video generation runs end-to-end against Sora 2 with real credit subtraction and lands in the Creative Editor.
 - One real UGC avatar video generates via HeyGen with voiceover, lands in the Creative Editor, and is approvable.
 - Credit cost is visible before launch; insufficient balance blocks launch; failed jobs release reservations.
-- Pre-release smoke against real provider + real ledger is captured with diagnostics.
+- Pre-release smoke against real provider plus real ledger is captured with diagnostics.
 
 ## Slices
 

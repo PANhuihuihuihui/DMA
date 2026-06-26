@@ -1,0 +1,19 @@
+{
+  "id": "eb1fbd40-7c7f-434e-9447-59527d185752",
+  "runtime": "bash",
+  "purpose": "Verify connectSession wiring in main.jsx",
+  "script_chars": 583,
+  "started_at": "2026-06-26T06:33:48.767Z",
+  "finished_at": "2026-06-26T06:33:48.798Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 31,
+  "stdout_bytes": 2360,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/eb1fbd40-7c7f-434e-9447-59527d185752.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/eb1fbd40-7c7f-434e-9447-59527d185752.stderr"
+}

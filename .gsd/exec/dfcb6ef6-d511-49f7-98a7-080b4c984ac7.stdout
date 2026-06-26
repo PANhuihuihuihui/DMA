@@ -1,0 +1,123 @@
+FILE S01
+@@ goal
+Backend server starts cleanly, generation_dispatch.py drives async job lifecycle with Sora 2 and
+HeyGen adapters, credits settle on success and release on failure, contract tests pass.
+@@ demo
+Backend server starts without ImportError. `pytest tests/ -x -q` passes adapter contract tests
+and job lifecycle state transition tests. A POST /api/v1/generation/jobs with dispatch:false
+returns a job record with status=queued and credits reserved. A manual dispatch call drives a
+simulated job to succeeded and confirms credits settled; a simulated failure confirms credits
+released.
+@@ mustHaves
+- pytest backend/tests/ -x -q passes with no ImportError. POST /api/v1/generation/jobs
+(dispatch:false) → 201 with status=queued and credits reserved. Simulated dispatch drives job to
+succeeded → credits settled. Simulated failure → credits released.
+@@ proof
+- This slice proves: Contract + Integration: pytest contract tests pass; server starts without
+ImportError; POST /api/v1/generation/jobs with dispatch:false returns queued job with credits
+reserved; dispatch:true drives a simulated run to terminal state with correct credit settlement.
+@@ integration
+generation_dispatch exports exactly start_async_dispatch(db_path, job_id) and
+retry_generation_job(db_path, merchant_id, job_id, dispatch) — matching the two call sites in
+server.py lines 179 and 193. Provider adapters implement a shared contract (submit/poll/cancel).
+Credit settle/release calls the existing store functions; no new schema changes.
+@@ observability
+
+@@ verification
+- Dispatch logs job_id, provider_key, attempt_number, status transitions, and error class on
+each state change to stdout. Failed jobs log normalized error type + credit_release
+confirmation.
+====
+FILE S02
+@@ goal
+npm run build succeeds and the AI Studio generation flow works end-to-end in the browser: model
+catalog loads, a video job can be submitted, async status polls until resolved, and the job
+result is visible in the job list.
+@@ demo
+npm run build succeeds without import errors. AI Studio → Create New → Short Ad Video submits a
+job and shows async status (queued/running with spinner). Polling advances to succeeded or
+failed with appropriate UI feedback.
+@@ mustHaves
+- npm run build exits 0. GET /api/v1/generation/models returns Sora 2 and HeyGen models in the
+browser. A Short Ad Video job can be submitted and its status transitions from queued → running
+→ succeeded/failed are reflected in the UI without page reload.
+@@ proof
+
+@@ integration
+
+@@ observability
+
+@@ verification
+- Run the task and slice verification checks for this slice.
+====
+FILE S03
+@@ goal
+Succeeded text-to-video and UGC avatar video jobs open in the Creative Editor as
+owner-approvable packages. Merchant uses the existing approve/request-changes surface to provide
+feedback, and approval state persists through page refresh via backend-stored phase3 creative
+feedback.
+@@ demo
+A succeeded video job opens in the Creative Editor as an approvable package. Merchant can
+approve or request changes. The approval state persists through page refresh.
+@@ mustHaves
+- A video generation job with capability "video" or "avatar_video" that succeeds creates a
+generated_creative record with the video URL as a creative_media_asset. serialize_generation_job
+returns workflowType "video" and creativeId for succeeded video jobs. AI Studio shows succeeded
+video jobs with a thumbnail preview and "Open in Creative Editor" button. Clicking that button
+opens the library-detail modal with a video player. Approve and Request changes buttons in the
+modal call addApprovalFeedback which persists to the DB. npm run build succeeds; pytest
+test_generation_dispatch.py -q passes including new video materialization tests.
+@@ proof
+- This slice proves: integration — real dispatch engine tested with mock adapters; frontend
+build verified statically; no real provider calls required in this slice
+@@ integration
+Upstream: generation_dispatch._dispatch_job (S01), store.serialize_generation_job (S01),
+generationClient.loadGenerationJobs (S02), polling useEffect (S02),
+phase3Workspace.generatedCreatives (existing Content Library),
+addApprovalFeedback/createPhase3ApprovalFeedback (existing). New wiring:
+materialize_video_package called from both dispatch paths on video job success →
+generated_creative created → appears in phase3Workspace → openVideoEditor → Content Library
+modal. Remaining before milestone end-to-end: S04 real provider smoke against Sora 2 + HeyGen
+with real credits.
+@@ observability
+
+@@ verification
+- Backend logs video creative materialization at INFO level per job. Frontend approval toast
+confirms feedback persisted. Creative approvalFeedback visible in library-detail modal. Job
+detail drawer shows creativeId for inspecting DB linkage.
+====
+FILE S04
+@@ goal
+Validate pre-release readiness: catalog credit costs match expected provider billing, the
+insufficient-balance gate returns a clear 409, model credit cost is visible in the API, and real
+provider smoke (Sora 2 + HeyGen) completes end-to-end when API keys are present. Produce a
+machine-readable diagnostics report as the milestone deliverable.
+@@ demo
+One real Sora 2 generation and one real HeyGen generation each complete end-to-end with correct
+credit delta recorded. Credit cost is visible in the model selector before launch. A job
+submitted with insufficient balance is blocked at the API with a clear error. Smoke diagnostics
+file captured.
+@@ mustHaves
+- python3 -m pytest backend/tests/test_smoke_catalog.py -q --tb=short exits 0 (catalog costs,
+model API surface, and insufficient-balance gate all pass). python3 backend/scripts/smoke_s04.py
+exits 0 and writes backend/scripts/smoke_s04_report.json with CATALOG_COSTS,
+INSUFFICIENT_BALANCE, and MODEL_API_SURFACE as PASS; real provider checks are PASS when keys are
+present and SKIP otherwise.
+@@ proof
+- This slice proves: operational — integration-level without keys; real-provider dispatch with
+Sora 2 and HeyGen when OPENAI_API_KEY / HEYGEN_API_KEY are set
+@@ integration
+Upstream surfaces consumed: store.py (create_generation_job, get_generation_credit_summary,
+seed_generation_model_catalog, OPENAI_VIDEO_MODEL_ID, CCDANCE_AVATAR_MODEL_ID,
+DEMO_MERCHANT_ID), generation_dispatch.py (start_async_dispatch, _dispatch_job),
+openai_adapter.py, heygen_adapter.py. New wiring introduced: test_smoke_catalog.py (CI-safe
+assertions), smoke_s04.py (orchestration script). What remains before the milestone is truly
+usable end-to-end: nothing — this slice closes M001.
+@@ observability
+
+@@ verification
+- Runtime signals: backend/scripts/smoke_s04_report.json contains per-check PASS/SKIP/FAIL with
+detail and elapsed time. Inspection surface: cat backend/scripts/smoke_s04_report.json gives a
+structured readiness verdict. Failure visibility: each check result includes a reason field and,
+for provider checks, the raw failure_reason and credit delta.
+====

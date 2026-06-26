@@ -1,0 +1,34 @@
+=== grep connectSession ===
+3829:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+4560:    const connectSession = params.get("connectSession");
+4561:    if (connectSession) {
+4562:      loadFacebookPages(connectSession)
+4566:          setPendingConnectSession(connectSession);
+5031:      nextParams.delete("connectSession");
+8099:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+8101:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+
+=== grep loadFacebookPages ===
+29:  loadFacebookPages,
+4562:      loadFacebookPages(connectSession)
+
+=== grep selectFacebookPage ===
+39:  selectFacebookPage,
+5026:      await selectFacebookPage(pendingConnectSession, pageId);
+
+=== grep pendingConnectSession ===
+3830:  const [pendingConnectSession, setPendingConnectSession] = useState("");
+5026:      await selectFacebookPage(pendingConnectSession, pageId);
+8090:                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden={!pendingConnectSession}>
+8099:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+8101:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+8104:                          onClick={pendingConnectSession ? () => handleConnectSessionPageSelect(page.pageId) : () => setSelectedFacebookPageId(page.pageId)}
+
+=== grep connectSessionPages ===
+3829:  const [connectSessionPages, setConnectSessionPages] = useState([]);
+8099:                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
+8101:                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
+
+=== grep handleConnectSessionPageSelect ===
+5024:  const handleConnectSessionPageSelect = async (pageId) => {
+8104:                          onClick={pendingConnectSession ? () => handleConnectSessionPageSelect(page.pageId) : () => setSelectedFacebookPageId(page.pageId)}

@@ -3,13 +3,12 @@ id: T01
 parent: S02
 milestone: M001
 key_files:
-  - /Users/huijie/DMA/.gsd-worktrees/M001/src/api/generationClient.js
+  - src/api/generationClient.js
 key_decisions:
-  - Mirrored the exact requestJson/parseJson pattern from publishingClient.js for consistency
-  - Used encodeURIComponent for jobId in retry endpoint to safely encode URL parameters
+  - (none)
 duration: 
 verification_result: passed
-completed_at: 2026-06-26T01:30:01.597Z
+completed_at: 2026-06-26T06:03:59.550Z
 blocker_discovered: false
 ---
 
@@ -19,7 +18,7 @@ blocker_discovered: false
 
 ## What Happened
 
-Successfully created the generation API client module following the requestJson/parseJson pattern from publishingClient.js. The module exports five functions: loadGenerationModels(), loadGenerationCredits(), loadGenerationJobs(), launchGenerationJob(payload), and retryGenerationJob(jobId). All endpoints are properly mapped to /api/v1/generation/ paths as specified in the backend server.py file. The verification command (node --input-type=module < src/api/generationClient.js) executed successfully with exit code 0.
+Successfully created the generation API client module following the requestJson/parseJson pattern from publishingClient.js. The module exports five functions: loadGenerationModels(), loadGenerationCredits(), loadGenerationJobs(), launchGenerationJob(payload), and retryGenerationJob(jobId). All endpoints are properly mapped to /api/v1/generation/ paths as specified in the backend server.py file. Used encodeURIComponent for jobId in retry endpoint to safely encode URL parameters. Mirror of the exact requestJson/parseJson pattern from publishingClient.js for consistency.
 
 ## Verification
 
@@ -41,4 +40,4 @@ None.
 
 ## Files Created/Modified
 
-- `/Users/huijie/DMA/.gsd-worktrees/M001/src/api/generationClient.js`
+- `src/api/generationClient.js`

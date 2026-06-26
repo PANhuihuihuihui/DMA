@@ -3,22 +3,22 @@ id: T01
 parent: S03
 milestone: M001
 key_files:
-  - /Users/huijie/DMA/.gsd-worktrees/M001/backend/app/store.py
+  - backend/app/store.py
 key_decisions:
   - (none)
 duration: 
 verification_result: passed
-completed_at: 2026-06-26T03:21:18.264Z
+completed_at: 2026-06-26T06:04:42.972Z
 blocker_discovered: false
 ---
 
-# T01: Added VIDEO_CAPABILITIES constant, materialize_video_package, and build_video_job_handoff to store.py, and wired build_video_job_handoff into serialize_generation_job.
+# T01: Added VIDEO_CAPABILITIES constant, materialize_video_package, and build_video_job_handoff to store.py
 
-**Added VIDEO_CAPABILITIES constant, materialize_video_package, and build_video_job_handoff to store.py, and wired build_video_job_handoff into serialize_generation_job.**
+**Added VIDEO_CAPABILITIES constant, materialize_video_package, and build_video_job_handoff to store.py**
 
 ## What Happened
 
-Read backend/app/store.py to understand the carousel patterns (materialize_carousel_package, build_carousel_job_handoff, serialize_generation_job). Added VIDEO_CAPABILITIES = frozenset({"video", "avatar_video"}) near CAROUSEL_WORKFLOW_TYPE. Implemented materialize_video_package(conn, merchant_id, job_row, output_row) which: derives format from capability ("ugc_video" for avatar_video, "short_video" for video); creates content_batches, generated_creatives (platform="facebook", status="needs_review"), calendar_slots, proof_links with code SHORTV-{creative_id[-6:].upper()}, and creative_media_assets (asset_type="video", format="9:16 short video", aspect_ratio="9:16") rows; updates generation_outputs metadata_json with creativeId and mediaAssetId; calls ensure_review_link_for_creative; returns {"creativeId", "mediaAssetId"}. Implemented build_video_job_handoff(outputs, request_payload) which scans outputs for one where metadata is a dict and contains "creativeId", returning {"workflowType": "video", "creativeId": ...} if found or {} otherwise. Added payload.update(build_video_job_handoff(outputs, request_payload)) in serialize_generation_job after the existing carousel handoff call.
+Read backend/app/store.py to understand the carousel patterns. Added VIDEO_CAPABILITIES = frozenset({"video", "avatar_video"}) near CAROUSEL_WORKFLOW_TYPE. Implemented materialize_video_package(conn, merchant_id, job_row, output_row) which: derives format from capability ("ugc_video" for avatar_video, "short_video" for video); creates content_batches, generated_creatives (platform="facebook", status="needs_review"), calendar_slots, proof_links with code SHORTV-{creative_id[-6:].upper()}, and creative_media_assets (asset_type="video", format="9:16 short video", aspect_ratio="9:16") rows; updates generation_outputs metadata_json with creativeId and mediaAssetId; calls ensure_review_link_for_creative; returns {"creativeId", "mediaAssetId"}. Implemented build_video_job_handoff(outputs, request_payload) which scans outputs for one where metadata is a dict and contains "creativeId", returning {"workflowType": "video", "creativeId": ...} if found or {} otherwise. Added payload.update(build_video_job_handoff(outputs, request_payload)) in serialize_generation_job after the existing carousel handoff call.
 
 ## Verification
 
@@ -41,4 +41,4 @@ None.
 
 ## Files Created/Modified
 
-- `/Users/huijie/DMA/.gsd-worktrees/M001/backend/app/store.py`
+- `backend/app/store.py`

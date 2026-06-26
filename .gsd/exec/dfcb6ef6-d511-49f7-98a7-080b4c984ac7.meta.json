@@ -1,0 +1,19 @@
+{
+  "id": "dfcb6ef6-d511-49f7-98a7-080b4c984ac7",
+  "runtime": "node",
+  "purpose": "wrap M001 slice planner fields for drift repair",
+  "script_chars": 998,
+  "started_at": "2026-06-26T05:55:36.085Z",
+  "finished_at": "2026-06-26T05:55:36.133Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 48,
+  "stdout_bytes": 6959,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/dfcb6ef6-d511-49f7-98a7-080b4c984ac7.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/dfcb6ef6-d511-49f7-98a7-080b4c984ac7.stderr"
+}

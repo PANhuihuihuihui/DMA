@@ -1,0 +1,19 @@
+{
+  "id": "0c537347-82eb-4310-a5a9-15dd0e8b628c",
+  "runtime": "node",
+  "purpose": "summarize M001 tasks for drift repair",
+  "script_chars": 823,
+  "started_at": "2026-06-26T05:58:54.823Z",
+  "finished_at": "2026-06-26T05:58:54.851Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 28,
+  "stdout_bytes": 9790,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/0c537347-82eb-4310-a5a9-15dd0e8b628c.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/0c537347-82eb-4310-a5a9-15dd0e8b628c.stderr"
+}

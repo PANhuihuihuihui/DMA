@@ -26,6 +26,7 @@ import {
   confirmOnboardingProfile,
   loadAuthCapabilities,
   loadFacebookConnection,
+  loadFacebookPages,
   loadOnboardingProfile,
   loadPhase3Workspace,
   loadPublishJob,
@@ -35,6 +36,7 @@ import {
   publishFacebookPost,
   queueFakePublish,
   recordPhase3ProofEvent,
+  selectFacebookPage,
   renderPhase3MediaAsset,
   updateOnboardingProfile,
   updatePhase3BrandKit,
@@ -3824,6 +3826,8 @@ export function AppDemo() {
   const [socialActionDialog, setSocialActionDialog] = useState(null);
   const [helpFlyoutOpen, setHelpFlyoutOpen] = useState(false);
   const [selectedFacebookPageId, setSelectedFacebookPageId] = useState("");
+  const [connectSessionPages, setConnectSessionPages] = useState([]);
+  const [pendingConnectSession, setPendingConnectSession] = useState("");
   const [helpDraft, setHelpDraft] = useState("");
   const [activeHelpAction, setActiveHelpAction] = useState(helpActions[0]?.[0] || "FAQs");
   const [cookingCreativeId, setCookingCreativeId] = useState("");
@@ -4553,6 +4557,19 @@ export function AppDemo() {
       reloadFacebookConnection();
       setAppToast("Facebook Page connected. You can publish approved Facebook drafts live.");
     }
+    const connectSession = params.get("connectSession");
+    if (connectSession) {
+      loadFacebookPages(connectSession)
+        .then((data) => {
+          const pages = Array.isArray(data?.pages) ? data.pages : Array.isArray(data) ? data : [];
+          setConnectSessionPages(pages);
+          setPendingConnectSession(connectSession);
+          setActiveBrandAccountTab("Social Platforms");
+        })
+        .catch((err) => {
+          setAppToast(err.message || "Failed to load Facebook Pages for this session.");
+        });
+    }
   }, [activeModule, location.search]);
 
   useEffect(() => {
@@ -5002,6 +5019,23 @@ export function AppDemo() {
       closePublishModal();
       selectModule("Content Calendar");
     }, 650);
+  };
+
+  const handleConnectSessionPageSelect = async (pageId) => {
+    try {
+      await selectFacebookPage(pendingConnectSession, pageId);
+      await reloadFacebookConnection();
+      setPendingConnectSession("");
+      setConnectSessionPages([]);
+      const nextParams = new URLSearchParams(location.search);
+      nextParams.delete("connectSession");
+      const nextSearch = nextParams.toString();
+      navigate(location.pathname + (nextSearch ? `?${nextSearch}` : ""), { replace: true });
+      setAppToast("Facebook Page connected. You can publish approved Facebook drafts live.");
+    } catch (err) {
+      setAppToast(err.message || "Failed to select Facebook Page.");
+      setPendingConnectSession("");
+    }
   };
 
   const saveSelectedFacebookPage = () => {
@@ -8053,22 +8087,21 @@ export function AppDemo() {
                   </section>
                 )}
                 {activeBrandAccountTab === "Social Platforms" && (
-                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden>
+                  <section className="facebook-page-picker social-platform-admin-panel" aria-label="Facebook Page selection modal" hidden={!pendingConnectSession}>
                     <div>
                       <span>Facebook Page selection</span>
                       <h3>Choose the Page LocalPilot should use after OAuth.</h3>
                       <p>
-                        The cards mirror the logged-in Page picker. Demo cards are placeholders until a real
-                        OAuth callback returns manageable Pages.
+                        Select a Page to connect. LocalPilot will publish on its behalf.
                       </p>
                     </div>
                     <div className="page-card-grid">
-                      {pagePickerPages.map((page) => (
+                      {(pendingConnectSession ? connectSessionPages : pagePickerPages).map((page) => (
                         <button
-                          className={(selectedFacebookPageId || pagePickerPages[0]?.pageId) === page.pageId ? "active" : ""}
+                          className={(selectedFacebookPageId || (pendingConnectSession ? connectSessionPages[0]?.pageId : pagePickerPages[0]?.pageId)) === page.pageId ? "active" : ""}
                           type="button"
                           key={page.pageId}
-                          onClick={() => setSelectedFacebookPageId(page.pageId)}
+                          onClick={pendingConnectSession ? () => handleConnectSessionPageSelect(page.pageId) : () => setSelectedFacebookPageId(page.pageId)}
                         >
                           <strong>{page.name || page.pageId}</strong>
                           <span>{page.category || "Facebook Page"}</span>
