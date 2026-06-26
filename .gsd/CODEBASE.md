@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-26T16:44:49Z | Files: 189 | Described: 0/189
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-26T16:44:49Z","fingerprint":"b2c780080c613047bc3dfe5ea7d967770ff89b44","fileCount":189,"truncated":false} -->
+Generated: 2026-06-26T17:21:17Z | Files: 191 | Described: 0/191
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-26T17:21:17Z","fingerprint":"ba1ef01730067aed986aaee4bc6d3fa1e28d836f","fileCount":191,"truncated":false} -->
 
 ### (root)/
 - `.gitignore`
@@ -91,6 +91,7 @@ Generated: 2026-06-26T16:44:49Z | Files: 189 | Described: 0/189
 - `backend/requirements.txt`
 
 ### backend/app/
+- `backend/app/auth_provider.py`
 - `backend/app/contracts.py`
 - `backend/app/facebook_oauth.py`
 - `backend/app/facebook_publisher.py`
@@ -117,7 +118,7 @@ Generated: 2026-06-26T16:44:49Z | Files: 189 | Described: 0/189
 - `backend/scripts/smoke_s04.py`
 
 ### backend/tests/
-- *(29 files: 29 .py)*
+- *(30 files: 30 .py)*
 
 ### config/
 - `config/mcporter.json`

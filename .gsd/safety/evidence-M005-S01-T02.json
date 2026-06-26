@@ -1,0 +1,82 @@
+[
+  {
+    "kind": "bash",
+    "toolCallId": "call_ZnAASuwXActyeVWaB7lvkuEW|fc_0027c0df929c2210016a3eb51b78d88195aa6744e9285a1032",
+    "command": "rg -n \"create_oauth_session|get_oauth_session|cleanup_expired_oauth_sessions|get_facebook_page_token_row|upsert_facebook_page_token|set_active_facebook_page|mark_facebook_page_reconnect_required|list_facebook_page_token_rows\" backend/app/store.py backend/tests -S",
+    "exitCode": 0,
+    "outputSnippet": "backend/tests/test_facebook_token_store.py:118:        store.upsert_facebook_page_token(\nbackend/tests/test_facebook_token_store.py:123:        row = store.get_facebook_page_token_row(self.conn, \"12345\")\nbackend/tests/test_facebook_token_store.py:134:        store.upsert_facebook_page_token(\nbackend/tests/test_facebook_token_store.py:138:        store.upsert_facebook_page_token(\nbackend/tests/test_facebook_token_store.py:143:        rows = store.list_facebook_page_token_rows(self.conn)\nbackend/t",
+    "timestamp": 1782494491406
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_XPoFYxjNCq3hHucfy0VDKlUP|fc_0027c0df929c2210016a3eb51b78f08195859ae2949875cdd2",
+    "command": "rg -n \"facebook_oauth|AuthProvider|oauth_sessions|token_expires_at|facebook_auth_provider\" backend/tests backend/app -S",
+    "exitCode": 0,
+    "outputSnippet": "backend/app/auth_provider.py:17:class AuthProvider(ABC):\nbackend/app/auth_provider.py:48:    expires_at = _parse_utc(credential_row[\"token_expires_at\"])\nbackend/app/server.py:26:from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher, website_crawl\nbackend/app/server.py:440:                    self.send_json(facebook_oauth.connection_status(conn=conn))\nbackend/app/server.py:445:                self.send_json(",
+    "timestamp": 1782494491412
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_6M4qhEzi0fcjNEjMmZlj730B|fc_0027c0df929c2210016a3eb5296e388195a24bb0a93a662163",
+    "command": "rg -n \"def (create_oauth_session|get_oauth_session|cleanup_expired_oauth_sessions|upsert_facebook_page_token|get_facebook_page_token_row|list_facebook_page_token_rows|set_active_facebook_page|mark_facebook_page_reconnect_required|utc_now)\\b|class .*AuthProvider\" backend/app backend/tests -S",
+    "exitCode": 0,
+    "outputSnippet": "backend/app/contracts.py:35:def utc_now():\nbackend/tests/test_auth_provider.py:11:class DummyProvider(auth_provider.AuthProvider):\nbackend/tests/test_auth_provider.py:36:class AuthProviderTest(unittest.TestCase):\nbackend/app/token_boundary.py:6:def utc_now():\nbackend/app/auth_provider.py:17:class AuthProvider(ABC):\nbackend/app/store.py:8009:def upsert_facebook_page_token(conn, merchant_id, connected_channel_id, page_id, ciphertext, credential_fingerprint, expires_at=None, issued_at=None, status=",
+    "timestamp": 1782494505363
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_JFoHBPJ7Bg3hvq6Orm7iZO5t|fc_0027c0df929c2210016a3eb5296e508195b6194f25a922f7c4",
+    "command": "rg -n \"build_login_url\\(|pop_valid_state\\(|list_pages_for_session\\(|complete_callback\\(|select_page\\(\" backend/app backend/tests -S",
+    "exitCode": 0,
+    "outputSnippet": "backend/tests/test_facebook_oauth.py:61:            login_url = facebook_oauth.build_login_url()\nbackend/tests/test_facebook_oauth.py:75:            login_url = facebook_oauth.build_login_url()\nbackend/tests/test_facebook_oauth.py:77:            return_url = facebook_oauth.complete_callback(self.conn, {\"state\": [state], \"code\": [\"oauth_code\"]})\nbackend/tests/test_facebook_oauth.py:82:        pages = facebook_oauth.list_pages_for_session(session_id)\nbackend/tests/test_facebook_oauth.py:90:       ",
+    "timestamp": 1782494505366
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_PiWshqPdfi1GIL78Nb0TIumG|fc_0027c0df929c2210016a3eb53dcddc8195a22b08cb142bda7b",
+    "command": "rg -n \"def create_oauth_session\\b|def get_oauth_session\\b|def cleanup_expired_oauth_sessions\\b|def upsert_facebook_page_token\\b|def get_facebook_page_token_row\\b|def list_facebook_page_token_rows\\b|def set_active_facebook_page\\b|def mark_facebook_page_reconnect_required\\b|class StoreError\\b\" backend/app/store.py -S",
+    "exitCode": 0,
+    "outputSnippet": "8009:def upsert_facebook_page_token(conn, merchant_id, connected_channel_id, page_id, ciphertext, credential_fingerprint, expires_at=None, issued_at=None, status=\"active\"):\n8036:def get_facebook_page_token_row(conn, page_id, merchant_id=DEMO_MERCHANT_ID):\n8043:def list_facebook_page_token_rows(conn, merchant_id=DEMO_MERCHANT_ID):\n8050:def set_active_facebook_page(conn, merchant_id, page_id):\n8061:def mark_facebook_page_reconnect_required(conn, page_id):\n8081:def create_oauth_session(conn, provid",
+    "timestamp": 1782494525749
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_6jIDrkfAY4Hl1bqBBLrVypkV|fc_0027c0df929c2210016a3eb53dcdec8195811038263fcb1046",
+    "command": "rg -n \"def put_page_token\\b|def list_connected_pages\\b|def set_active_page\\b|def clear\\b\" backend/app/facebook_token_vault.py -S",
+    "exitCode": 0,
+    "outputSnippet": "8:def put_page_token(page_id, token, page=None, conn=None, merchant_id=None, connected_channel_id=None, expires_at=None, issued_at=None):\n56:def list_connected_pages(conn=None, merchant_id=None):\n85:def set_active_page(page_id, conn=None, merchant_id=None):\n102:def clear():\n",
+    "timestamp": 1782494525752
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_FhXSfQL4hY5KVhI30eQWXjOK|fc_0027c0df929c2210016a3eb550dfa08195be0e285599c513cc",
+    "command": "rg -n \"expires_at|issued_at|token_expires_at|credential_refresh_retry|expiring_soon\" backend/tests backend/app -S",
+    "exitCode": 0,
+    "outputSnippet": "backend/app/facebook_token_vault.py:8:def put_page_token(page_id, token, page=None, conn=None, merchant_id=None, connected_channel_id=None, expires_at=None, issued_at=None):\nbackend/app/facebook_token_vault.py:28:            expires_at=expires_at,\nbackend/app/facebook_token_vault.py:29:            issued_at=issued_at,\nbackend/app/contracts.py:140:        \"expiresAt\": row[\"expires_at\"],\nbackend/app/auth_provider.py:48:    expires_at = _parse_utc(credential_row[\"token_expires_at\"])\nbackend/app/aut",
+    "timestamp": 1782494544809
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_AKTbIhnQ99NUhIj5vqL5bKr2|fc_0027c0df929c2210016a3eb56d8d2081959544ee293de6190f",
+    "command": "rg -n \"get_profile\\(|list_selectable_accounts\\(|run_with_credential_refresh\\(|facebook_auth_provider|AuthProvider\\(\" backend/app backend/tests -S",
+    "exitCode": 0,
+    "outputSnippet": "backend/app/auth_provider.py:17:class AuthProvider(ABC):\nbackend/app/auth_provider.py:35:    def get_profile(self, token, config):\nbackend/app/auth_provider.py:39:    def list_selectable_accounts(self, token, config):\nbackend/app/auth_provider.py:64:def run_with_credential_refresh(conn, provider, credential_row, config, operation):\nbackend/tests/test_auth_provider.py:29:    def get_profile(self, token, config):\nbackend/tests/test_auth_provider.py:32:    def list_selectable_accounts(self, token, ",
+    "timestamp": 1782494573495
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_ZgvfacaIKJWfYU782rAhnDZu|fc_0027c0df929c2210016a3eb56d8d4c81958d6174bc2eaa02d3",
+    "command": "python - <<'PY'\nfrom pathlib import Path\np=Path('backend/app/store.py')\ntext=p.read_text()\nfor name in ['create_oauth_session','get_oauth_session','cleanup_expired_oauth_sessions','upsert_facebook_page_token','get_facebook_page_token_row','list_facebook_page_token_rows','set_active_facebook_page','mark_facebook_page_reconnect_required']:\n    idx=text.find(f'def {name}')\n    print('\\n###', name, idx)\n    if idx>=0:\n        print(text[idx:idx+900])\nPY",
+    "exitCode": 127,
+    "outputSnippet": "/bin/bash: python: command not found\n\n\nCommand exited with code 127",
+    "timestamp": 1782494573497
+  },
+  {
+    "kind": "bash",
+    "toolCallId": "call_IoI07f9NVvYgArOr6XyvHOgX|fc_0027c0df929c2210016a3eb575dcec8195be7ecba8cffdc531",
+    "command": "wc -l backend/app/facebook_oauth.py backend/tests/test_facebook_oauth.py backend/app/facebook_token_vault.py backend/app/server.py",
+    "exitCode": 0,
+    "outputSnippet": "     270 backend/app/facebook_oauth.py\n     115 backend/tests/test_facebook_oauth.py\n     103 backend/app/facebook_token_vault.py\n     725 backend/app/server.py\n    1213 total\n",
+    "timestamp": 1782494581838
+  }
+]
