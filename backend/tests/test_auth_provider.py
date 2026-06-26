@@ -1,11 +1,13 @@
 import os
 import tempfile
+import time
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
 from backend.app import auth_provider, store, token_crypto
+from backend.app.facebook_auth_provider import FacebookAuthProvider
 
 
 class DummyProvider(auth_provider.AuthProvider):
@@ -33,7 +35,7 @@ class DummyProvider(auth_provider.AuthProvider):
         return []
 
 
-class AuthProviderTest(unittest.TestCase):
+class TempDatabaseTestCase(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
@@ -42,7 +44,7 @@ class AuthProviderTest(unittest.TestCase):
         store.seed_demo_data(self.conn)
         self.env_patch = patch.dict(
             os.environ,
-            {"LOCALPILOT_TOKEN_KEY": self._generate_test_key()},
+            {"LOCALPILOT_TOKEN_KEY": token_crypto.generate_dev_key()},
             clear=False,
         )
         self.env_patch.start()
@@ -52,11 +54,6 @@ class AuthProviderTest(unittest.TestCase):
         self.env_patch.stop()
         self.temp_dir.cleanup()
 
-    def _generate_test_key(self):
-        from cryptography.fernet import Fernet
-
-        return Fernet.generate_key().decode("utf-8")
-
     def _iso_after(self, seconds):
         return (
             datetime.now(timezone.utc) + timedelta(seconds=seconds)
@@ -64,6 +61,7 @@ class AuthProviderTest(unittest.TestCase):
 
     def _seed_credential(self, token="valid-token", expires_in_seconds=3600, page_id="page_123"):
         ciphertext = token_crypto.encrypt_secret(token)
+        expires_at = None if expires_in_seconds is None else self._iso_after(expires_in_seconds)
         store.upsert_facebook_page_token(
             self.conn,
             store.DEMO_MERCHANT_ID,
@@ -71,17 +69,110 @@ class AuthProviderTest(unittest.TestCase):
             page_id,
             ciphertext,
             "fp_test",
-            expires_at=self._iso_after(expires_in_seconds),
+            expires_at=expires_at,
             issued_at=self._iso_after(-60),
         )
         return store.get_facebook_page_token_row(self.conn, page_id, store.DEMO_MERCHANT_ID)
 
-    def test_auth_provider_is_abstract(self):
+
+class TestAuthProviderABC(TempDatabaseTestCase):
+    def test_cannot_instantiate_abc(self):
         with self.assertRaises(TypeError):
             auth_provider.AuthProvider()
 
-    def test_get_valid_credential_returns_plaintext_token(self):
-        self._seed_credential(token="page-token", expires_in_seconds=900)
+    def test_facebook_provider_is_auth_provider(self):
+        self.assertIsInstance(FacebookAuthProvider(), auth_provider.AuthProvider)
+
+
+class TestOAuthSessionDB(TempDatabaseTestCase):
+    def test_create_and_fetch_session(self):
+        with self.assertLogs("backend.app.store", level="INFO") as logs:
+            session_id = store.create_oauth_session(
+                self.conn,
+                "facebook",
+                "state",
+                {"merchant_id": "merchant_1", "nonce": "n_123"},
+                ttl_seconds=600,
+            )
+            payload = store.get_oauth_session(self.conn, session_id, "state")
+
+        self.assertEqual(payload, {"merchant_id": "merchant_1", "nonce": "n_123"})
+        self.assertTrue(any("oauth_session_created" in line for line in logs.output))
+        self.assertTrue(any("oauth_session_loaded" in line for line in logs.output))
+
+    def test_consume_session_removes_row(self):
+        session_id = store.create_oauth_session(
+            self.conn,
+            "facebook",
+            "state",
+            {"merchant_id": "merchant_1"},
+            ttl_seconds=600,
+        )
+
+        payload = store.get_oauth_session(self.conn, session_id, "state", consume=True)
+
+        self.assertEqual(payload, {"merchant_id": "merchant_1"})
+        with self.assertRaises(store.StoreError) as exc:
+            store.get_oauth_session(self.conn, session_id, "state")
+        self.assertEqual(exc.exception.status, 400)
+
+    def test_expired_session_raises(self):
+        session_id = store.create_oauth_session(
+            self.conn,
+            "facebook",
+            "connect",
+            {"step": "connect"},
+            ttl_seconds=0,
+        )
+
+        time.sleep(1.1)
+
+        with self.assertRaises(store.StoreError) as exc:
+            store.get_oauth_session(self.conn, session_id, "connect")
+        self.assertEqual(exc.exception.status, 400)
+        self.assertEqual(exc.exception.message, "OAuth session expired.")
+
+    def test_invalid_session_id_raises(self):
+        with self.assertRaises(store.StoreError) as exc:
+            store.get_oauth_session(self.conn, "oauth_missing", "state")
+        self.assertEqual(exc.exception.status, 400)
+        self.assertEqual(exc.exception.message, "OAuth session not found.")
+
+    def test_cleanup_removes_expired(self):
+        expired_session_id = store.create_oauth_session(
+            self.conn,
+            "facebook",
+            "connect",
+            {"step": "expired"},
+            ttl_seconds=0,
+        )
+        valid_session_id = store.create_oauth_session(
+            self.conn,
+            "facebook",
+            "state",
+            {"step": "valid"},
+            ttl_seconds=600,
+        )
+
+        time.sleep(1.1)
+
+        with self.assertLogs("backend.app.store", level="INFO") as logs:
+            removed = store.cleanup_expired_oauth_sessions(self.conn)
+
+        self.assertEqual(removed, 1)
+        self.assertTrue(any("oauth_session_cleanup removed=1" in line for line in logs.output))
+        self.assertEqual(
+            store.get_oauth_session(self.conn, valid_session_id, "state"),
+            {"step": "valid"},
+        )
+        with self.assertRaises(store.StoreError) as exc:
+            store.get_oauth_session(self.conn, expired_session_id, "connect")
+        self.assertEqual(exc.exception.status, 400)
+
+
+class TestGetValidCredential(TempDatabaseTestCase):
+    def test_valid_token_returns_plaintext(self):
+        self._seed_credential(token="page-token", expires_in_seconds=3600)
 
         token = auth_provider.get_valid_credential(
             self.conn,
@@ -91,7 +182,45 @@ class AuthProviderTest(unittest.TestCase):
 
         self.assertEqual(token, "page-token")
 
-    def test_get_valid_credential_warns_when_token_near_expiry(self):
+    def test_expired_token_raises_401(self):
+        self._seed_credential(expires_in_seconds=-60)
+
+        with self.assertRaises(store.StoreError) as exc:
+            auth_provider.get_valid_credential(
+                self.conn,
+                "page_123",
+                store.DEMO_MERCHANT_ID,
+            )
+
+        self.assertEqual(exc.exception.status, 401)
+        self.assertEqual(exc.exception.message, "Facebook credential expired.")
+
+    def test_near_expiry_within_buffer_raises(self):
+        self._seed_credential(expires_in_seconds=30)
+
+        with self.assertRaises(store.StoreError) as exc:
+            auth_provider.get_valid_credential(
+                self.conn,
+                "page_123",
+                store.DEMO_MERCHANT_ID,
+                buffer_seconds=60,
+            )
+
+        self.assertEqual(exc.exception.status, 401)
+        self.assertEqual(exc.exception.message, "Facebook credential expired.")
+
+    def test_no_expiry_set_returns_token(self):
+        self._seed_credential(token="page-token", expires_in_seconds=None)
+
+        token = auth_provider.get_valid_credential(
+            self.conn,
+            "page_123",
+            store.DEMO_MERCHANT_ID,
+        )
+
+        self.assertEqual(token, "page-token")
+
+    def test_warns_when_token_within_300_seconds(self):
         self._seed_credential(expires_in_seconds=240)
 
         with self.assertLogs("backend.app.auth_provider", level="WARNING") as logs:
@@ -104,19 +233,30 @@ class AuthProviderTest(unittest.TestCase):
         self.assertEqual(token, "valid-token")
         self.assertTrue(any("facebook_credential_expiring_soon" in line for line in logs.output))
 
-    def test_get_valid_credential_raises_401_when_token_inside_buffer(self):
-        self._seed_credential(expires_in_seconds=30)
 
-        with self.assertRaises(store.StoreError) as exc:
-            auth_provider.get_valid_credential(
-                self.conn,
-                "page_123",
-                store.DEMO_MERCHANT_ID,
-            )
+class TestRunWithCredentialRefresh(TempDatabaseTestCase):
+    def test_success_without_refresh(self):
+        credential_row = self._seed_credential(token="valid-token")
+        provider = DummyProvider({"access_token": "unused-token"})
+        seen_tokens = []
 
-        self.assertEqual(exc.exception.status, 401)
+        def operation(token):
+            seen_tokens.append(token)
+            return {"token": token, "status": "ok"}
 
-    def test_run_with_credential_refresh_retries_once_after_401(self):
+        result = auth_provider.run_with_credential_refresh(
+            self.conn,
+            provider,
+            credential_row,
+            {},
+            operation,
+        )
+
+        self.assertEqual(result, {"token": "valid-token", "status": "ok"})
+        self.assertEqual(seen_tokens, ["valid-token"])
+        self.assertEqual(provider.refresh_calls, 0)
+
+    def test_retries_on_auth_failure(self):
         credential_row = self._seed_credential(token="stale-token")
         provider = DummyProvider({"access_token": "fresh-token"})
         seen_tokens = []
@@ -139,7 +279,7 @@ class AuthProviderTest(unittest.TestCase):
         self.assertEqual(seen_tokens, ["stale-token", "fresh-token"])
         self.assertEqual(provider.refresh_calls, 1)
 
-    def test_run_with_credential_refresh_raises_second_error(self):
+    def test_raises_on_second_failure(self):
         credential_row = self._seed_credential(token="stale-token")
         provider = DummyProvider({"access_token": "still-bad-token"})
         attempts = []
@@ -164,69 +304,28 @@ class AuthProviderTest(unittest.TestCase):
         self.assertEqual(attempts, ["stale-token", "still-bad-token"])
         self.assertEqual(provider.refresh_calls, 1)
 
-    def test_initialize_database_creates_oauth_sessions_table(self):
-        tables = {
-            row[0]
-            for row in self.conn.execute(
-                "select name from sqlite_master where type = 'table' and name = 'oauth_sessions'"
-            )
-        }
+    def test_non_auth_error_not_retried(self):
+        credential_row = self._seed_credential(token="valid-token")
+        provider = DummyProvider({"access_token": "should-not-be-used"})
+        seen_tokens = []
 
-        self.assertEqual(tables, {"oauth_sessions"})
-
-    def test_oauth_session_round_trip_and_consume(self):
-        with self.assertLogs("backend.app.store", level="INFO") as logs:
-            session_id = store.create_oauth_session(
-                self.conn,
-                "facebook",
-                "state",
-                {"merchant_id": "merchant_1"},
-                ttl_seconds=600,
-            )
-            payload = store.get_oauth_session(self.conn, session_id, "state")
-            consumed_payload = store.get_oauth_session(
-                self.conn,
-                session_id,
-                "state",
-                consume=True,
-            )
-
-        self.assertEqual(payload, {"merchant_id": "merchant_1"})
-        self.assertEqual(consumed_payload, {"merchant_id": "merchant_1"})
-        self.assertTrue(any("oauth_session_created" in line for line in logs.output))
-        self.assertTrue(any("oauth_session_consumed" in line for line in logs.output))
+        def operation(token):
+            seen_tokens.append(token)
+            raise store.StoreError(500, "boom")
 
         with self.assertRaises(store.StoreError) as exc:
-            store.get_oauth_session(self.conn, session_id, "state")
+            auth_provider.run_with_credential_refresh(
+                self.conn,
+                provider,
+                credential_row,
+                {},
+                operation,
+            )
 
-        self.assertEqual(exc.exception.status, 400)
-
-    def test_expired_oauth_session_is_rejected_and_cleanup_reports_removed_rows(self):
-        expired_session_id = store.create_oauth_session(
-            self.conn,
-            "facebook",
-            "connect",
-            {"step": "connect"},
-            ttl_seconds=-10,
-        )
-        store.create_oauth_session(
-            self.conn,
-            "facebook",
-            "state",
-            {"step": "state"},
-            ttl_seconds=-20,
-        )
-
-        with self.assertRaises(store.StoreError) as exc:
-            store.get_oauth_session(self.conn, expired_session_id, "connect")
-
-        self.assertEqual(exc.exception.status, 400)
-
-        with self.assertLogs("backend.app.store", level="INFO") as logs:
-            removed = store.cleanup_expired_oauth_sessions(self.conn)
-
-        self.assertEqual(removed, 1)
-        self.assertTrue(any("oauth_session_cleanup removed=1" in line for line in logs.output))
+        self.assertEqual(exc.exception.status, 500)
+        self.assertEqual(exc.exception.message, "boom")
+        self.assertEqual(seen_tokens, ["valid-token"])
+        self.assertEqual(provider.refresh_calls, 0)
 
 
 if __name__ == "__main__":
