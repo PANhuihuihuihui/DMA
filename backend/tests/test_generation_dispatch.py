@@ -63,6 +63,48 @@ class MockFailureAdapter:
         }
 
 
+class MockVideoSuccessAdapter:
+    """Simulates a text-to-video provider that always succeeds immediately."""
+
+    def submit(self, model_key, prompt, request, settings):
+        return "mock_video_job"
+
+    def poll(self, provider_job_id):
+        return {
+            "status": "succeeded",
+            "outputs": [
+                {
+                    "kind": "video",
+                    "storageRef": "https://example.com/video.mp4",
+                    "previewRef": "https://example.com/thumb.jpg",
+                    "metadata": {"providerJobId": provider_job_id},
+                }
+            ],
+            "diagnostics": {"providerStatus": "completed"},
+        }
+
+
+class MockUgcVideoSuccessAdapter:
+    """Simulates a UGC avatar video provider that always succeeds immediately."""
+
+    def submit(self, model_key, prompt, request, settings):
+        return "mock_ugc_video_job"
+
+    def poll(self, provider_job_id):
+        return {
+            "status": "succeeded",
+            "outputs": [
+                {
+                    "kind": "avatar_video",
+                    "storageRef": "https://example.com/avatar.mp4",
+                    "previewRef": "https://example.com/avatar_thumb.jpg",
+                    "metadata": {"providerJobId": provider_job_id},
+                }
+            ],
+            "diagnostics": {"providerStatus": "completed"},
+        }
+
+
 class ApiCase(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -335,3 +377,97 @@ class CreditLedgerTest(unittest.TestCase):
             balance_after = store.get_generation_credit_summary(conn, self.merchant_id)["availableCredits"]
         self.assertEqual("failed", job["status"])
         self.assertEqual(balance_before, balance_after)
+
+
+# ---------------------------------------------------------------------------
+# 4. Video creative materialization (S03/T03)
+# ---------------------------------------------------------------------------
+
+
+class VideoPackageHandoffTest(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
+        store.ensure_database(self.db_path)
+        self.merchant_id = store.DEMO_MERCHANT_ID
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def _create_video_job(self, model_id):
+        with closing(store.connect(self.db_path)) as conn:
+            payload = store.create_generation_job(
+                conn,
+                self.merchant_id,
+                {"modelId": model_id, "prompt": "A local bakery on a sunny morning"},
+            )
+        return payload["job"]["id"]
+
+    def _patch_and_dispatch(self, registry_key, adapter_cls, job_id):
+        original = generation_dispatch._PROVIDER_REGISTRY.get(registry_key)
+        generation_dispatch._PROVIDER_REGISTRY[registry_key] = adapter_cls
+        try:
+            generation_dispatch._dispatch_job(self.db_path, job_id)
+        finally:
+            if original is None:
+                generation_dispatch._PROVIDER_REGISTRY.pop(registry_key, None)
+            else:
+                generation_dispatch._PROVIDER_REGISTRY[registry_key] = original
+
+    def test_dispatch_video_job_creates_generated_creative(self):
+        job_id = self._create_video_job(store.OPENAI_VIDEO_MODEL_ID)
+        self._patch_and_dispatch("openai:video", MockVideoSuccessAdapter, job_id)
+
+        with closing(store.connect(self.db_path)) as conn:
+            job_row = conn.execute(
+                "select * from generation_jobs where id = ?", (job_id,)
+            ).fetchone()
+            serialized = store.serialize_generation_job(conn, job_row)
+            creative_row = conn.execute(
+                "select * from generated_creatives where merchant_id = ?",
+                (self.merchant_id,),
+            ).fetchone()
+
+        self.assertEqual("video", serialized.get("workflowType"))
+        self.assertIsNotNone(serialized.get("creativeId"))
+        self.assertIsNotNone(creative_row)
+        self.assertEqual(self.merchant_id, creative_row["merchant_id"])
+
+    def test_dispatch_ugc_video_job_creates_ugc_creative(self):
+        job_id = self._create_video_job(store.CCDANCE_AVATAR_MODEL_ID)
+        self._patch_and_dispatch("heygen:avatar_video", MockUgcVideoSuccessAdapter, job_id)
+
+        with closing(store.connect(self.db_path)) as conn:
+            job_row = conn.execute(
+                "select * from generation_jobs where id = ?", (job_id,)
+            ).fetchone()
+            serialized = store.serialize_generation_job(conn, job_row)
+            creative_id = serialized.get("creativeId")
+            creative_row = conn.execute(
+                "select * from generated_creatives where id = ?",
+                (creative_id,),
+            ).fetchone()
+
+        self.assertIsNotNone(creative_id)
+        self.assertIsNotNone(creative_row)
+        self.assertEqual(self.merchant_id, creative_row["merchant_id"])
+        self.assertEqual("ugc_video", creative_row["format"])
+
+    def test_video_creative_has_video_media_asset(self):
+        job_id = self._create_video_job(store.OPENAI_VIDEO_MODEL_ID)
+        self._patch_and_dispatch("openai:video", MockVideoSuccessAdapter, job_id)
+
+        with closing(store.connect(self.db_path)) as conn:
+            job_row = conn.execute(
+                "select * from generation_jobs where id = ?", (job_id,)
+            ).fetchone()
+            serialized = store.serialize_generation_job(conn, job_row)
+            creative_id = serialized.get("creativeId")
+            asset_row = conn.execute(
+                "select * from creative_media_assets where creative_id = ?",
+                (creative_id,),
+            ).fetchone()
+
+        self.assertIsNotNone(asset_row)
+        self.assertEqual("video", asset_row["asset_type"])
+        self.assertEqual("https://example.com/video.mp4", asset_row["storage_ref"])
