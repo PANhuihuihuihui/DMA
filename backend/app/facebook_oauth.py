@@ -298,11 +298,14 @@ def active_page_health(conn=None, merchant_id=None):
     return {"activePageId": None, "health": "reconnect_required", "canPublish": False}
 
 
-def graph_get(url):
-    req = request.Request(url, method="GET", headers={"Accept": "application/json"})
+def _graph_request(url, method):
+    req = request.Request(url, method=method, headers={"Accept": "application/json"})
     try:
         with request.urlopen(req, timeout=15) as response:
-            return json.loads(response.read().decode("utf-8") or "{}")
+            try:
+                return json.loads(response.read().decode("utf-8") or "{}")
+            except json.JSONDecodeError as exc:
+                raise store.StoreError(502, "Facebook OAuth returned malformed JSON.") from exc
     except error.HTTPError as exc:
         try:
             payload = json.loads(exc.read().decode("utf-8") or "{}")
@@ -312,6 +315,16 @@ def graph_get(url):
             exc.close()
         message = (payload.get("error") or {}).get("message") or "Facebook OAuth request failed."
         raise store.StoreError(exc.code, message) from exc
+    except (error.URLError, OSError, TimeoutError) as exc:
+        raise store.StoreError(502, "Facebook OAuth request failed.") from exc
+
+
+def graph_get(url):
+    return _graph_request(url, "GET")
+
+
+def graph_delete(url):
+    return _graph_request(url, "DELETE")
 
 
 def reset_for_tests(conn=None):

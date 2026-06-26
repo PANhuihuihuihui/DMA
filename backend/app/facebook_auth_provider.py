@@ -1,7 +1,11 @@
+import logging
 from urllib import parse
 
-from backend.app import facebook_oauth, facebook_token_vault
+from backend.app import facebook_oauth, facebook_token_vault, store
 from backend.app.auth_provider import AuthProvider
+
+
+logger = logging.getLogger(__name__)
 
 
 class FacebookAuthProvider(AuthProvider):
@@ -24,34 +28,56 @@ class FacebookAuthProvider(AuthProvider):
         return merged_payload
 
     def refresh(self, conn, credential_row, config):
-        params = {
-            "grant_type": "fb_exchange_token",
-            "client_id": config.get("appId", ""),
-            "client_secret": config.get("appSecret", ""),
-            "fb_exchange_token": facebook_token_vault.get_page_token(
-                credential_row["page_id"],
-                conn=conn,
-                merchant_id=credential_row["merchant_id"],
-            ),
-        }
-        refresh_url = f"{config.get('graphBase', facebook_oauth.GRAPH_API_BASE)}/oauth/access_token?{parse.urlencode(params)}"
-        return {
-            "access_token": params["fb_exchange_token"],
-            "token": params["fb_exchange_token"],
-            "refresh_url": refresh_url,
-        }
-
-    def revoke(self, conn, credential_row, config):
-        token = facebook_token_vault.get_page_token(
+        page_token = facebook_token_vault.get_page_token(
             credential_row["page_id"],
             conn=conn,
             merchant_id=credential_row["merchant_id"],
         )
-        revoke_url = f"{config.get('graphBase', facebook_oauth.GRAPH_API_BASE)}/me/permissions?{parse.urlencode({'access_token': token})}"
-        return {
-            "revoked": False,
-            "revoke_url": revoke_url,
+        params = {
+            "grant_type": "fb_exchange_token",
+            "client_id": config.get("appId", ""),
+            "client_secret": config.get("appSecret", ""),
+            "fb_exchange_token": page_token,
         }
+        refresh_url = f"{config.get('graphBase', facebook_oauth.GRAPH_API_BASE)}/oauth/access_token?{parse.urlencode(params)}"
+        payload = facebook_oauth.graph_get(refresh_url)
+        new_token = payload.get("access_token")
+        if not new_token:
+            raise store.StoreError(502, "Facebook did not return a refreshed Page access token.")
+
+        expires_in = payload.get("expires_in")
+        expires_at = facebook_oauth._expires_at_from_seconds(expires_in)
+        now = store.utc_now()
+        facebook_token_vault.put_page_token(
+            credential_row["page_id"],
+            new_token,
+            conn=conn,
+            merchant_id=credential_row["merchant_id"],
+            expires_at=expires_at,
+            issued_at=now,
+        )
+        logger.info(
+            "facebook_token_refreshed merchant_id=%s page_id=%s",
+            credential_row["merchant_id"],
+            credential_row["page_id"],
+        )
+        return {"access_token": new_token, "expires_in": expires_in}
+
+    def revoke(self, conn, credential_row, config):
+        page_id = credential_row["page_id"]
+        token = facebook_token_vault.get_page_token(
+            page_id,
+            conn=conn,
+            merchant_id=credential_row["merchant_id"],
+        )
+        revoke_url = f"{config.get('graphBase', facebook_oauth.GRAPH_API_BASE)}/me/permissions?{parse.urlencode({'access_token': token})}"
+        payload = facebook_oauth.graph_delete(revoke_url)
+        if payload.get("success") is False:
+            raise store.StoreError(502, "Facebook did not revoke the Page access token.")
+
+        facebook_token_vault.mark_reconnect_required(page_id, conn=conn)
+        logger.info("facebook_token_revoked page_id=%s", page_id)
+        return {"revoked": True}
 
     def get_profile(self, token, config):
         params = {
