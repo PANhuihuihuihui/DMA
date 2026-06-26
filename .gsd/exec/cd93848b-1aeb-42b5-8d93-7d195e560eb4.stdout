@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/huijie/DMA/.gsd-worktrees/M001
+collecting ... collected 2 items
+
+backend/tests/test_smoke_catalog.py::ModelApiSurfaceTest::test_models_endpoint_exposes_heygen_credit_cost PASSED [ 50%]
+backend/tests/test_smoke_catalog.py::ModelApiSurfaceTest::test_models_endpoint_exposes_sora2_credit_cost PASSED [100%]
+
+============================== 2 passed in 1.10s ===============================

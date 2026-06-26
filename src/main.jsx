@@ -4408,7 +4408,7 @@ export function AppDemo() {
         sourceUrl: carouselSourceMode === "url" ? carouselSourceValue : "",
         slideRoles: CAROUSEL_ROLE_ORDER,
         settings: {
-          aspectRatio: "4:5",
+          aspectRatio: "3:4",
         },
       });
       const newJob = normalizeGenerationJob(payload?.job);
@@ -6381,7 +6381,7 @@ export function AppDemo() {
                       <span>Carousel setup</span>
                       <h3>Open the canonical carousel flow in AI Studio.</h3>
                       <p>
-                        Phase 11 uses one package-level carousel flow only: MiniMax default model, fixed 4:5,
+                        Phase 11 uses one package-level carousel flow only: MiniMax default model, fixed 3:4,
                         five locked slides, and direct Creative Editor handoff.
                       </p>
                     </div>
@@ -6390,7 +6390,7 @@ export function AppDemo() {
                         <strong>carousel_canonical_v1</strong>
                         <small>5 slides</small>
                         <p>cover -&gt; problem -&gt; proof -&gt; offer -&gt; CTA</p>
-                        <em>Brand locked from saved kit · MiniMax default model · 4:5 portrait</em>
+                        <em>Brand locked from saved kit · MiniMax default model · 3:4 portrait</em>
                       </article>
                     </div>
                     <article className="brand-confirmation-card">
@@ -8643,7 +8643,7 @@ export function AppDemo() {
                       <article className="carousel-package-card">
                         <span>carousel_canonical_v1</span>
                         <h3>5 slides · cover -&gt; problem -&gt; proof -&gt; offer -&gt; CTA</h3>
-                        <p>Brand locked from saved kit. Aspect ratio stays fixed at 4:5. MiniMax is the default merchant-facing model.</p>
+                        <p>Brand locked from saved kit. Aspect ratio stays fixed at 3:4. MiniMax is the default merchant-facing model.</p>
                         <div className="carousel-package-meta">
                           <small>{carouselBrandReady ? "Brand locked from saved kit" : "Finish brand kit first"}</small>
                           <small>{carouselModel?.displayName || "MiniMax default model"}</small>

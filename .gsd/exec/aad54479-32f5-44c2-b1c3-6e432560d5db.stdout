@@ -1,0 +1,20 @@
+  "Insights and approvals": "洞察和审批",
+  "Share client approval links without exposing the full workspace.":
+  "Keep client comments, internal notes, and final approvals attached to each post.":
+  "Schedule after owner approval": "商家批准后排期",
+  "Review every channel plan, request changes, and prepare a no-login approval package.":
+  "Owner approval note": "商家审批说明",
+  "Calls, bookings, DMs, coupon scans, saves, and map clicks are mapped to the content before approval.":
+  "Schedule video after owner approval": "商家批准后排期视频",
+  "Drafted a local campaign with platform-specific captions, approval notes, and ROI events to track.":
+  "I updated channel copy, approval notes, and local ROI tracking in the demo plan.":
+  ". I added platform-specific captions, a Xiaohongshu angle, approval notes, and ROI events to track.":
+    .replace(/^(.+) completed for (.+)\. I updated channel copy, approval notes, and local ROI tracking in the demo plan\.$/, "$1 已为 $2 完成。我已更新演示方案中的渠道文案、审批说明和本地 ROI 追踪。")
+    .replace(/^Drafted a local campaign from "(.+)"\. I added platform-specific captions, a Xiaohongshu angle, approval notes, and ROI events to track\.$/, "已根据“$1”生成本地营销活动，并加入平台专属文案、小红书角度、审批说明和 ROI 追踪事件。");
+  approvals: "Content Library",
+  "approval-queue": "Content Library",
+    title: "Weekly local autoplan after approval",
+    kicker: "Owner approval",
+    view: "approvals",
+      ["Ready", "TikTok vertical cut", "Schedule after owner approval"],
+    summary: "Review every channel plan, request changes, and prepare a no-login approval package.",

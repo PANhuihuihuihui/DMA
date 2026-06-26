@@ -1,0 +1,26 @@
+{
+  "id": "17f55e7c-28a2-4a32-a573-4099ca095977",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/test-case-3-video-output-section (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "test-case-3-video-output-section",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 95,
+  "started_at": "2026-06-26T03:34:39.315Z",
+  "finished_at": "2026-06-26T03:34:39.324Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 9,
+  "stdout_bytes": 439,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/17f55e7c-28a2-4a32-a573-4099ca095977.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/17f55e7c-28a2-4a32-a573-4099ca095977.stderr"
+}

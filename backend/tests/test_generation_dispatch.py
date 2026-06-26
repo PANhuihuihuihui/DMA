@@ -105,6 +105,38 @@ class MockUgcVideoSuccessAdapter:
         }
 
 
+class MockCarouselSuccessAdapter:
+    """Simulates a carousel image provider that succeeds via the poll-based path."""
+
+    def submit(self, model_key, prompt, request, settings):
+        assert settings.get("aspectRatio") == "3:4"
+        assert request.get("workflowType") == "carousel"
+        return "mock_carousel_job"
+
+    def poll(self, provider_job_id):
+        outputs = []
+        for index, role in enumerate(store.CAROUSEL_SLIDE_ROLES, start=1):
+            outputs.append(
+                {
+                    "kind": "image",
+                    "storageRef": f"https://example.com/carousel-{index}.jpg",
+                    "previewRef": f"https://example.com/carousel-{index}-thumb.jpg",
+                    "metadata": {
+                        "providerJobId": provider_job_id,
+                        "carouselSlide": {
+                            "index": index,
+                            "role": role,
+                        },
+                    },
+                }
+            )
+        return {
+            "status": "succeeded",
+            "outputs": outputs,
+            "diagnostics": {"providerStatus": "completed"},
+        }
+
+
 class ApiCase(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -403,6 +435,21 @@ class VideoPackageHandoffTest(unittest.TestCase):
             )
         return payload["job"]["id"]
 
+    def _create_carousel_job(self):
+        with closing(store.connect(self.db_path)) as conn:
+            payload = store.create_generation_job(
+                conn,
+                self.merchant_id,
+                {
+                    "modelId": store.MINIMAX_IMAGE_MODEL_ID,
+                    "prompt": "Turn one timely local offer into a five-slide owner-ready carousel.",
+                    "workflowType": "carousel",
+                    "sourceKind": "idea",
+                    "sourceText": "Turn one timely local offer into a five-slide owner-ready carousel.",
+                },
+            )
+        return payload["job"]["id"]
+
     def _patch_and_dispatch(self, registry_key, adapter_cls, job_id):
         original = generation_dispatch._PROVIDER_REGISTRY.get(registry_key)
         generation_dispatch._PROVIDER_REGISTRY[registry_key] = adapter_cls
@@ -432,6 +479,31 @@ class VideoPackageHandoffTest(unittest.TestCase):
         self.assertIsNotNone(serialized.get("creativeId"))
         self.assertIsNotNone(creative_row)
         self.assertEqual(self.merchant_id, creative_row["merchant_id"])
+
+    def test_dispatch_carousel_job_materializes_generated_creative(self):
+        job_id = self._create_carousel_job()
+        self._patch_and_dispatch("minimax:image", MockCarouselSuccessAdapter, job_id)
+
+        with closing(store.connect(self.db_path)) as conn:
+            job_row = conn.execute(
+                "select * from generation_jobs where id = ?", (job_id,)
+            ).fetchone()
+            serialized = store.serialize_generation_job(conn, job_row)
+            creative_id = serialized.get("creativeId")
+            creative_row = conn.execute(
+                "select * from generated_creatives where id = ?",
+                (creative_id,),
+            ).fetchone()
+            asset_rows = conn.execute(
+                "select * from creative_media_assets where creative_id = ? order by created_at, id",
+                (creative_id,),
+            ).fetchall()
+
+        self.assertEqual("carousel", serialized.get("workflowType"))
+        self.assertEqual("3:4", serialized.get("slideCompositions")[0]["layout"]["aspectRatio"])
+        self.assertIsNotNone(creative_row)
+        self.assertEqual("carousel", creative_row["format"])
+        self.assertEqual(5, len(asset_rows))
 
     def test_dispatch_ugc_video_job_creates_ugc_creative(self):
         job_id = self._create_video_job(store.CCDANCE_AVATAR_MODEL_ID)

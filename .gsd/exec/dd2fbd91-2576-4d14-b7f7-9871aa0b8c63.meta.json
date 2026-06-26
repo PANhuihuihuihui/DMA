@@ -1,0 +1,26 @@
+{
+  "id": "dd2fbd91-2576-4d14-b7f7-9871aa0b8c63",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/frontend-video-symbols (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "frontend-video-symbols",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 161,
+  "started_at": "2026-06-26T03:34:16.812Z",
+  "finished_at": "2026-06-26T03:34:16.831Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 19,
+  "stdout_bytes": 2,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/dd2fbd91-2576-4d14-b7f7-9871aa0b8c63.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/dd2fbd91-2576-4d14-b7f7-9871aa0b8c63.stderr"
+}

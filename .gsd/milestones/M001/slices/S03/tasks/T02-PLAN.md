@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T02: Wire materialize_video_package into async and sync dispatch paths
+# T02: Wired materialize_video_package into both _dispatch_job (async) and dispatch_generation_job (sync) succeeded branches so video jobs produce a generated_creative record on success.
 
 Why: store.py now has the function but nothing calls it from the dispatch engine; without wiring, no creative is created when a video job succeeds.
 

@@ -26,12 +26,12 @@ Upstream: generation_dispatch._dispatch_job (S01), store.serialize_generation_jo
   - Files: `backend/app/store.py`
   - Verify: python3 -m pytest backend/tests/test_generation_dispatch.py -q --tb=short
 
-- [ ] **T02: Wire materialize_video_package into async and sync dispatch paths** `est:45m`
+- [x] **T02: Wired materialize_video_package into both _dispatch_job (async) and dispatch_generation_job (sync) succeeded branches so video jobs produce a generated_creative record on success.** `est:45m`
   Why: store.py now has the function but nothing calls it from the dispatch engine; without wiring, no creative is created when a video job succeeds.
   - Files: `backend/app/generation_dispatch.py`
   - Verify: python3 -m pytest backend/tests/test_generation_dispatch.py -q --tb=short
 
-- [ ] **T03: Add pytest tests for video creative materialization** `est:45m`
+- [x] **T03: Added MockVideoSuccessAdapter, MockUgcVideoSuccessAdapter, and VideoPackageHandoffTest with 3 tests asserting generated_creative creation, ugc_video format, and video media asset after dispatch** `est:45m`
   Why: T01 and T02 add the store function and dispatch wiring but the existing tests only verify credits and lifecycle; we need tests that assert a generated_creative is created and creativeId appears in the serialized job.
   - Files: `backend/tests/test_generation_dispatch.py`
   - Verify: python3 -m pytest backend/tests/test_generation_dispatch.py -q --tb=short

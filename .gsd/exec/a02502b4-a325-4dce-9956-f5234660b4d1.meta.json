@@ -1,0 +1,19 @@
+{
+  "id": "a02502b4-a325-4dce-9956-f5234660b4d1",
+  "runtime": "bash",
+  "purpose": "T02 verification: test_generation_dispatch after wiring materialize_video_package",
+  "script_chars": 122,
+  "started_at": "2026-06-26T03:23:28.216Z",
+  "finished_at": "2026-06-26T03:23:36.332Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 8116,
+  "stdout_bytes": 99,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/a02502b4-a325-4dce-9956-f5234660b4d1.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/a02502b4-a325-4dce-9956-f5234660b4d1.stderr"
+}

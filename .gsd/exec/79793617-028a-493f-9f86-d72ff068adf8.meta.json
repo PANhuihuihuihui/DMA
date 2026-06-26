@@ -1,0 +1,26 @@
+{
+  "id": "79793617-028a-493f-9f86-d72ff068adf8",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/approval-handler-functions (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "approval-handler-functions",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 130,
+  "started_at": "2026-06-26T03:35:02.780Z",
+  "finished_at": "2026-06-26T03:35:02.796Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 16,
+  "stdout_bytes": 455,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/79793617-028a-493f-9f86-d72ff068adf8.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/79793617-028a-493f-9f86-d72ff068adf8.stderr"
+}

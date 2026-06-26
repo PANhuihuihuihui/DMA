@@ -1,0 +1,11 @@
+...............F..                                                       [100%]
+=================================== FAILURES ===================================
+___ VideoPackageHandoffTest.test_dispatch_ugc_video_job_creates_ugc_creative ___
+backend/tests/test_generation_dispatch.py:447: in test_dispatch_ugc_video_job_creates_ugc_creative
+    self.assertEqual("ugc_video", creative_row["format"])
+E   AssertionError: 'ugc_video' != 'community post'
+E   - ugc_video
+E   + community post
+=========================== short test summary info ============================
+FAILED backend/tests/test_generation_dispatch.py::VideoPackageHandoffTest::test_dispatch_ugc_video_job_creates_ugc_creative
+1 failed, 17 passed in 14.07s

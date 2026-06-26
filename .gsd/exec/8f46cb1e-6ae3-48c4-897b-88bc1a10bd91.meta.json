@@ -1,0 +1,19 @@
+{
+  "id": "8f46cb1e-6ae3-48c4-897b-88bc1a10bd91",
+  "runtime": "bash",
+  "purpose": "T03 verification: all tests including new VideoPackageHandoffTest",
+  "script_chars": 133,
+  "started_at": "2026-06-26T03:29:00.625Z",
+  "finished_at": "2026-06-26T03:29:14.897Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 14272,
+  "stdout_bytes": 723,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/8f46cb1e-6ae3-48c4-897b-88bc1a10bd91.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/8f46cb1e-6ae3-48c4-897b-88bc1a10bd91.stderr"
+}

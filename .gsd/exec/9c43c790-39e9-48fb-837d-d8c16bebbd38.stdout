@@ -1,0 +1,30 @@
+  importedTemplates: [],
+  approvalReviewLinks: [],
+  approvalFeedback: [],
+  reviewNotifications: [],
+  assetLibraryItems: [],
+  performanceSnapshots: [],
+  analyticsInsights: [],
+  creatorStyleWorkflows: [],
+  creatorStyleOptions: {
+    styles: [],
+    actors: [],
+--
+  const [phase3Error, setPhase3Error] = useState("");
+  const [approvalPending, setApprovalPending] = useState("");
+  const [approvalFeedbackPending, setApprovalFeedbackPending] = useState("");
+  const [reviewNotificationPending, setReviewNotificationPending] = useState("");
+  const [publishPending, setPublishPending] = useState("");
+  const [facebookConnection, setFacebookConnection] = useState({
+    configured: false,
+    connectedPages: [],
+    scopes: [],
+    redirectUri: "",
+  });
+--
+    ? phase3Workspace.approvalReviewLinks
+    : [];
+  const phase3ApprovalFeedback = Array.isArray(phase3Workspace.approvalFeedback)
+    ? phase3Workspace.approvalFeedback
+    : [];
+  const phase3ReviewNotifications = Array.isArray(phase3Workspace.reviewNotifications)

@@ -17,10 +17,10 @@
 - [x] **S02: Frontend Generation Client and Job Status UI** `risk:medium` `depends:[S01]`
   > After this: npm run build succeeds without import errors. AI Studio → Create New → Short Ad Video submits a job and shows async status (queued/running with spinner). Polling advances to succeeded or failed with appropriate UI feedback.
 
-- [ ] **S03: Creative Editor Handoff and Owner Approval** `risk:medium` `depends:[S02]`
+- [x] **S03: Creative Editor Handoff and Owner Approval** `risk:medium` `depends:[S02]`
   > After this: A succeeded video job opens in the Creative Editor as an approvable package. Merchant can approve or request changes. The approval state persists through page refresh.
 
-- [ ] **S04: Pre-release Smoke and Credit Cost Validation** `[sketch]` `risk:low` `depends:[S03]`
+- [x] **S04: Pre-release Smoke and Credit Cost Validation** `risk:low` `depends:[S03]`
   > After this: One real Sora 2 generation and one real HeyGen generation each complete end-to-end with correct credit delta recorded. Credit cost is visible in the model selector before launch. A job submitted with insufficient balance is blocked at the API with a clear error. Smoke diagnostics file captured.
 
 ## Boundary Map

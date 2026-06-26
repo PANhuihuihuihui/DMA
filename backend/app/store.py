@@ -37,7 +37,7 @@ CCDANCE_AVATAR_MODEL_ID = "genmodel_ccdance_avatar_preview"
 MINIMAX_IMAGE_MODEL_ID = "genmodel_minimax_carousel_primary"
 CAROUSEL_WORKFLOW_TYPE = "carousel"
 CAROUSEL_PRESET_ID = "carousel_canonical_v1"
-CAROUSEL_ASPECT_RATIO = "4:5"
+CAROUSEL_ASPECT_RATIO = "3:4"
 CAROUSEL_SLIDE_ROLES = ("cover", "problem", "proof", "offer", "cta")
 CAROUSEL_EDITOR_MODE = "carousel_slide_edit"
 CAROUSEL_LOGO_PLACEMENT = "fixed_top_left"
@@ -1318,7 +1318,7 @@ def seed_generation_model_catalog(conn):
             {
                 "maxPromptLength": 4000,
                 "supportsCarousel": True,
-                "aspectRatios": ["4:5"],
+                "aspectRatios": ["3:4"],
                 "slideCount": 5,
             },
         ),

@@ -1,0 +1,27 @@
+{
+  "id": "77dae941-317a-4271-99fe-2e77380b028e",
+  "runtime": "python",
+  "purpose": "UAT M001/S03/UAT-VIDEO-BROWSER-JOB-DISPATCH (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "UAT-VIDEO-BROWSER-JOB-DISPATCH",
+    "intent": "uat-runtime-check",
+    "expected": "A succeeded Sora 2 video job with a creativeId exists in the dev database, ready for browser verification of the Creative Editor handoff."
+  },
+  "script_chars": 2507,
+  "started_at": "2026-06-26T04:16:52.456Z",
+  "finished_at": "2026-06-26T04:16:54.562Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 2106,
+  "stdout_bytes": 297,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/77dae941-317a-4271-99fe-2e77380b028e.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/77dae941-317a-4271-99fe-2e77380b028e.stderr"
+}

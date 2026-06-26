@@ -205,7 +205,28 @@ def _dispatch_job(db_path: str, job_id: str) -> None:
                         output.get("metadata", {}),
                     )
                     output_ids.append(oid)
-                if job["capability"] in store.VIDEO_CAPABILITIES and output_ids:
+                if request_payload.get("workflowType") == "carousel" and output_ids:
+                    output_rows = [
+                        conn.execute("select * from generation_outputs where id = ?", (output_id,)).fetchone()
+                        for output_id in output_ids
+                    ]
+                    output_rows = [row for row in output_rows if row is not None]
+                    if output_rows:
+                        brand_row = store.get_latest_brand_kit_row(conn, job["merchant_id"])
+                        slide_roles = list(request_payload.get("slideRoles") or store.CAROUSEL_SLIDE_ROLES)
+                        slide_plan = [
+                            {
+                                "role": slide_roles[i] if i < len(slide_roles) else f"slide_{i+1}",
+                                "headline": f"Slide {i+1}",
+                                "body": "",
+                                "ctaLabel": "Review and publish" if i == len(output_rows) - 1 else "",
+                                "imagePrompt": job["prompt"],
+                            }
+                            for i in range(len(output_rows))
+                        ]
+                        store.materialize_carousel_package(conn, job["merchant_id"], job, brand_row, slide_plan, output_rows)
+                        logger.info("generation_dispatch: materialized carousel creative for job %s", job_id)
+                elif job["capability"] in store.VIDEO_CAPABILITIES and output_ids:
                     first_row = conn.execute(
                         "select * from generation_outputs where id = ?", (output_ids[0],)
                     ).fetchone()

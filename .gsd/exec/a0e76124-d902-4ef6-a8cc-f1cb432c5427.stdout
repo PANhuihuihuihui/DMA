@@ -1,0 +1,7 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/huijie/DMA/.gsd-worktrees/M001
+collecting ... collected 0 items
+
+============================ no tests ran in 0.02s =============================

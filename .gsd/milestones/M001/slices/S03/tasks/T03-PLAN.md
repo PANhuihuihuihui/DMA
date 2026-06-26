@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T03: Add pytest tests for video creative materialization
+# T03: Added MockVideoSuccessAdapter, MockUgcVideoSuccessAdapter, and VideoPackageHandoffTest with 3 tests asserting generated_creative creation, ugc_video format, and video media asset after dispatch
 
 Why: T01 and T02 add the store function and dispatch wiring but the existing tests only verify credits and lifecycle; we need tests that assert a generated_creative is created and creativeId appears in the serialized job.
 

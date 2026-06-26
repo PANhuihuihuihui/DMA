@@ -87,13 +87,26 @@ class MiniMaxImageAdapter:
         base_id = response.get("id") or "minimax-image"
 
         items = response.get("data") or []
+        if isinstance(items, dict):
+            if isinstance(items.get("image_urls"), list):
+                items = items.get("image_urls")
+            elif items.get("image_url"):
+                items = [items.get("image_url")]
+            else:
+                items = []
         if not items:
             raise RuntimeError(f"MiniMax image_generation returned no data: {response}")
 
         outputs = []
-        for item in items:
-            image_url = item.get("url") or ""
-            b64 = item.get("b64_json") or ""
+        for index, item in enumerate(items, start=1):
+            if isinstance(item, str):
+                image_url = item
+                b64 = ""
+                item_index = index
+            else:
+                image_url = item.get("url") or ""
+                b64 = item.get("b64_json") or ""
+                item_index = item.get("index") or index
             storage_ref = image_url if image_url else f"data:image/jpeg;base64,{b64}"
             outputs.append(
                 {
@@ -102,7 +115,7 @@ class MiniMaxImageAdapter:
                     "previewRef": storage_ref,
                     "metadata": {
                         "providerJobId": base_id,
-                        "index": item.get("index", 0),
+                        "index": item_index,
                         "model": model_key,
                     },
                 }

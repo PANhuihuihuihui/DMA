@@ -1,0 +1,26 @@
+{
+  "id": "a0e76124-d902-4ef6-a8cc-f1cb432c5427",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/test-case-2-ugc-video (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "test-case-2-ugc-video",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 183,
+  "started_at": "2026-06-26T03:33:54.384Z",
+  "finished_at": "2026-06-26T03:33:54.523Z",
+  "exit_code": 4,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 139,
+  "stdout_bytes": 376,
+  "stderr_bytes": 227,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/a0e76124-d902-4ef6-a8cc-f1cb432c5427.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/a0e76124-d902-4ef6-a8cc-f1cb432c5427.stderr"
+}

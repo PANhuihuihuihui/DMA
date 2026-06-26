@@ -1,0 +1,27 @@
+{
+  "id": "df8c0416-e0e0-4b14-918a-e9f270bbde65",
+  "runtime": "python",
+  "purpose": "UAT M001/S03/S03-UAT-APPROVAL (uat-browser-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "S03-UAT-APPROVAL",
+    "intent": "uat-browser-check",
+    "expected": "Creative with approval state exists in DB after browser approval action"
+  },
+  "script_chars": 1428,
+  "started_at": "2026-06-26T04:21:05.429Z",
+  "finished_at": "2026-06-26T04:21:05.464Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 35,
+  "stdout_bytes": 352,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/df8c0416-e0e0-4b14-918a-e9f270bbde65.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/df8c0416-e0e0-4b14-918a-e9f270bbde65.stderr"
+}

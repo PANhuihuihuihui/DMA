@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-26T03:43:55.490792+00:00",
+  "timestamp": "2026-06-26T03:47:33.470705+00:00",
   "checks": [
     {
       "name": "CATALOG_COSTS",
@@ -17,7 +17,7 @@
       "name": "MODEL_API_SURFACE",
       "status": "PASS",
       "detail": "openai_video creditCost=180, heygen creditCost=220",
-      "elapsed_ms": 530
+      "elapsed_ms": 534
     },
     {
       "name": "SORA2_REAL_GEN",

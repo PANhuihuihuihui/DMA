@@ -1,0 +1,24 @@
+    showAppToast(`${platform} retry accepted. Attempt history updated.`);
+  };
+
+  const addApprovalFeedback = async (index, feedbackType = "approval_note") => {
+    const plan = plans[index];
+    const creative = phase3CreativeForPlan(plan, index);
+    if (!creative?.id) {
+      showAppToast("Approval feedback needs a Phase 3 generated creative first.");
+      return;
+    }
+    const isChangeRequest = feedbackType === "change_request";
+    const pendingKey = `${creative.id}:${feedbackType}`;
+    setApprovalFeedbackPending(pendingKey);
+    try {
+      const payload = await createPhase3ApprovalFeedback({
+        creativeId: creative.id,
+        feedbackType,
+        authorName: isChangeRequest ? "Karen Li" : "LocalPilot reviewer",
+        authorRole: isChangeRequest ? "owner" : "internal",
+        body: isChangeRequest
+          ? `${plan?.name || creative.platform} change request: revise the copy before final approval and keep claim-safe language.`
+          : `${plan?.name || creative.platform} approval note: owner confirmed the CTA, proof hook, and schedule are ready for review.`,
+      });
+      if (payload?.workspace) {

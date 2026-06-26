@@ -1,0 +1,12 @@
+                    first_row = conn.execute(
+                        "select * from generation_outputs where id = ?", (output_ids[0],)
+                    ).fetchone()
+                    if first_row is not None:
+                        store.materialize_video_package(conn, job["merchant_id"], job, first_row)
+                        logger.info("generation_dispatch: materialized video creative for job %s", job_id)
+                attempt_row = _load_active_attempt(conn, job_id)
+                if attempt_row:
+                    _update_attempt_status(conn, attempt_row["id"], "succeeded", result.get("diagnostics"))
+                _update_job_status(conn, job_id, "succeeded")
+                store.settle_generation_credits(conn, job["merchant_id"], job_id, job["reserved_credits"])
+            logger.info("generation_dispatch: job %s succeeded", job_id)
