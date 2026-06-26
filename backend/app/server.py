@@ -512,6 +512,10 @@ class JsonHandler(BaseHTTPRequestHandler):
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json(store.approve_draft(conn, draft_action["draft_id"], self.read_json()), status=201)
                 return
+            if draft_action and method == "POST" and draft_action["action"] == "media":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(store.patch_draft_media_ref(conn, draft_action["draft_id"], self.read_json().get("generationOutputId")), status=201)
+                return
 
             self.send_error_json(404, "Route not found.")
         except store.StoreError as exc:

@@ -312,3 +312,9 @@ export const logout = () =>
   });
 
 export const loadSession = () => requestJson("/auth/session");
+
+export const attachGenerationOutputToDraft = (draftId, generationOutputId) =>
+  requestJson(`/drafts/${encodeURIComponent(draftId)}/media`, {
+    method: "POST",
+    body: JSON.stringify({ generationOutputId }),
+  });

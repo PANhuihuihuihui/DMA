@@ -7919,6 +7919,60 @@ def get_version(conn, version_id):
     return version
 
 
+def _mime_type_from_url(url):
+    lower = url.lower().split("?")[0]
+    if lower.endswith(".png"):
+        return "image/png"
+    if lower.endswith(".gif"):
+        return "image/gif"
+    if lower.endswith(".webp"):
+        return "image/webp"
+    return "image/jpeg"
+
+
+def patch_draft_media_ref(conn, draft_id, generation_output_id):
+    if not generation_output_id:
+        raise StoreError(400, "generationOutputId is required.")
+    output = conn.execute(
+        "select * from generation_outputs where id = ?",
+        (generation_output_id,),
+    ).fetchone()
+    if output is None:
+        raise StoreError(404, "Generation output not found.")
+    storage_ref = output["storage_ref"]
+    if not (storage_ref.startswith("http://") or storage_ref.startswith("https://")):
+        raise StoreError(400, "Image URL must be publicly accessible for Facebook publishing.")
+    draft = get_draft(conn, draft_id)
+    version_id = draft["current_version_id"]
+    existing_assets = get_media_assets_for_version(conn, version_id)
+    now = utc_now()
+    mime_type = _mime_type_from_url(storage_ref)
+    if existing_assets:
+        existing_row = existing_assets[0]
+        conn.execute(
+            "update media_assets set storage_ref = ?, kind = ?, storage_mode = ? where id = ?",
+            (storage_ref, "image", "url", existing_row["id"]),
+        )
+    else:
+        conn.execute(
+            "insert into media_assets values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                new_id("media"),
+                DEMO_MERCHANT_ID,
+                version_id,
+                "url",
+                storage_ref,
+                "image",
+                mime_type,
+                "",
+                "",
+                now,
+            ),
+        )
+    conn.commit()
+    return get_serialized_draft(conn, draft_id)
+
+
 def upsert_facebook_page_token(conn, merchant_id, connected_channel_id, page_id, ciphertext, credential_fingerprint, expires_at=None, issued_at=None, status="active"):
     now = utc_now()
     existing = conn.execute(

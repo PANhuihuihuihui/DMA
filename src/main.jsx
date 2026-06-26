@@ -41,6 +41,7 @@ import {
   updateOnboardingProfile,
   updatePhase3BrandKit,
   updatePhase3CalendarSlot,
+  attachGenerationOutputToDraft,
   updatePhase3Creative,
   updatePhase3MediaAsset,
   updatePhase3MediaLayerLayout,
@@ -3843,6 +3844,7 @@ export function AppDemo() {
   const [genPrompt, setGenPrompt] = useState("");
   const [genLaunchPending, setGenLaunchPending] = useState(false);
   const [genRetryPending, setGenRetryPending] = useState("");
+  const [genAttachPending, setGenAttachPending] = useState("");
   const [genDetailJobId, setGenDetailJobId] = useState("");
   const [genStatus, setGenStatus] = useState("idle");
   const campaignInput = workflowCampaignInput(workflow);
@@ -4462,6 +4464,19 @@ export function AppDemo() {
     }
   };
 
+  const handleAttachToDraft = async (draftId, outputId) => {
+    setGenAttachPending(outputId);
+    try {
+      await attachGenerationOutputToDraft(draftId, outputId);
+      await reloadWorkflow({ silent: true });
+      showAppToast("Image attached to Facebook draft.");
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : "Could not attach image to draft.");
+    } finally {
+      setGenAttachPending("");
+    }
+  };
+
   const genActiveModel = genCatalog.find((m) => m.id === genSelectedModel) || null;
   const genEstimatedCost = genActiveModel ? genActiveModel.creditCost : 0;
   const genInsufficientCredits = genEstimatedCost > genCredits.available;
@@ -4470,6 +4485,12 @@ export function AppDemo() {
   const carouselModel = genCatalog.find((model) => model.id === MINIMAX_CAROUSEL_MODEL_ID) || genCatalog.find((model) => model.capability === "image") || null;
   const carouselJobs = genJobs.filter((job) => job.workflowType === "carousel");
   const carouselActiveJobs = carouselJobs.filter((job) => job.status === "queued" || job.status === "running");
+  const facebookDraft = workflow.platformDrafts.find((d) => d.platform === "facebook") || null;
+  const genImageOutputs = genSucceededJobs.flatMap((job) =>
+    job.outputs
+      .filter((o) => o.outputKind === "image" || o.kind === "image")
+      .map((output) => ({ job, output })),
+  );
   const latestCarouselJob = carouselJobs[0] || null;
   const carouselCreditCost = carouselModel ? carouselModel.creditCost : 0;
   const carouselBrandReady = Boolean(phase3BrandKit?.id);
@@ -8799,6 +8820,35 @@ export function AppDemo() {
                               >
                                 Open in Creative Editor
                               </button>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {genImageOutputs.length > 0 && (
+                      <section className="gen-outputs-section" aria-label="Generated image outputs">
+                        <h3>Generated images</h3>
+                        <div className="gen-output-grid">
+                          {genImageOutputs.map(({ job, output }) => (
+                            <article key={output.id} className="gen-output-card gen-image-output-card">
+                              {output.previewRef && (
+                                <div className="gen-image-thumb">
+                                  <img src={output.previewRef} alt="Generated image" />
+                                </div>
+                              )}
+                              <strong>{job.modelDisplayName || job.modelId}</strong>
+                              <small>{job.prompt.length > 80 ? job.prompt.slice(0, 80) + "..." : job.prompt}</small>
+                              {facebookDraft && (
+                                <button
+                                  className="primary-action"
+                                  type="button"
+                                  disabled={genAttachPending === output.id}
+                                  onClick={() => handleAttachToDraft(facebookDraft.id, output.id)}
+                                >
+                                  {genAttachPending === output.id ? "Attaching..." : "Use for Facebook post"}
+                                </button>
+                              )}
                             </article>
                           ))}
                         </div>
