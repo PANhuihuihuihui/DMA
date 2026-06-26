@@ -1,0 +1,9 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/huijie/DMA/.gsd-worktrees/M001
+collecting ... collected 1 item
+
+backend/tests/test_smoke_catalog.py::InsufficientBalanceTest::test_zero_balance_merchant_gets_409_with_correct_message PASSED [100%]
+
+============================== 1 passed in 0.04s ===============================

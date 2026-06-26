@@ -1,0 +1,25 @@
+  "Needs changes": "需修改",
+  "Approve plan": "批准计划",
+  "Approve exact draft": "批准确切草稿",
+  "Request changes": "请求修改",
+  "Post angle": "发布角度",
+  Caption: "文案",
+  CTA: "行动按钮",
+--
+  "Show coupon in-store": "到店出示优惠券",
+  "Uses a short sensory opening, clear local payoff, and a redeemable action instead of a generic brand post.":
+    "用短促感官开场、明确本地收益和可兑换动作，避免泛泛品牌帖。",
+  "Approve video cut and coupon wording": "批准视频剪辑和优惠券措辞",
+  "Hook in first 2 seconds": "前 2 秒出现钩子",
+  "Owner voiceover approved": "店主旁白已批准",
+  "Coupon code attached": "优惠码已附加",
+--
+    whyItWorks:
+      "Uses a short sensory opening, clear local payoff, and a redeemable action instead of a generic brand post.",
+    kpi: "Coupon scans + map clicks",
+    ownerAction: "Approve video cut and coupon wording",
+    checklist: ["Hook in first 2 seconds", "Owner voiceover approved", "Coupon code attached"],
+  },
+  {
+--
+                          </div>

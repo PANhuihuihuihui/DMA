@@ -1,0 +1,9 @@
+                        <span>{libraryDetailMediaAsset?.aspectRatio || "9:16"}</span>
+                        {isVideoCreative ? (
+                          <video
+                            className="library-detail-video"
+                            src={libraryDetailMediaAsset.storageRef}
+                            controls
+                            poster={libraryDetailMediaAsset.storageRef !== libraryDetailPreviewImage ? libraryDetailPreviewImage || undefined : undefined}
+                          />
+                        ) : (

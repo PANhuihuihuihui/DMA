@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/huijie/DMA/.gsd-worktrees/M001
+collecting ... collected 10 items
+
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_heygen_capability_is_avatar_video PASSED [ 10%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_heygen_credit_cost_is_220 PASSED [ 20%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_heygen_model_key PASSED [ 30%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_heygen_provider_key PASSED [ 40%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_heygen_readiness_status_is_ready PASSED [ 50%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_sora2_capability_is_video PASSED [ 60%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_sora2_credit_cost_is_180 PASSED [ 70%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_sora2_model_key PASSED [ 80%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_sora2_provider_key PASSED [ 90%]
+backend/tests/test_smoke_catalog.py::CatalogCostTest::test_sora2_readiness_status_is_ready PASSED [100%]
+
+============================== 10 passed in 0.24s ==============================

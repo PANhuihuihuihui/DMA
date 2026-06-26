@@ -1,0 +1,26 @@
+{
+  "id": "8ebfa64e-2269-463a-9cb7-39f3f50e2523",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/check-polling-interval (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "check-polling-interval",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 107,
+  "started_at": "2026-06-26T03:04:01.109Z",
+  "finished_at": "2026-06-26T03:04:01.130Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 21,
+  "stdout_bytes": 42,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/8ebfa64e-2269-463a-9cb7-39f3f50e2523.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/8ebfa64e-2269-463a-9cb7-39f3f50e2523.stderr"
+}

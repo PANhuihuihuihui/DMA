@@ -1,0 +1,8 @@
+✓ generationClient imported
+✓ generation models imported
+✓ loadGenerationModels called
+✓ normalizeGenerationCatalog called
+✓ genCatalog state initialized
+✓ reloadGenerationWorkspace defined
+
+6/6 checks passed

@@ -1,0 +1,11 @@
+✓ loadGenerationModels
+✓ loadGenerationJobs
+✓ launchGenerationJob
+✓ normalizeGenerationJob
+✓ normalizeGenerationCatalog
+✓ normalizeGenerationJobsList
+✓ reloadGenerationWorkspace
+✓ genActiveJobs
+✓ Polling
+
+9/9 checks passed

@@ -1,0 +1,26 @@
+{
+  "id": "c7abf08c-dba3-4171-aa4e-49df76d67b4f",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/edge-case-no-output (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "edge-case-no-output",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 118,
+  "started_at": "2026-06-26T03:35:17.067Z",
+  "finished_at": "2026-06-26T03:35:17.074Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 7,
+  "stdout_bytes": 867,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/c7abf08c-dba3-4171-aa4e-49df76d67b4f.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/c7abf08c-dba3-4171-aa4e-49df76d67b4f.stderr"
+}

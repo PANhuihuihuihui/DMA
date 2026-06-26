@@ -1,0 +1,26 @@
+{
+  "id": "bec71d2a-595d-4261-8d9e-ac15e017d1ab",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/test-1-model-catalog-loads (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "test-1-model-catalog-loads",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 870,
+  "started_at": "2026-06-26T03:04:20.584Z",
+  "finished_at": "2026-06-26T03:04:20.610Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 26,
+  "stdout_bytes": 221,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/bec71d2a-595d-4261-8d9e-ac15e017d1ab.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/bec71d2a-595d-4261-8d9e-ac15e017d1ab.stderr"
+}

@@ -1,0 +1,16 @@
+=== Checking module files exist ===
+-rw-r--r--@ 1 huijie  staff   1.3K Jun 25 21:29 src/api/generationClient.js
+-rw-r--r--@ 1 huijie  staff   4.1K Jun 25 21:29 src/models/generation.js
+
+=== Checking modules are imported in main.jsx ===
+4
+
+=== Dist artifacts present ===
+total 22568
+-rw-r--r--@ 1 huijie  staff   1.9M Jun 25 22:57 cafe-owner-8wmpgUvu.png
+-rw-r--r--@ 1 huijie  staff   1.8M Jun 25 22:57 clinic-CElpBbUZ.png
+-rw-r--r--@ 1 huijie  staff   516K Jun 25 22:57 index-DKNs5arw.js
+-rw-r--r--@ 1 huijie  staff   181K Jun 25 22:57 index-WpijPR_6.css
+-rw-r--r--@ 1 huijie  staff   2.6M Jun 25 22:57 restaurant-D233iasv.png
+-rw-r--r--@ 1 huijie  staff   2.0M Jun 25 22:57 salon-DTJKrNLN.png
+-rw-r--r--@ 1 huijie  staff   2.0M Jun 25 22:57 shop-C_LYc1jG.png

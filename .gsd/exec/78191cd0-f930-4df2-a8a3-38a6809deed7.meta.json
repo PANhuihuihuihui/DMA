@@ -1,0 +1,26 @@
+{
+  "id": "78191cd0-f930-4df2-a8a3-38a6809deed7",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/test-case-1-video-materialization (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "test-case-1-video-materialization",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 194,
+  "started_at": "2026-06-26T03:33:48.111Z",
+  "finished_at": "2026-06-26T03:33:50.358Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 2247,
+  "stdout_bytes": 509,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/78191cd0-f930-4df2-a8a3-38a6809deed7.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/78191cd0-f930-4df2-a8a3-38a6809deed7.stderr"
+}

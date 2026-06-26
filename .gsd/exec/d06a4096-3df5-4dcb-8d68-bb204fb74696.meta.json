@@ -1,0 +1,26 @@
+{
+  "id": "d06a4096-3df5-4dcb-8d68-bb204fb74696",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/build-succeeds (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "build-succeeds",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 29,
+  "started_at": "2026-06-26T03:03:44.474Z",
+  "finished_at": "2026-06-26T03:03:45.508Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 1034,
+  "stdout_bytes": 1131,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/d06a4096-3df5-4dcb-8d68-bb204fb74696.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/d06a4096-3df5-4dcb-8d68-bb204fb74696.stderr"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "45a0bd33-60e1-41ed-8d68-a8fb0f2b22cc",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/start-dev-server (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "start-dev-server",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 26,
+  "started_at": "2026-06-26T03:02:42.298Z",
+  "finished_at": "2026-06-26T03:03:12.310Z",
+  "exit_code": null,
+  "signal": "SIGTERM",
+  "timed_out": true,
+  "force_resolved": false,
+  "duration_ms": 30012,
+  "stdout_bytes": 140,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/45a0bd33-60e1-41ed-8d68-a8fb0f2b22cc.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/45a0bd33-60e1-41ed-8d68-a8fb0f2b22cc.stderr"
+}

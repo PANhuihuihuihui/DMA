@@ -1,0 +1,5 @@
+backend/tests/test_generation_dispatch.py::VideoPackageHandoffTest::test_dispatch_ugc_video_job_creates_ugc_creative
+backend/tests/test_generation_dispatch.py::VideoPackageHandoffTest::test_dispatch_video_job_creates_generated_creative
+backend/tests/test_generation_dispatch.py::VideoPackageHandoffTest::test_video_creative_has_video_media_asset
+
+3 tests collected in 0.02s

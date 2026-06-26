@@ -413,7 +413,7 @@ class Phase3WorkspaceTest(unittest.TestCase):
                 "workflowType": "carousel",
                 "sourceKind": "idea",
                 "sourceText": "Turn one sneaker offer into a five-slide carousel.",
-                "settings": {"aspectRatio": "4:5"},
+                "settings": {"aspectRatio": "3:4"},
                 "dispatch": False,
             },
         )["job"]["id"]
@@ -488,7 +488,7 @@ class Phase3WorkspaceTest(unittest.TestCase):
         )
         self.assertEqual("carousel_slide_edit", updated["editorMode"])
         self.assertEqual(5, updated["lockedLayout"]["slideCount"])
-        self.assertEqual("4:5", updated["lockedLayout"]["aspectRatio"])
+        self.assertEqual("3:4", updated["lockedLayout"]["aspectRatio"])
         self.assertEqual(original_slide["role"], updated["carouselSlide"]["role"])
         self.assertEqual(original_slide["index"], updated["carouselSlide"]["index"])
         self.assertEqual("Edited carousel headline", updated["composedPayload"]["headline"])

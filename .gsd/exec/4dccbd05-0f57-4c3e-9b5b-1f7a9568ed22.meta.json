@@ -1,0 +1,26 @@
+{
+  "id": "4dccbd05-0f57-4c3e-9b5b-1f7a9568ed22",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/smoke-test-app-responds (uat-browser-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "smoke-test-app-responds",
+    "intent": "uat-browser-check"
+  },
+  "script_chars": 140,
+  "started_at": "2026-06-26T03:37:02.462Z",
+  "finished_at": "2026-06-26T03:37:02.484Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 22,
+  "stdout_bytes": 21,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/4dccbd05-0f57-4c3e-9b5b-1f7a9568ed22.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/4dccbd05-0f57-4c3e-9b5b-1f7a9568ed22.stderr"
+}

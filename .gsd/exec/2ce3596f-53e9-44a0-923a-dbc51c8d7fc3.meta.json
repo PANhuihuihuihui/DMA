@@ -1,0 +1,26 @@
+{
+  "id": "2ce3596f-53e9-44a0-923a-dbc51c8d7fc3",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/verify-build-artifacts (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "verify-build-artifacts",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 107,
+  "started_at": "2026-06-26T03:35:22.644Z",
+  "finished_at": "2026-06-26T03:35:22.657Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 13,
+  "stdout_bytes": 340,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/2ce3596f-53e9-44a0-923a-dbc51c8d7fc3.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/2ce3596f-53e9-44a0-923a-dbc51c8d7fc3.stderr"
+}

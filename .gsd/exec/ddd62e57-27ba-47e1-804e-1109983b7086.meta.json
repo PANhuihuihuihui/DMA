@@ -1,0 +1,26 @@
+{
+  "id": "ddd62e57-27ba-47e1-804e-1109983b7086",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/test-5-concurrent-jobs (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "test-5-concurrent-jobs",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 867,
+  "started_at": "2026-06-26T03:04:45.947Z",
+  "finished_at": "2026-06-26T03:04:45.973Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 26,
+  "stdout_bytes": 195,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/ddd62e57-27ba-47e1-804e-1109983b7086.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/ddd62e57-27ba-47e1-804e-1109983b7086.stderr"
+}

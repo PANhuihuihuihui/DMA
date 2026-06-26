@@ -1,0 +1,9 @@
+✓ genJobs rendered in UI
+✓ job status displayed
+✓ queued status shown
+✓ running status shown
+✓ succeeded status shown
+✓ failed status shown
+✓ job status chip styling
+
+7/7 checks passed

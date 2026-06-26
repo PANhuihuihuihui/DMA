@@ -1,0 +1,8 @@
+✓ genJobs is array
+✓ jobs filtered by status
+✓ active jobs identified
+✓ polling on genActiveJobs.length
+✓ each job gets own interval
+✓ array spread preserves order
+
+6/6 checks passed

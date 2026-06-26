@@ -1,0 +1,267 @@
+{
+  "nodes": [
+    {
+      "id": "milestone:M001",
+      "label": "M001: Text-to-Video and UGC Avatar Generation",
+      "type": "milestone",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/M001-ROADMAP.md"
+    },
+    {
+      "id": "slice:M001:S01",
+      "label": "S01: Dispatch Engine and Provider Adapters",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/slices/S01/S01-PLAN.md"
+    },
+    {
+      "id": "task:M001:S01:T01",
+      "label": "T01: Created generation_dispatch.py skeleton — server now starts without ImportError",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S01:T02",
+      "label": "T02: Created generation_providers package with OpenAI Sora 2 video adapter and adapter registry",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S01:T03",
+      "label": "T03: Created HeyGen avatar adapter and updated catalog seed from ccdance_stub to heygen:ready",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S01:T04",
+      "label": "T04: Dispatch loop fully wired: submit→exponential-poll→settle/release with adapter registry",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S01:T05",
+      "label": "T05: 15 contract tests pass; full 168-test suite green",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "slice:M001:S02",
+      "label": "S02: Frontend Generation Client and Job Status UI",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/slices/S02/S02-PLAN.md"
+    },
+    {
+      "id": "task:M001:S02:T01",
+      "label": "T01: Created src/api/generationClient.js with all required generation API client functions",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S02:T02",
+      "label": "T02: Created src/models/generation.js with defensive normalizers for generation models, jobs, and credit summaries.",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S02:T03",
+      "label": "T03: Added async job polling useEffect with exponential backoff to track long-running generation jobs",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S02:T04",
+      "label": "T04: Vite build passes clean with all three new S02 modules integrated (57 modules, no errors)",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "slice:M001:S03",
+      "label": "S03: Creative Editor Handoff and Owner Approval",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/slices/S03/S03-PLAN.md"
+    },
+    {
+      "id": "task:M001:S03:T01",
+      "label": "T01: Added VIDEO_CAPABILITIES constant, materialize_video_package, and build_video_job_handoff to store.py, and wired build_video_job_handoff into serialize_generation_job.",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S03:T02",
+      "label": "T02: Wired materialize_video_package into both _dispatch_job (async) and dispatch_generation_job (sync) succeeded branches so video jobs produce a generated_creative record on success.",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S03:T03",
+      "label": "T03: Added MockVideoSuccessAdapter, MockUgcVideoSuccessAdapter, and VideoPackageHandoffTest with 3 tests asserting generated_creative creation, ugc_video format, and video media asset after dispatch",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S03:T04",
+      "label": "T04: Added openVideoEditor function, video output section in AI Studio, video player in library detail modal, and approval buttons for video creatives.",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "slice:M001:S04",
+      "label": "S04: Pre-release Smoke and Credit Cost Validation",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/slices/S04/S04-PLAN.md"
+    },
+    {
+      "id": "task:M001:S04:T01",
+      "label": "T01: Created backend/tests/test_smoke_catalog.py with 13 passing tests covering catalog credit costs, API surface, and insufficient-balance gating.",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S04:T02",
+      "label": "T02: Created backend/scripts/smoke_s04.py with 5 checks (3 PASS, 2 SKIP); smoke_s04_report.json written successfully.",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "milestone:M002",
+      "label": "M002: Phase 4",
+      "type": "milestone",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M002/M002-ROADMAP.md"
+    },
+    {
+      "id": "milestone:M003",
+      "label": "M003: Phase 11",
+      "type": "milestone",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M003/M003-ROADMAP.md"
+    },
+    {
+      "id": "milestone:M004",
+      "label": "M004: Phase 12",
+      "type": "milestone",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M004/M004-ROADMAP.md"
+    }
+  ],
+  "edges": [
+    {
+      "from": "milestone:M001",
+      "to": "slice:M001:S01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S01",
+      "to": "task:M001:S01:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S01",
+      "to": "task:M001:S01:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S01",
+      "to": "task:M001:S01:T03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S01",
+      "to": "task:M001:S01:T04",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S01",
+      "to": "task:M001:S01:T05",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M001",
+      "to": "slice:M001:S02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S02",
+      "to": "task:M001:S02:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S02",
+      "to": "task:M001:S02:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S02",
+      "to": "task:M001:S02:T03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S02",
+      "to": "task:M001:S02:T04",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M001",
+      "to": "slice:M001:S03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S03",
+      "to": "task:M001:S03:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S03",
+      "to": "task:M001:S03:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S03",
+      "to": "task:M001:S03:T03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S03",
+      "to": "task:M001:S03:T04",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M001",
+      "to": "slice:M001:S04",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S04",
+      "to": "task:M001:S04:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S04",
+      "to": "task:M001:S04:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    }
+  ],
+  "builtAt": "2026-06-26T03:46:47.070Z"
+}

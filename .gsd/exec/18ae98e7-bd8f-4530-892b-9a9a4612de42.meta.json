@@ -1,0 +1,26 @@
+{
+  "id": "18ae98e7-bd8f-4530-892b-9a9a4612de42",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/test-case-5-approval-buttons (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "test-case-5-approval-buttons",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 113,
+  "started_at": "2026-06-26T03:34:49.805Z",
+  "finished_at": "2026-06-26T03:34:49.816Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 11,
+  "stdout_bytes": 1097,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/18ae98e7-bd8f-4530-892b-9a9a4612de42.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/18ae98e7-bd8f-4530-892b-9a9a4612de42.stderr"
+}

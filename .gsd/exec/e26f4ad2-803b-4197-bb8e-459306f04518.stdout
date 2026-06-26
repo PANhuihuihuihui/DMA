@@ -1,0 +1,6 @@
+    if (!genActiveJobs.length) return;
+    let backoffMs = 3000;
+      backoffMs = Math.min(backoffMs * 2, maxBackoffMs);
+      timeoutId = window.setTimeout(poll, backoffMs);
+    timeoutId = window.setTimeout(poll, backoffMs);
+  }, [genActiveJobs.length]);

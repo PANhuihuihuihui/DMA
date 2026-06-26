@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/huijie/DMA/.gsd-worktrees/M001
+collecting ... collected 18 items
+
+backend/tests/test_generation_dispatch.py::AdapterRegistryContractTest::test_adapter_instantiates_without_env_vars PASSED [  5%]
+backend/tests/test_generation_dispatch.py::AdapterRegistryContractTest::test_get_adapter_raises_for_unknown_key PASSED [ 11%]
+backend/tests/test_generation_dispatch.py::AdapterRegistryContractTest::test_heygen_avatar_adapter_exists PASSED [ 16%]
+backend/tests/test_generation_dispatch.py::AdapterRegistryContractTest::test_known_adapters_instantiate PASSED [ 22%]
+backend/tests/test_generation_dispatch.py::AdapterRegistryContractTest::test_openai_video_adapter_exists PASSED [ 27%]
+backend/tests/test_generation_dispatch.py::JobLifecycleTest::test_get_job_returns_submitted_job PASSED [ 33%]
+backend/tests/test_generation_dispatch.py::JobLifecycleTest::test_heygen_model_is_ready PASSED [ 38%]
+backend/tests/test_generation_dispatch.py::JobLifecycleTest::test_list_models_includes_sora2_and_heygen PASSED [ 44%]
+backend/tests/test_generation_dispatch.py::JobLifecycleTest::test_submit_insufficient_credits_returns_error PASSED [ 50%]
+backend/tests/test_generation_dispatch.py::JobLifecycleTest::test_submit_job_reserves_credits PASSED [ 55%]
+backend/tests/test_generation_dispatch.py::JobLifecycleTest::test_submit_job_returns_201_with_queued_status PASSED [ 61%]
+backend/tests/test_generation_dispatch.py::JobLifecycleTest::test_submit_unknown_model_returns_error PASSED [ 66%]
+backend/tests/test_generation_dispatch.py::CreditLedgerTest::test_failure_path_releases_credits PASSED [ 72%]
+backend/tests/test_generation_dispatch.py::CreditLedgerTest::test_no_adapter_releases_credits PASSED [ 77%]
+backend/tests/test_generation_dispatch.py::CreditLedgerTest::test_success_path_settles_credits PASSED [ 83%]
+backend/tests/test_generation_dispatch.py::VideoPackageHandoffTest::test_dispatch_ugc_video_job_creates_ugc_creative PASSED [ 88%]
+backend/tests/test_generation_dispatch.py::VideoPackageHandoffTest::test_dispatch_video_job_creates_generated_creative PASSED [ 94%]
+backend/tests/test_generation_dispatch.py::VideoPackageHandoffTest::test_video_creative_has_video_media_asset PASSED [100%]
+
+============================= 18 passed in 14.07s ==============================

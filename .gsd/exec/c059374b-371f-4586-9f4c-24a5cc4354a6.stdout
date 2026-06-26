@@ -1,0 +1,21 @@
+    const poll = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(poll);
+        render();
+      }
+    }, 150);
+    return () => clearInterval(poll);
+  }, [onSuccess, onError]);
+
+  return <div ref={containerRef} style={{ display: "flex", justifyContent: "center", minHeight: 44 }} />;
+}
+
+function Modal({ eyebrow, title, children, onClose }) {
+  return (
+    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button className="modal-close" type="button" aria-label="Close modal" onClick={onClose}>
+          Close
+        </button>
+        <p className="eyebrow">{eyebrow}</p>
+        <h2 id="modal-title">{title}</h2>

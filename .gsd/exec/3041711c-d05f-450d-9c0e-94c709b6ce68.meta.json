@@ -1,0 +1,26 @@
+{
+  "id": "3041711c-d05f-450d-9c0e-94c709b6ce68",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/precondition-dev-server (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "precondition-dev-server",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 55,
+  "started_at": "2026-06-26T03:33:10.713Z",
+  "finished_at": "2026-06-26T03:33:40.728Z",
+  "exit_code": null,
+  "signal": "SIGTERM",
+  "timed_out": true,
+  "force_resolved": false,
+  "duration_ms": 30015,
+  "stdout_bytes": 171,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/3041711c-d05f-450d-9c0e-94c709b6ce68.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/3041711c-d05f-450d-9c0e-94c709b6ce68.stderr"
+}

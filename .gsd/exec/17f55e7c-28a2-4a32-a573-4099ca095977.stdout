@@ -1,0 +1,6 @@
+                        <h3>Generated videos</h3>
+                        <div className="gen-output-grid">
+                          {genSucceededJobs.filter((j) => j.workflowType === "video").map((job) => (
+                            <article key={job.id} className="gen-output-card gen-video-output-card">
+                              <div className="gen-video-thumb">
+                                {job.outputs[0]?.previewRef && (

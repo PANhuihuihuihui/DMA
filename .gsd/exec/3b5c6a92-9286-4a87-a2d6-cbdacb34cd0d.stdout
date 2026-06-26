@@ -1,0 +1,7 @@
+✓ handleGenLaunch defined
+✓ launchGenerationJob called
+✓ normalizeGenerationJob called
+✓ setGenJobs state update
+✓ job appears in list immediately
+
+5/5 checks passed

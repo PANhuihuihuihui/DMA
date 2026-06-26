@@ -1,0 +1,12 @@
+=== generationClient exports ===
+export const loadGenerationModels = () => requestJson("/generation/models");
+export const loadGenerationCredits = () => requestJson("/generation/credits");
+export const loadGenerationJobs = () => requestJson("/generation/jobs");
+export const launchGenerationJob = (payload) =>
+export const retryGenerationJob = (jobId) =>
+
+=== generation.js exports ===
+export const normalizeGenerationJob = (job = {}) => {
+export const normalizeGenerationJobsList = (payload = {}) => {
+export const normalizeGenerationCatalog = (payload = {}) => {
+export const normalizeCreditSummary = (credits = {}) => {

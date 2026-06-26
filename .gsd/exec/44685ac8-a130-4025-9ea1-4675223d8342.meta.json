@@ -1,0 +1,26 @@
+{
+  "id": "44685ac8-a130-4025-9ea1-4675223d8342",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/check-model-catalog-in-app (uat-runtime-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "check-model-catalog-in-app",
+    "intent": "uat-runtime-check"
+  },
+  "script_chars": 1028,
+  "started_at": "2026-06-26T03:03:41.733Z",
+  "finished_at": "2026-06-26T03:03:41.762Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 29,
+  "stdout_bytes": 0,
+  "stderr_bytes": 47,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/44685ac8-a130-4025-9ea1-4675223d8342.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/44685ac8-a130-4025-9ea1-4675223d8342.stderr"
+}

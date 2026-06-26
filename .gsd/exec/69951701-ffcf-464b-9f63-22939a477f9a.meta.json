@@ -1,0 +1,26 @@
+{
+  "id": "69951701-ffcf-464b-9f63-22939a477f9a",
+  "runtime": "bash",
+  "purpose": "UAT M001/S03/video-approval-buttons (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S03",
+    "checkId": "video-approval-buttons",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 125,
+  "started_at": "2026-06-26T03:35:07.104Z",
+  "finished_at": "2026-06-26T03:35:07.120Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 16,
+  "stdout_bytes": 1861,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/69951701-ffcf-464b-9f63-22939a477f9a.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/69951701-ffcf-464b-9f63-22939a477f9a.stderr"
+}

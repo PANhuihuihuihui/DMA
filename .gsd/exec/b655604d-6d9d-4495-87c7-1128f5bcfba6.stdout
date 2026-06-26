@@ -1,0 +1,60 @@
+35:OPENAI_VIDEO_MODEL_ID = "genmodel_openai_video_primary"
+36:CCDANCE_AVATAR_MODEL_ID = "genmodel_ccdance_avatar_preview"
+117:        create table if not exists generation_model_catalog (
+123:          credit_cost integer not null,
+131:        create table if not exists generation_jobs (
+134:          model_catalog_id text not null references generation_model_catalog(id),
+142:          reserved_credits integer not null default 0,
+148:        create table if not exists generation_attempts (
+150:          generation_job_id text not null references generation_jobs(id),
+158:        create table if not exists generation_outputs (
+160:          generation_job_id text not null references generation_jobs(id),
+170:        create table if not exists credit_accounts (
+174:          monthly_credits integer not null,
+179:        create table if not exists credit_ledger (
+182:          generation_job_id text references generation_jobs(id),
+219:          avatar text not null default '',
+513:          avatar_json text not null,
+541:        create table if not exists creative_media_assets (
+559:          media_asset_id text not null references creative_media_assets(id),
+839:    if "avatar" not in merchant_profile_columns:
+840:        conn.execute("alter table merchant_profiles add column avatar text not null default ''")
+888:          media_asset_id text not null references creative_media_assets(id),
+966:          avatar_json text not null,
+1210:            ["image", "video", "link", "carousel"],
+1219:            ["video"],
+1228:            ["image", "video"],
+1237:            ["image", "video", "carousel"],
+1273:def seed_generation_model_catalog(conn):
+1328:            "video",
+1349:            "ccdance-avatar",
+1350:            "avatar_video",
+1357:                    "avatar",
+1366:                "avatars": ["female_host", "male_owner", "creator_style"],
+1373:            insert or ignore into generation_model_catalog (
+1374:              id, provider_key, model_key, capability, display_name, credit_cost,
+1394:            update generation_model_catalog
+1396:                credit_cost = ?, readiness_status = ?, settings_schema_json = ?,
+1415:def ensure_generation_credit_account(conn, merchant_id, plan_name="Growth Demo", monthly_credits=3200):
+1419:        insert or ignore into credit_accounts (
+1420:          id, merchant_id, plan_name, monthly_credits, created_at, updated_at
+1424:            new_id("credit_account"),
+1427:            monthly_credits,
+1434:def ensure_phase13_generation_seed(conn):
+1435:    seed_generation_model_catalog(conn)
+1436:    ensure_generation_credit_account(conn, DEMO_MERCHANT_ID)
+1871:    """Media generation policy that targets the strictest relevant channel first.
+2008:            "Short vertical video of HVAC tune-up work",
+2010:            "media_tiktok_lunch_video",
+2060:        ensure_phase13_generation_seed(conn)
+2241:        media_asset_id="media_tiktok_lunch_video",
+2243:        kind="video",
+2244:        mime_type="video/mp4",
+2245:        alt_text="Short vertical video of HVAC tune-up work",
+2249:            "postType": "short_video",
+2262:    ensure_phase13_generation_seed(conn)
+2559:            "extract an owner-explainer video hook",
+2731:                "format": "9:16 creator video",
+2755:                "format": "9:16 caption-led video",
+2866:        "caption": f"{topic}. {target}. Demo-safe creator-style video storyboard with owner approval before publishing.",
+3004:            "Generate the next batch around a homeowner checklist plus a short owner answer video.",

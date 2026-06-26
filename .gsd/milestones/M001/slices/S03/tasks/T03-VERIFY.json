@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M001/S03/T03",
+  "timestamp": 1782444617989,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "python3 -m pytest backend/tests/test_generation_dispatch.py -q --tb=short",
+      "exitCode": 0,
+      "durationMs": 14289,
+      "verdict": "pass"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+26:from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher, website_crawl
+115:            if method == "GET" and path == "/api/v1/generation/models":
+118:                    self.send_json({"merchantId": merchant_id, "models": store.list_generation_models(conn)})
+120:            if method == "GET" and path == "/api/v1/generation/credits":
+123:                    self.send_json({"credits": store.get_generation_credit_summary(conn, merchant_id)})
+125:            if method == "GET" and path == "/api/v1/generation/jobs":
+128:                    self.send_json({"jobs": store.list_generation_jobs(conn, merchant_id)})
+173:            if method == "POST" and path == "/api/v1/generation/jobs":
+177:                    payload = store.create_generation_job(conn, merchant_id, body)
+178:                if body.get("dispatch", True):
+179:                    generation_dispatch.start_async_dispatch(self.db_path, payload["job"]["id"])
+182:            generation_job = self.match_generation_job(path)
+183:            if generation_job and method == "GET" and generation_job["action"] is None:
+186:                    job = store.get_generation_job(conn, merchant_id, generation_job["job_id"])
+187:                    self.send_json({"job": store.serialize_generation_job(conn, job)})
+189:            if generation_job and method == "POST" and generation_job["action"] == "retry":
+193:                payload = generation_dispatch.retry_generation_job(
+196:                    generation_job["job_id"],
+197:                    dispatch=body.get("dispatch", True),
+222:            if method == "POST" and path == "/api/v1/phase3/creator-style-video-workflows":
+224:                    self.send_json(store.create_creator_style_video_workflow(conn, self.read_json()), status=201)
+228:                "creator-style-video-workflows",
+234:                        store.create_creator_style_video(
+631:    def match_generation_job(self, path):
+633:        if len(parts) == 6 and parts[:5] == ["", "api", "v1", "generation", "jobs"]:
+635:        if len(parts) == 7 and parts[:5] == ["", "api", "v1", "generation", "jobs"]:

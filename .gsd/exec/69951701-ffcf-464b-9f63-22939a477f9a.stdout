@@ -1,0 +1,35 @@
+    "新鲜餐盘、快速出餐、值得收藏的午餐特惠。今天结账时出示这条帖子。",
+  "Lunch under 15 minutes": "15 分钟内吃上午餐",
+  "Show coupon in-store": "到店出示优惠券",
+  "Uses a short sensory opening, clear local payoff, and a redeemable action instead of a generic brand post.":
+    "用短促感官开场、明确本地收益和可兑换动作，避免泛泛品牌帖。",
+  "Approve video cut and coupon wording": "批准视频剪辑和优惠券措辞",
+  "Hook in first 2 seconds": "前 2 秒出现钩子",
+  "Owner voiceover approved": "店主旁白已批准",
+  "Coupon code attached": "优惠码已附加",
+  "Visual proof for saves, DMs, and profile visits": "用视觉证明推动收藏、私信和资料访问",
+  "Reel + story follow-up": "Reel + Story 跟进",
+--
+      cta: "Show coupon in-store",
+    },
+    whyItWorks:
+      "Uses a short sensory opening, clear local payoff, and a redeemable action instead of a generic brand post.",
+    kpi: "Coupon scans + map clicks",
+    ownerAction: "Approve video cut and coupon wording",
+    checklist: ["Hook in first 2 seconds", "Owner voiceover approved", "Coupon code attached"],
+  },
+  {
+    name: "Instagram",
+    role: "Visual proof for saves, DMs, and profile visits",
+--
+                          <button
+                            type="button"
+                            disabled={approvalFeedbackPending === libraryDetailCreative.id}
+                            onClick={() => addApprovalFeedback(libraryDetailIndex, "approval_note")}
+                          >
+                            Approve video
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => addApprovalFeedback(libraryDetailIndex, "change_request")}
+                          >

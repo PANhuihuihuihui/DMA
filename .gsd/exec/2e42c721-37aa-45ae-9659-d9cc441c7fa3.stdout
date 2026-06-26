@@ -1,0 +1,7 @@
+✓ try/catch in handleGenLaunch
+✓ error toast shown
+✗ failed job shown in UI
+✓ API client has error handling
+✓ polling continues on error
+
+4/5 checks passed

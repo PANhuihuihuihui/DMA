@@ -1,0 +1,19 @@
+{
+  "id": "19cc54ca-da44-410c-b0fc-d37b752a4bc6",
+  "runtime": "bash",
+  "purpose": "check what's in main vs this worktree",
+  "script_chars": 302,
+  "started_at": "2026-06-26T00:01:47.269Z",
+  "finished_at": "2026-06-26T00:01:47.294Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 25,
+  "stdout_bytes": 273,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/19cc54ca-da44-410c-b0fc-d37b752a4bc6.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/19cc54ca-da44-410c-b0fc-d37b752a4bc6.stderr"
+}

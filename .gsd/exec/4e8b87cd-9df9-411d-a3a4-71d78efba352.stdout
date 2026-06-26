@@ -1,0 +1,97 @@
+__pycache__
+contracts.py
+facebook_oauth.py
+facebook_publisher.py
+facebook_token_vault.py
+fake_publisher.py
+google_auth.py
+server.py
+sessions.py
+store.py
+tiktok_publisher.py
+token_boundary.py
+token_crypto.py
+website_crawl.py
+---
+publishingClient.js
+---
+import html
+import re
+import sqlite3
+from urllib.parse import quote, urlparse
+
+from backend.app import sessions
+from backend.app.contracts import (
+    build_approval_snapshot,
+    json_dumps,
+    json_loads,
+    new_id,
+    request_digest,
+    safe_diagnostics,
+    redacted_token_boundary_ref,
+    serialize_connected_channel,
+    serialize_draft_version,
+    summarize_approval_snapshot,
+    trace_id,
+    utc_now,
+)
+from backend.app.token_boundary import create_token_boundary
+
+
+DEMO_MERCHANT_ID = "merchant_northstar"
+DEMO_USER_ID = "user_karen"
+DEMO_CAMPAIGN_ID = "campaign_lunch_special"
+FACEBOOK_DRAFT_ID = "draft_facebook_lunch"
+TIKTOK_DRAFT_ID = "draft_tiktok_lunch"
+FACEBOOK_CHANNEL_ID = "channel-facebook-page"
+TIKTOK_CHANNEL_ID = "channel-tiktok-business"
+INSTAGRAM_CHANNEL_ID = "channel-instagram-assist"
+GOOGLE_BUSINESS_CHANNEL_ID = "channel-google-business-assist"
+DEMO_SESSION_ID = "session_demo_karen"
+OPENAI_IMAGE_MODEL_ID = "genmodel_openai_image_primary"
+OPENAI_VIDEO_MODEL_ID = "genmodel_openai_video_primary"
+CCDANCE_AVATAR_MODEL_ID = "genmodel_ccdance_avatar_preview"
+MINIMAX_IMAGE_MODEL_ID = "genmodel_minimax_carousel_primary"
+CAROUSEL_WORKFLOW_TYPE = "carousel"
+CAROUSEL_PRESET_ID = "carousel_canonical_v1"
+CAROUSEL_ASPECT_RATIO = "4:5"
+CAROUSEL_SLIDE_ROLES = ("cover", "problem", "proof", "offer", "cta")
+CAROUSEL_EDITOR_MODE = "carousel_slide_edit"
+CAROUSEL_LOGO_PLACEMENT = "fixed_top_left"
+
+CHANNEL_HEALTH_STATES = (
+    "connected",
+    "missing_permission",
+    "expired_token",
+    "review_blocked",
+    "reconnect_required",
+    "disconnected",
+)
+
+_CHANNEL_HEALTH_ALIASES = {
+    "active": "connected",
+    "ok": "connected",
+    "healthy": "connected",
+    "enabled": "connected",
+    "inactive": "disconnected",
+    "disabled": "disconnected",
+    "revoked": "reconnect_required",
+    "needs_reconnect": "reconnect_required",
+    "reconnect": "reconnect_required",
+    "expired": "expired_token",
+    "token_expired": "expired_token",
+    "permission_denied": "missing_permission",
+    "missing_scope": "missing_permission",
+    "in_review": "review_blocked",
+    "pending_review": "review_blocked",
+    "app_review": "review_blocked",
+}
+
+MANUAL_FALLBACK_RETRYABLE_CLASSES = {"rate_limit", "platform_transient"}
+
+
+def review_url_for_token(token):
+    return f"/review/{quote(token)}"
+
+
+def connect(db_path):

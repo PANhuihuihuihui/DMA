@@ -1,0 +1,198 @@
+        create table if not exists generation_model_catalog (
+          id text primary key,
+          provider_key text not null,
+          model_key text not null,
+          capability text not null,
+          display_name text not null,
+          credit_cost integer not null,
+          readiness_status text not null,
+          settings_schema_json text not null,
+          limits_json text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists generation_jobs (
+          id text primary key,
+          merchant_id text not null references merchants(id),
+          model_catalog_id text not null references generation_model_catalog(id),
+          provider_key text not null,
+          model_key text not null,
+          capability text not null,
+          prompt text not null,
+          request_json text not null,
+          settings_json text not null,
+          status text not null,
+          reserved_credits integer not null default 0,
+          failure_reason text,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists generation_attempts (
+          id text primary key,
+          generation_job_id text not null references generation_jobs(id),
+          attempt_number integer not null,
+          status text not null,
+          diagnostics_json text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists generation_outputs (
+          id text primary key,
+          generation_job_id text not null references generation_jobs(id),
+          output_kind text not null,
+          storage_ref text not null,
+          preview_ref text not null,
+          metadata_json text not null,
+          status text not null,
+          created_at text not null,
+          updated_at text not null
+        );
+
+        create table if not exists credit_accounts (
+===
+def seed_generation_model_catalog(conn):
+    now = utc_now()
+    rows = [
+        (
+            OPENAI_IMAGE_MODEL_ID,
+            "openai",
+            "gpt-image-2",
+            "image",
+            "GPT Image 2",
+            40,
+            "ready",
+            {
+                "fields": [
+                    "prompt",
+                    "brandContext",
+                    "aspectRatio",
+                    "styleHint",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "aspectRatios": ["1:1", "4:5", "16:9"],
+            },
+        ),
+        (
+            MINIMAX_IMAGE_MODEL_ID,
+            "minimax",
+            "image-01",
+            "image",
+            "MiniMax Carousel Image",
+            200,
+            "ready",
+            {
+                "fields": [
+                    "prompt",
+                    "sourceKind",
+                    "sourceText",
+                    "sourceUrl",
+                    "workflowType",
+                    "carouselPresetId",
+                    "slideRoles",
+                    "aspectRatio",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "supportsCarousel": True,
+                "aspectRatios": ["4:5"],
+                "slideCount": 5,
+            },
+        ),
+        (
+            OPENAI_VIDEO_MODEL_ID,
+            "openai",
+            "sora-2",
+            "video",
+            "Sora 2",
+            180,
+            "ready",
+            {
+                "fields": [
+                    "prompt",
+                    "brandContext",
+                    "aspectRatio",
+                    "durationSeconds",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "durations": [5, 10, 15],
+                "aspectRatios": ["9:16", "16:9"],
+            },
+        ),
+        (
+            CCDANCE_AVATAR_MODEL_ID,
+            "ccdance_stub",
+            "ccdance-avatar",
+            "avatar_video",
+            "CCDance Avatar Preview",
+            220,
+            "preview",
+            {
+                "fields": [
+                    "prompt",
+                    "avatar",
+                    "voiceover",
+                    "script",
+                    "durationSeconds",
+                ]
+            },
+            {
+                "maxPromptLength": 4000,
+                "durations": [10, 15, 20],
+                "avatars": ["female_host", "male_owner", "creator_style"],
+            },
+        ),
+    ]
+    for row in rows:
+        conn.execute(
+            """
+            insert or ignore into generation_model_catalog (
+              id, provider_key, model_key, capability, display_name, credit_cost,
+              readiness_status, settings_schema_json, limits_json, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                json_dumps(row[7]),
+                json_dumps(row[8]),
+                now,
+                now,
+            ),
+        )
+        conn.execute(
+            """
+            update generation_model_catalog
+            set provider_key = ?, model_key = ?, capability = ?, display_name = ?,
+                credit_cost = ?, readiness_status = ?, settings_schema_json = ?,
+                limits_json = ?, updated_at = ?
+            where id = ?
+            """,
+            (
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                json_dumps(row[7]),
+                json_dumps(row[8]),
+                now,
+                row[0],
+            ),
+        )
+
+
+def ensure_generation_credit_account(conn, merchant_id, plan_name="Growth Demo", monthly_credits=3200):
