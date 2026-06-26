@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-26T06:02:38Z | Files: 186 | Described: 0/186
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-26T06:02:38Z","fingerprint":"f28871c5ff5a973c105a0290a96f6cec4c43be76","fileCount":186,"truncated":false} -->
+Generated: 2026-06-26T06:44:13Z | Files: 187 | Described: 0/187
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-26T06:44:13Z","fingerprint":"1e6ebbc8a143406ab43c58077d9b71c661c67fc5","fileCount":187,"truncated":false} -->
 
 ### (root)/
 - `.gitignore`
@@ -123,6 +123,7 @@ Generated: 2026-06-26T06:02:38Z | Files: 186 | Described: 0/186
 - `config/mcporter.json`
 
 ### docs/
+- `docs/app-review-evidence.md`
 - `docs/ceo_cto_plan_for_local_marketing_agent.md`
 - `docs/ceo_research_v2.html`
 - `docs/ceo_research_v2.md`

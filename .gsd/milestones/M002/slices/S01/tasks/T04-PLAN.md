@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T04: Document app review evidence preparation
+# T04: Authored docs/app-review-evidence.md covering Phase 4 Graph API scopes, test-account setup, Page-switching path, full publish walkthrough, and screencast checklist — resolving all three S01-CONTEXT open questions.
 
 Why: S01-CONTEXT scope lists 'app review screencast artifact' as an in-scope deliverable. This document records the required permissions, test account setup, full publish flow walkthrough, and screencast instructions needed to produce Meta App Review evidence. The three open questions from S01-CONTEXT are resolved here.
 

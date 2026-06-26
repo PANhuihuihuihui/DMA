@@ -4,7 +4,7 @@ estimated_files: 4
 skills_used: []
 ---
 
-# T03: Wire AI Studio generation output to Facebook draft media ref
+# T03: Wired AI Studio image generation outputs to Facebook draft media ref via new store function, POST /drafts/{id}/media endpoint, attachGenerationOutputToDraft client, and "Use for Facebook post" button in AI Studio
 
 Why: No backend endpoint or frontend action exists to attach an AI Studio image output to a platform draft's mediaRefs. Without this, the D12 single-image Facebook publish path cannot be exercised with AI-generated content. The approve_draft function requires media assets to already exist in the media_assets table for the draft version.
 

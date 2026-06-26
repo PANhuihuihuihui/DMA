@@ -1,6 +1,21 @@
 {
   "nodes": [
     {
+      "id": "milestone:M002",
+      "label": "M002: Phase 4",
+      "type": "milestone",
+      "description": "Active milestone: M002",
+      "confidence": "EXTRACTED",
+      "sourceFile": "STATE.md"
+    },
+    {
+      "id": "concept:phase:validating-milestone",
+      "label": "Phase: validating-milestone",
+      "type": "concept",
+      "confidence": "EXTRACTED",
+      "sourceFile": "STATE.md"
+    },
+    {
       "id": "milestone:M001",
       "label": "M001: Text-to-Video and UGC Avatar Generation",
       "type": "milestone",
@@ -126,11 +141,35 @@
       "confidence": "EXTRACTED"
     },
     {
-      "id": "milestone:M002",
-      "label": "M002: Phase 4",
-      "type": "milestone",
+      "id": "slice:M002:S01",
+      "label": "S01: Backlog placeholder",
+      "type": "slice",
       "confidence": "EXTRACTED",
-      "sourceFile": "milestones/M002/M002-ROADMAP.md"
+      "sourceFile": "milestones/M002/slices/S01/S01-PLAN.md"
+    },
+    {
+      "id": "task:M002:S01:T01",
+      "label": "T01: Wired connectSession URL param to inline Facebook Page picker — real OAuth redirects now trigger page listing and selection",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M002:S01:T02",
+      "label": "T02: Added manual-fallback-hint block with error-class-aware hint text and Reconnect CTA to PublishTimeline; wired onReconnect to Brand & Social Accounts navigation in both call sites",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M002:S01:T03",
+      "label": "T03: Wired AI Studio image generation outputs to Facebook draft media ref via new store function, POST /drafts/{id}/media endpoint, attachGenerationOutputToDraft client, and \"Use for Facebook post\" button in AI Studio",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M002:S01:T04",
+      "label": "T04: Authored docs/app-review-evidence.md covering Phase 4 Graph API scopes, test-account setup, Page-switching path, full publish walkthrough, and screencast checklist — resolving all three S01-CONTEXT open questions.",
+      "type": "task",
+      "confidence": "EXTRACTED"
     },
     {
       "id": "milestone:M003",
@@ -261,7 +300,37 @@
       "to": "task:M001:S04:T02",
       "type": "contains",
       "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M002",
+      "to": "slice:M002:S01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S01",
+      "to": "task:M002:S01:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S01",
+      "to": "task:M002:S01:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S01",
+      "to": "task:M002:S01:T03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S01",
+      "to": "task:M002:S01:T04",
+      "type": "contains",
+      "confidence": "EXTRACTED"
     }
   ],
-  "builtAt": "2026-06-26T03:46:47.070Z"
+  "builtAt": "2026-06-26T06:45:24.165Z"
 }

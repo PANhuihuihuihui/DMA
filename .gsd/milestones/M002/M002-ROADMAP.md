@@ -4,7 +4,7 @@
 
 ## Slices
 
-- [ ] **S01: Backlog placeholder** `risk:low` `depends:[]`
+- [x] **S01: Backlog placeholder** `risk:low` `depends:[]`
   > After this: Milestone remains registered in the roadmap while detailed slice planning is deferred.
 
 ## Boundary Map

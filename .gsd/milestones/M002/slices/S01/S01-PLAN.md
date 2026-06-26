@@ -26,17 +26,17 @@ Upstream surfaces consumed: facebook_oauth.py split callback (complete), faceboo
   - Files: `src/main.jsx`
   - Verify: grep -q "connectSession" src/main.jsx
 
-- [ ] **T02: Add manual fallback next-step hint and Reconnect CTA in PublishTimeline** `est:45m`
+- [x] **T02: Added manual-fallback-hint block with error-class-aware hint text and Reconnect CTA to PublishTimeline; wired onReconnect to Brand & Social Accounts navigation in both call sites** `est:45m`
   Why: PublishTimeline shows the manual_fallback_required status label but provides no actionable guidance. D14 requires a next-step hint with redacted error class. D11 requires a Reconnect CTA when the error class is authentication (token expiry detected on next publish attempt).
   - Files: `src/components/PublishTimeline.jsx`, `src/main.jsx`
   - Verify: grep -q "manual-fallback-hint" src/components/PublishTimeline.jsx
 
-- [ ] **T03: Wire AI Studio generation output to Facebook draft media ref** `est:1h 30m`
+- [x] **T03: Wired AI Studio image generation outputs to Facebook draft media ref via new store function, POST /drafts/{id}/media endpoint, attachGenerationOutputToDraft client, and "Use for Facebook post" button in AI Studio** `est:1h 30m`
   Why: No backend endpoint or frontend action exists to attach an AI Studio image output to a platform draft's mediaRefs. Without this, the D12 single-image Facebook publish path cannot be exercised with AI-generated content. The approve_draft function requires media assets to already exist in the media_assets table for the draft version.
   - Files: `backend/app/store.py`, `backend/app/server.py`, `src/api/publishingClient.js`, `src/main.jsx`
   - Verify: grep -q "attachGenerationOutputToDraft" src/api/publishingClient.js
 
-- [ ] **T04: Document app review evidence preparation** `est:30m`
+- [x] **T04: Authored docs/app-review-evidence.md covering Phase 4 Graph API scopes, test-account setup, Page-switching path, full publish walkthrough, and screencast checklist — resolving all three S01-CONTEXT open questions.** `est:30m`
   Why: S01-CONTEXT scope lists 'app review screencast artifact' as an in-scope deliverable. This document records the required permissions, test account setup, full publish flow walkthrough, and screencast instructions needed to produce Meta App Review evidence. The three open questions from S01-CONTEXT are resolved here.
   - Files: `docs/app-review-evidence.md`
   - Verify: test -f docs/app-review-evidence.md

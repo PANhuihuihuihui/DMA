@@ -4,7 +4,7 @@ estimated_files: 2
 skills_used: []
 ---
 
-# T02: Add manual fallback next-step hint and Reconnect CTA in PublishTimeline
+# T02: Added manual-fallback-hint block with error-class-aware hint text and Reconnect CTA to PublishTimeline; wired onReconnect to Brand & Social Accounts navigation in both call sites
 
 Why: PublishTimeline shows the manual_fallback_required status label but provides no actionable guidance. D14 requires a next-step hint with redacted error class. D11 requires a Reconnect CTA when the error class is authentication (token expiry detected on next publish attempt).
 
