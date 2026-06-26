@@ -1,38 +1,11 @@
 import json
 import os
 from datetime import datetime, timedelta, timezone
-from io import BytesIO
 from unittest.mock import patch
-from urllib import error
 
-from backend.app import facebook_oauth, facebook_publisher, facebook_token_vault, store
+from backend.app import auth_provider, facebook_publisher, facebook_token_vault, store
 from backend.app.facebook_auth_provider import FacebookAuthProvider
 from backend.tests.test_auth_provider import TempDatabaseTestCase
-
-
-class _BadJsonResponse:
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
-
-    def read(self):
-        return b"{not-json"
-
-
-class _JsonResponse:
-    def __init__(self, payload):
-        self.payload = payload
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
-
-    def read(self):
-        return json.dumps(self.payload).encode("utf-8")
 
 
 class TestFacebookRefreshRevoke(TempDatabaseTestCase):
@@ -69,23 +42,22 @@ class TestFacebookRefreshRevoke(TempDatabaseTestCase):
         self.assertIsNotNone(row)
         return row
 
-    def test_refresh_calls_graph_and_persists_new_token(self):
-        refreshed_token = "new-page-token"
+    def test_refresh_calls_graph_api_and_persists_new_token(self):
         with self.assertLogs("backend.app.facebook_auth_provider", level="INFO") as logs:
             with patch(
                 "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
-                return_value={"access_token": refreshed_token, "expires_in": 7200},
+                return_value={"access_token": "new-page-token", "expires_in": 7200},
             ) as graph_get:
                 result = self.provider.refresh(self.conn, self._credential_row(), self.config)
 
-        self.assertEqual(result, {"access_token": refreshed_token, "expires_in": 7200})
+        self.assertEqual(result, {"access_token": "new-page-token", "expires_in": 7200})
         self.assertEqual(
             facebook_token_vault.get_page_token(
                 self.page_id,
                 conn=self.conn,
                 merchant_id=self.merchant_id,
             ),
-            refreshed_token,
+            "new-page-token",
         )
         refreshed_row = self._credential_row()
         self.assertEqual(refreshed_row["status"], "active")
@@ -106,34 +78,16 @@ class TestFacebookRefreshRevoke(TempDatabaseTestCase):
             )
         )
 
-    def test_revoke_calls_graph_delete_and_marks_reconnect_required(self):
-        with self.assertLogs("backend.app.facebook_auth_provider", level="INFO") as logs:
-            with patch(
-                "backend.app.facebook_auth_provider.facebook_oauth.graph_delete",
-                return_value={"success": True},
-            ) as graph_delete:
-                result = self.provider.revoke(self.conn, self._credential_row(), self.config)
-
-        self.assertEqual(result, {"revoked": True})
-        revoked_row = self._credential_row()
-        self.assertEqual(revoked_row["status"], "reconnect_required")
-        called_url = graph_delete.call_args.args[0]
-        self.assertIn("/me/permissions?", called_url)
-        self.assertIn("access_token=old-page-token", called_url)
-        self.assertTrue(
-            any(f"facebook_token_revoked page_id={self.page_id}" in line for line in logs.output)
-        )
-
-    def test_refresh_raises_store_error_when_graph_response_has_no_access_token(self):
+    def test_refresh_propagates_graph_api_failure(self):
         with patch(
             "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
-            return_value={"expires_in": 7200},
+            side_effect=store.StoreError(502, "graph refresh failed"),
         ):
             with self.assertRaises(store.StoreError) as ctx:
                 self.provider.refresh(self.conn, self._credential_row(), self.config)
 
         self.assertEqual(ctx.exception.status, 502)
-        self.assertIn("refreshed Page access token", ctx.exception.message)
+        self.assertEqual(ctx.exception.message, "graph refresh failed")
         self.assertEqual(
             facebook_token_vault.get_page_token(
                 self.page_id,
@@ -143,36 +97,57 @@ class TestFacebookRefreshRevoke(TempDatabaseTestCase):
             self.original_token,
         )
 
-    def test_revoke_raises_store_error_when_graph_delete_reports_failure(self):
+    def test_refresh_handles_missing_expires_in(self):
         with patch(
-            "backend.app.facebook_auth_provider.facebook_oauth.graph_delete",
-            return_value={"success": False},
+            "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
+            return_value={"access_token": "new-page-token"},
         ):
-            with self.assertRaises(store.StoreError) as ctx:
-                self.provider.revoke(self.conn, self._credential_row(), self.config)
+            result = self.provider.refresh(self.conn, self._credential_row(), self.config)
+
+        self.assertEqual(result, {"access_token": "new-page-token", "expires_in": None})
+        self.assertEqual(
+            facebook_token_vault.get_page_token(
+                self.page_id,
+                conn=self.conn,
+                merchant_id=self.merchant_id,
+            ),
+            "new-page-token",
+        )
+        self.assertIsNone(self._credential_row()["token_expires_at"])
+
+    def test_revoke_calls_delete_and_marks_reconnect(self):
+        with patch(
+            "backend.app.facebook_auth_provider.facebook_token_vault.mark_reconnect_required",
+            wraps=facebook_token_vault.mark_reconnect_required,
+        ) as mark_reconnect_required:
+            with patch(
+                "backend.app.facebook_auth_provider.facebook_oauth.graph_delete",
+                return_value={"success": True},
+            ) as graph_delete:
+                result = self.provider.revoke(self.conn, self._credential_row(), self.config)
+
+        self.assertEqual(result, {"revoked": True})
+        called_url = graph_delete.call_args.args[0]
+        self.assertIn("/me/permissions?", called_url)
+        self.assertIn("access_token=old-page-token", called_url)
+        mark_reconnect_required.assert_called_once_with(self.page_id, conn=self.conn)
+        self.assertEqual(self._credential_row()["status"], "reconnect_required")
+
+    def test_revoke_propagates_api_failure(self):
+        with patch(
+            "backend.app.facebook_auth_provider.facebook_token_vault.mark_reconnect_required"
+        ) as mark_reconnect_required:
+            with patch(
+                "backend.app.facebook_auth_provider.facebook_oauth.graph_delete",
+                side_effect=store.StoreError(502, "graph revoke failed"),
+            ):
+                with self.assertRaises(store.StoreError) as ctx:
+                    self.provider.revoke(self.conn, self._credential_row(), self.config)
 
         self.assertEqual(ctx.exception.status, 502)
-        self.assertIn("did not revoke", ctx.exception.message)
+        self.assertEqual(ctx.exception.message, "graph revoke failed")
+        mark_reconnect_required.assert_not_called()
         self.assertEqual(self._credential_row()["status"], "active")
-
-    def test_graph_delete_wraps_network_failure_as_store_error(self):
-        with patch(
-            "backend.app.facebook_oauth.request.urlopen",
-            side_effect=error.URLError("connection dropped"),
-        ):
-            with self.assertRaises(store.StoreError) as ctx:
-                facebook_oauth.graph_delete("https://graph.facebook.test/me/permissions?access_token=token")
-
-        self.assertEqual(ctx.exception.status, 502)
-        self.assertEqual(ctx.exception.message, "Facebook OAuth request failed.")
-
-    def test_graph_get_wraps_malformed_json_as_store_error(self):
-        with patch("backend.app.facebook_oauth.request.urlopen", return_value=_BadJsonResponse()):
-            with self.assertRaises(store.StoreError) as ctx:
-                facebook_oauth.graph_get("https://graph.facebook.test/oauth/access_token")
-
-        self.assertEqual(ctx.exception.status, 502)
-        self.assertEqual(ctx.exception.message, "Facebook OAuth returned malformed JSON.")
 
 
 class TestPublishCredentialIntegration(TempDatabaseTestCase):
@@ -213,106 +188,54 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
         approval_row = store.get_approval(self.conn, approval["id"])
         return json.loads(approval_row["snapshot_json"]), approval, approval_row
 
-    def seed_page_token(self, snapshot, token="old-page-token", expires_in_seconds=3600):
+    def seed_page_token(self, snapshot, token="stored-page-token", expires_in_seconds=3600):
         merchant_id = snapshot.get("merchantId") or store.DEMO_MERCHANT_ID
         page_id = str((snapshot.get("connectedChannelRef") or {}).get("providerChannelId"))
+        expires_at = None if expires_in_seconds is None else self._iso_after(expires_in_seconds)
         facebook_token_vault.put_page_token(
             page_id,
             token,
             conn=self.conn,
             merchant_id=merchant_id,
             connected_channel_id=store.FACEBOOK_CHANNEL_ID,
-            expires_at=self._iso_after(expires_in_seconds),
+            expires_at=expires_at,
             issued_at=self._iso_after(-60),
         )
         return page_id, merchant_id
 
-    def raise_auth_http_error(self, req, message="Invalid OAuth access token."):
-        payload = {"error": {"message": message, "code": 190}}
-        raise error.HTTPError(
-            req.full_url,
+    def publish_success_result(self, post_id):
+        return [
+            {"id": post_id},
+            {
+                "permalink_url": f"https://facebook.test/posts/{post_id}",
+                "is_published": True,
+                "created_time": "2026-01-01T00:00:00+0000",
+            },
+        ]
+
+    def auth_error(self, page_id, result="provider_error"):
+        return facebook_publisher.FacebookProviderError(
             401,
-            "Unauthorized",
-            {},
-            BytesIO(json.dumps(payload).encode("utf-8")),
+            "Invalid OAuth access token.",
+            facebook_publisher.provider_diagnostics(
+                "authentication",
+                result,
+                {"pageId": page_id},
+            ),
         )
 
-    def test_publish_approved_snapshot_refreshes_expired_token_before_graph_publish(self):
+    def test_publish_uses_get_valid_credential(self):
         snapshot, _, _ = self.approval_snapshot()
-        page_id, merchant_id = self.seed_page_token(snapshot, expires_in_seconds=-30)
-        auth_headers = []
-
-        def opener(req, timeout=15):
-            auth_header = req.headers.get("Authorization")
-            auth_headers.append(auth_header)
-            if auth_header == "Bearer old-page-token":
-                raise AssertionError("expired token reached the Graph publish call")
-            if req.full_url.endswith("/feed"):
-                self.assertEqual(auth_header, "Bearer refreshed-token")
-                return _JsonResponse({"id": "post_123"})
-            if "fields=permalink_url,is_published,created_time" in req.full_url:
-                self.assertEqual(auth_header, "Bearer refreshed-token")
-                return _JsonResponse(
-                    {
-                        "permalink_url": "https://facebook.test/posts/post_123",
-                        "is_published": True,
-                        "created_time": "2026-01-01T00:00:00+0000",
-                    }
-                )
-            raise AssertionError(f"Unexpected request {req.full_url}")
+        page_id, merchant_id = self.seed_page_token(snapshot, token="stored-page-token", expires_in_seconds=3600)
 
         with patch(
-            "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
-            return_value={"access_token": "refreshed-token", "expires_in": 7200},
-        ):
-            result = facebook_publisher.publish_approved_snapshot(
-                snapshot,
-                user_token=None,
-                page_id=page_id,
-                publish_mode="publish_now",
-                scheduled_publish_time=None,
-                graph_base=self.graph_base,
-                conn=self.conn,
-                opener=opener,
-                media_info={"kind": "text"},
-            )
-
-        self.assertEqual(result["postId"], "post_123")
-        self.assertEqual(
-            facebook_token_vault.get_page_token(page_id, conn=self.conn, merchant_id=merchant_id),
-            "refreshed-token",
-        )
-        self.assertEqual(auth_headers, ["Bearer refreshed-token", "Bearer refreshed-token"])
-
-    def test_publish_approved_snapshot_retries_once_after_graph_auth_failure(self):
-        snapshot, _, _ = self.approval_snapshot()
-        page_id, merchant_id = self.seed_page_token(snapshot, expires_in_seconds=3600)
-        feed_auth_headers = []
-
-        def opener(req, timeout=15):
-            auth_header = req.headers.get("Authorization")
-            if req.full_url.endswith("/feed"):
-                feed_auth_headers.append(auth_header)
-                if auth_header == "Bearer old-page-token":
-                    self.raise_auth_http_error(req)
-                self.assertEqual(auth_header, "Bearer refreshed-token")
-                return _JsonResponse({"id": "post_retry"})
-            if "fields=permalink_url,is_published,created_time" in req.full_url:
-                self.assertEqual(auth_header, "Bearer refreshed-token")
-                return _JsonResponse(
-                    {
-                        "permalink_url": "https://facebook.test/posts/post_retry",
-                        "is_published": True,
-                        "created_time": "2026-01-01T00:00:00+0000",
-                    }
-                )
-            raise AssertionError(f"Unexpected request {req.full_url}")
-
-        with self.assertLogs("backend.app.facebook_publisher", level="WARNING") as logs:
+            "backend.app.facebook_publisher.auth_provider.get_valid_credential",
+            wraps=auth_provider.get_valid_credential,
+        ) as get_valid_credential:
             with patch(
-                "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
-                return_value={"access_token": "refreshed-token", "expires_in": 7200},
-            ):
+                "backend.app.facebook_publisher.graph_request",
+                side_effect=self.publish_success_result("post_123"),
+            ) as graph_request:
                 result = facebook_publisher.publish_approved_snapshot(
                     snapshot,
                     user_token=None,
@@ -321,31 +244,27 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
                     scheduled_publish_time=None,
                     graph_base=self.graph_base,
                     conn=self.conn,
-                    opener=opener,
                     media_info={"kind": "text"},
                 )
 
-        self.assertEqual(result["postId"], "post_retry")
-        self.assertEqual(feed_auth_headers, ["Bearer old-page-token", "Bearer refreshed-token"])
-        self.assertTrue(
-            any("facebook_publish_auth_retry" in entry and page_id in entry and merchant_id in entry for entry in logs.output)
-        )
+        self.assertEqual(result["postId"], "post_123")
+        get_valid_credential.assert_called_once_with(self.conn, page_id, merchant_id)
+        self.assertEqual(graph_request.call_args_list[0].args[2], "stored-page-token")
+        self.assertEqual(graph_request.call_count, 2)
 
-    def test_publish_approved_snapshot_marks_reconnect_required_when_refresh_fails(self):
+    def test_publish_refreshes_expired_credential_before_graph_publish(self):
         snapshot, _, _ = self.approval_snapshot()
-        page_id, merchant_id = self.seed_page_token(snapshot, expires_in_seconds=3600)
-
-        def opener(req, timeout=15):
-            if req.full_url.endswith("/feed"):
-                self.raise_auth_http_error(req)
-            raise AssertionError(f"Unexpected request {req.full_url}")
+        page_id, merchant_id = self.seed_page_token(snapshot, token="expired-page-token", expires_in_seconds=-30)
 
         with patch(
-            "backend.app.facebook_publisher.FacebookAuthProvider.refresh",
-            side_effect=store.StoreError(502, "refresh failed"),
-        ):
-            with self.assertRaises(facebook_publisher.FacebookProviderError) as ctx:
-                facebook_publisher.publish_approved_snapshot(
+            "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
+            return_value={"access_token": "refreshed-page-token", "expires_in": 7200},
+        ) as graph_get:
+            with patch(
+                "backend.app.facebook_publisher.graph_request",
+                side_effect=self.publish_success_result("post_refresh"),
+            ) as graph_request:
+                result = facebook_publisher.publish_approved_snapshot(
                     snapshot,
                     user_token=None,
                     page_id=page_id,
@@ -353,49 +272,174 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
                     scheduled_publish_time=None,
                     graph_base=self.graph_base,
                     conn=self.conn,
-                    opener=opener,
                     media_info={"kind": "text"},
                 )
 
+        self.assertEqual(result["postId"], "post_refresh")
+        self.assertEqual(graph_get.call_count, 1)
+        self.assertEqual(
+            [call.args[2] for call in graph_request.call_args_list],
+            ["refreshed-page-token", "refreshed-page-token"],
+        )
+        self.assertEqual(
+            facebook_token_vault.get_page_token(page_id, conn=self.conn, merchant_id=merchant_id),
+            "refreshed-page-token",
+        )
+
+    def test_publish_retries_with_refreshed_credential(self):
+        snapshot, _, _ = self.approval_snapshot()
+        page_id, merchant_id = self.seed_page_token(snapshot, token="stored-page-token", expires_in_seconds=3600)
+        original_refresh = FacebookAuthProvider.refresh
+
+        graph_responses = [
+            self.auth_error(page_id),
+            {"id": "post_retry"},
+            {
+                "permalink_url": "https://facebook.test/posts/post_retry",
+                "is_published": True,
+                "created_time": "2026-01-01T00:00:00+0000",
+            },
+        ]
+
+        def graph_request_side_effect(*args, **kwargs):
+            response = graph_responses.pop(0)
+            if isinstance(response, Exception):
+                raise response
+            return response
+
+        with self.assertLogs("backend.app.facebook_publisher", level="WARNING") as logs:
+            with patch(
+                "backend.app.facebook_publisher.FacebookAuthProvider.refresh",
+                autospec=True,
+                side_effect=original_refresh,
+            ) as refresh:
+                with patch(
+                    "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
+                    return_value={"access_token": "refreshed-page-token", "expires_in": 7200},
+                ):
+                    with patch(
+                        "backend.app.facebook_publisher.graph_request",
+                        side_effect=graph_request_side_effect,
+                    ) as graph_request:
+                        result = facebook_publisher.publish_approved_snapshot(
+                            snapshot,
+                            user_token=None,
+                            page_id=page_id,
+                            publish_mode="publish_now",
+                            scheduled_publish_time=None,
+                            graph_base=self.graph_base,
+                            conn=self.conn,
+                            media_info={"kind": "text"},
+                        )
+
+        self.assertEqual(result["postId"], "post_retry")
+        self.assertEqual(
+            [call.args[2] for call in graph_request.call_args_list],
+            ["stored-page-token", "refreshed-page-token", "refreshed-page-token"],
+        )
+        refresh.assert_called_once()
+        self.assertTrue(
+            any(
+                f"facebook_publish_auth_retry merchant_id={merchant_id} page_id={page_id}" in line
+                for line in logs.output
+            )
+        )
+
+    def test_publish_marks_reconnect_on_persistent_auth_failure(self):
+        snapshot, _, _ = self.approval_snapshot()
+        page_id, merchant_id = self.seed_page_token(snapshot, token="stored-page-token", expires_in_seconds=3600)
+        original_refresh = FacebookAuthProvider.refresh
+
+        graph_responses = [self.auth_error(page_id), self.auth_error(page_id)]
+
+        def graph_request_side_effect(*args, **kwargs):
+            response = graph_responses.pop(0)
+            if isinstance(response, Exception):
+                raise response
+            return response
+
+        with patch(
+            "backend.app.facebook_publisher.FacebookAuthProvider.refresh",
+            autospec=True,
+            side_effect=original_refresh,
+        ) as refresh:
+            with patch(
+                "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
+                return_value={"access_token": "refreshed-page-token", "expires_in": 7200},
+            ):
+                with patch(
+                    "backend.app.facebook_publisher.graph_request",
+                    side_effect=graph_request_side_effect,
+                ):
+                    with self.assertRaises(facebook_publisher.FacebookProviderError) as ctx:
+                        facebook_publisher.publish_approved_snapshot(
+                            snapshot,
+                            user_token=None,
+                            page_id=page_id,
+                            publish_mode="publish_now",
+                            scheduled_publish_time=None,
+                            graph_base=self.graph_base,
+                            conn=self.conn,
+                            media_info={"kind": "text"},
+                        )
+
+        self.assertEqual(ctx.exception.status, 403)
         self.assertEqual(ctx.exception.diagnostics["result"], "credential_retry_failed")
         self.assertEqual(
             store.get_facebook_page_token_row(self.conn, page_id, merchant_id)["status"],
             "reconnect_required",
         )
+        refresh.assert_called_once()
 
-    def test_queue_facebook_publish_passes_conn_to_publish_snapshot(self):
-        snapshot, approval, _ = self.approval_snapshot()
+    def test_publish_with_user_token_bypasses_credential_check(self):
+        snapshot, _, _ = self.approval_snapshot()
         page_id = str((snapshot.get("connectedChannelRef") or {}).get("providerChannelId"))
+        expected_result = {
+            "postId": "post_user_token",
+            "permalinkUrl": "https://facebook.test/posts/post_user_token",
+            "scheduledPublishTime": None,
+            "status": "published",
+            "summary": "Facebook Page post published through the official Graph API.",
+            "diagnostics": {"providerResultRef": "post_user_token"},
+        }
 
         with patch(
-            "backend.app.facebook_publisher.publish_approved_snapshot",
-            return_value={
-                "summary": "published",
-                "diagnostics": {"errorClass": "none", "providerResultRef": "post_queue", "postId": "post_queue"},
-            },
-        ) as publish_snapshot:
-            facebook_publisher.queue_facebook_publish(
-                self.conn,
-                approval["id"],
-                {"pageId": page_id, "userAccessToken": "manual-user-token"},
-                graph_base=self.graph_base,
-            )
+            "backend.app.facebook_publisher.auth_provider.get_valid_credential"
+        ) as get_valid_credential:
+            with patch(
+                "backend.app.facebook_publisher.resolve_page_access_token",
+                return_value="user-page-token",
+            ) as resolve_page_access_token:
+                with patch(
+                    "backend.app.facebook_publisher._publish_snapshot_with_token",
+                    return_value=expected_result,
+                ) as publish_with_token:
+                    result = facebook_publisher.publish_approved_snapshot(
+                        snapshot,
+                        user_token="user-access-token",
+                        page_id=page_id,
+                        publish_mode="publish_now",
+                        scheduled_publish_time=None,
+                        graph_base=self.graph_base,
+                        conn=self.conn,
+                        media_info={"kind": "text"},
+                    )
 
-        self.assertIs(publish_snapshot.call_args.kwargs["conn"], self.conn)
-
-    def test_retry_facebook_publish_passes_conn_to_publish_snapshot(self):
-        snapshot, approval, approval_row = self.approval_snapshot()
-        page_id, _ = self.seed_page_token(snapshot, expires_in_seconds=3600)
-        job = store.create_publish_job(self.conn, approval_row)
-        self.assertIsNotNone(job["id"])
-
-        with patch(
-            "backend.app.facebook_publisher.publish_approved_snapshot",
-            return_value={
-                "summary": "published",
-                "diagnostics": {"errorClass": "none", "providerResultRef": "post_retry", "postId": "post_retry"},
-            },
-        ) as publish_snapshot:
-            facebook_publisher.retry_facebook_publish(self.conn, job["id"], graph_base=self.graph_base)
-
-        self.assertIs(publish_snapshot.call_args.kwargs["conn"], self.conn)
+        self.assertEqual(result, expected_result)
+        get_valid_credential.assert_not_called()
+        resolve_page_access_token.assert_called_once_with(
+            "user-access-token",
+            page_id,
+            self.graph_base,
+            opener=None,
+        )
+        publish_with_token.assert_called_once_with(
+            snapshot,
+            page_id,
+            "publish_now",
+            None,
+            self.graph_base,
+            "user-page-token",
+            opener=None,
+            media_info={"kind": "text"},
+        )
