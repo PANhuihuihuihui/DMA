@@ -1,0 +1,19 @@
+{
+  "id": "e938a7e2-d86e-45f1-b25c-bd1d1993bfbe",
+  "runtime": "bash",
+  "purpose": "list frontend source directories",
+  "script_chars": 165,
+  "started_at": "2026-06-26T00:02:17.594Z",
+  "finished_at": "2026-06-26T00:02:17.608Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 14,
+  "stdout_bytes": 255,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/e938a7e2-d86e-45f1-b25c-bd1d1993bfbe.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/e938a7e2-d86e-45f1-b25c-bd1d1993bfbe.stderr"
+}

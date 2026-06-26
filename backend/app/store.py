@@ -1345,12 +1345,12 @@ def seed_generation_model_catalog(conn):
         ),
         (
             CCDANCE_AVATAR_MODEL_ID,
-            "ccdance_stub",
-            "ccdance-avatar",
+            "heygen",
+            "heygen-avatar",
             "avatar_video",
-            "CCDance Avatar Preview",
+            "HeyGen UGC Avatar",
             220,
-            "preview",
+            "ready",
             {
                 "fields": [
                     "prompt",

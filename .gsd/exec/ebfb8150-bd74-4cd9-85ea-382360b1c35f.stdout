@@ -1,0 +1,9 @@
+6087:def list_generation_models(conn):
+6123:def get_generation_credit_summary(conn, merchant_id):
+6197:def get_generation_job(conn, merchant_id, job_id):
+6305:def serialize_generation_job(conn, row):
+6348:def list_generation_jobs(conn, merchant_id):
+6353:    return [serialize_generation_job(conn, row) for row in rows]
+6356:def create_generation_job(conn, merchant_id, payload):
+6434:        "job": serialize_generation_job(conn, get_generation_job(conn, merchant_id, job_id)),
+6436:        "credits": get_generation_credit_summary(conn, merchant_id),

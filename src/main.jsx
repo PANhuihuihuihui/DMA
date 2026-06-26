@@ -4566,6 +4566,27 @@ export function AppDemo() {
     writePreference("localpilot-demo-selected-walkthrough", String(selectedWalkthrough));
   }, [selectedWalkthrough]);
 
+  useEffect(() => {
+    if (!genActiveJobs.length) return;
+    let backoffMs = 3000;
+    const maxBackoffMs = 30000;
+    let intervalId;
+    let timeoutId;
+
+    const poll = () => {
+      reloadGenerationWorkspace();
+      backoffMs = Math.min(backoffMs * 2, maxBackoffMs);
+      timeoutId = window.setTimeout(poll, backoffMs);
+    };
+
+    timeoutId = window.setTimeout(poll, backoffMs);
+
+    return () => {
+      if (intervalId) window.clearInterval(intervalId);
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [genActiveJobs.length]);
+
   const showAppToast = (message) => {
     setAppToast(message);
     window.setTimeout(() => setAppToast(""), 2200);

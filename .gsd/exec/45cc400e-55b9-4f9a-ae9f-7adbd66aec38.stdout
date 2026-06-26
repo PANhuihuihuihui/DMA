@@ -1,0 +1,30 @@
+61:} from "./api/generationClient.js";
+67:} from "./models/generation.js";
+601:  "Chinese copy, save-first structure, search keywords, cover text, and KOC/UGC guidance are included.":
+602:    "包含中文文案、收藏优先结构、搜索关键词、封面文字和 KOC/UGC 指引。",
+1151:  "generation": "AI Studio",
+1152:  "creative-editor": "Content Library",
+1212:    view: "generation",
+1325:    format: "AI actor UGC",
+1326:    summary: "Predis-style UGC idea, tone, actor, scene, generate, publish, and schedule flow.",
+1331:    title: "Short Ad Video",
+1340:    summary: "A style preset, aspect ratio, and brand confirmation before generation.",
+1438:    title: "UGC Ads",
+1446:        format: "UGC video",
+1461:        prompt: "Create a short vertical video for urgent but claim-safe seasonal service demand.",
+1641:    title: "Create a UGC video for an on-camera founder exp...",
+1799:  ["TikTok", "Assisted short-video package", "Script, caption, disclosure, and upload-ready notes are generated."],
+1846:  { id: "prompt", label: "Idea", title: "Create UGC Video", subtitle: "Describe the UGC Video you want to create." },
+1848:  { id: "style", label: "Style", title: "Configure your UGC Video", subtitle: "Customize your UGC Video settings to match your brand style." },
+1850:  { id: "template", label: "Subtitle", title: "Pick Subtitle style", subtitle: "Choose how subtitles will show in the UGC Video." },
+1852:  { id: "confirm", label: "Confirm", title: "Review and confirm your details", subtitle: "Make sure everything looks right before generating your UGC Video." },
+1853:  { id: "generated", label: "Publish", title: "Generated creative", subtitle: "Review the creative, media asset, UGC package, and calendar handoff." },
+2163:    note: "Show format cards and source methods before generation.",
+2335:    proof: "Chinese copy, save-first structure, search keywords, cover text, and KOC/UGC guidance are included.",
+3312:      helpText: "Used in UGC-style videos and avatar-led explainers.",
+3530:          then, the profile stays in draft and does not change generation.
+3989:    helpActions[0] || ["FAQs", "Find answers about generation, publishing, and account setup."];
+4213:      "short-ad-video": "Create Short Ad Video",
+4222:        ? "Describe the video, generate ideas, choose style, actor, template, then generate and schedule."
+4224:        ? "Choose the content source and confirm the setup before generation."
+4360:    showAppToast("Carousel package opened in Creative Editor.");

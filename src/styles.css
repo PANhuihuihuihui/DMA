@@ -15,6 +15,9 @@
   font-family:
     "Avenir Next", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Reference parity pass: logged-in workspace should read like the reference screenshots,
@@ -1981,6 +1984,15 @@ img {
   transform: translateY(-1px);
 }
 
+.primary-button:active,
+.secondary-button:active,
+.coral-button:active,
+.blue-button:active,
+.ghost-button:active {
+  transform: scale(0.96);
+  transition-duration: 80ms;
+}
+
 .menu-button {
   display: none;
 }
@@ -2053,6 +2065,7 @@ h1 {
   margin-bottom: 24px;
   font-size: clamp(48px, 5.6vw, 82px);
   line-height: 1;
+  text-wrap: balance;
 }
 
 h1 .accent {
@@ -2063,10 +2076,12 @@ h2 {
   font-size: clamp(32px, 3.4vw, 52px);
   line-height: 1.02;
   letter-spacing: 0;
+  text-wrap: balance;
 }
 
 h3 {
   font-size: 24px;
+  text-wrap: balance;
 }
 
 .hero-subtitle {
@@ -2683,6 +2698,7 @@ h3 {
 
 .price-card strong {
   font-size: 42px;
+  font-variant-numeric: tabular-nums;
 }
 
 .price-card strong span {
@@ -5050,6 +5066,7 @@ h3 {
 .performance-metric-grid strong,
 .confidence-card strong {
   font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .performance-bars {

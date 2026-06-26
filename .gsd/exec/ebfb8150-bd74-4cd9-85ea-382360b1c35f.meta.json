@@ -1,0 +1,19 @@
+{
+  "id": "ebfb8150-bd74-4cd9-85ea-382360b1c35f",
+  "runtime": "bash",
+  "purpose": "find generation store functions",
+  "script_chars": 216,
+  "started_at": "2026-06-26T00:01:56.412Z",
+  "finished_at": "2026-06-26T00:01:56.435Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 23,
+  "stdout_bytes": 553,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/ebfb8150-bd74-4cd9-85ea-382360b1c35f.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/ebfb8150-bd74-4cd9-85ea-382360b1c35f.stderr"
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "unitType": "research-milestone",
+  "unitId": "M001",
+  "startedAt": 1782432040632,
+  "updatedAt": 1782432040664,
+  "phase": "dispatched",
+  "wrapupWarningSent": false,
+  "continueHereFired": false,
+  "timeoutAt": null,
+  "lastProgressAt": 1782432040632,
+  "progressCount": 0,
+  "lastProgressKind": "dispatch",
+  "recoveryAttempts": 0
+}
