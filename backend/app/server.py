@@ -442,7 +442,8 @@ class JsonHandler(BaseHTTPRequestHandler):
             if method == "GET" and path == "/api/v1/facebook/pages":
                 query = parse_qs(parsed.query)
                 session_id = (query.get("connectSession") or [None])[0]
-                self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id)})
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json({"pages": facebook_oauth.list_pages_for_session(session_id, conn=conn)})
                 return
             if method == "POST" and path == "/api/v1/facebook/pages/select":
                 with closing(store.connect(self.db_path)) as conn:
@@ -456,7 +457,13 @@ class JsonHandler(BaseHTTPRequestHandler):
                 return
             if method == "GET" and path == "/api/v1/facebook/oauth/start":
                 query = parse_qs(parsed.query)
-                self.send_redirect(facebook_oauth.build_login_url(return_url=(query.get("returnTo") or [None])[0]))
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_redirect(
+                        facebook_oauth.build_login_url(
+                            return_url=(query.get("returnTo") or [None])[0],
+                            conn=conn,
+                        )
+                    )
                 return
             if method == "GET" and path == "/api/v1/facebook/oauth/callback":
                 with closing(store.connect(self.db_path)) as conn:

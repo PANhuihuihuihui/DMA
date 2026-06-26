@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M005/S01/T02",
+  "timestamp": 1782514482199,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "python -m pytest backend/tests/test_facebook_oauth.py -v",
+      "exitCode": 2,
+      "durationMs": 586,
+      "verdict": "fail"
+    }
+  ]
+}

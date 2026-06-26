@@ -2,6 +2,7 @@ import json
 import os
 import secrets
 import time
+from datetime import datetime, timedelta, timezone
 from urllib import error, parse, request
 
 from backend.app import facebook_token_vault, store
@@ -38,6 +39,8 @@ def connection_status(conn=None):
         if p.get("isActive"):
             active_page = p
             break
+    if active_page is None and pages:
+        active_page = pages[0]
     return {
         "status": "ok",
         "configured": bool(config["appId"] and config["appSecret"]),
@@ -48,30 +51,41 @@ def connection_status(conn=None):
     }
 
 
-def build_login_url(return_url=None):
-    config = oauth_config()
+def build_login_url(return_url=None, conn=None, config=None):
+    config = config or oauth_config()
     if not config["appId"] or not config["appSecret"]:
         raise store.StoreError(503, "Facebook OAuth requires FACEBOOK_APP_ID and FACEBOOK_APP_SECRET on the backend.")
-    state = secrets.token_urlsafe(24)
-    _OAUTH_STATES[state] = {
-        "createdAt": time.time(),
-        "returnUrl": return_url or config["returnUrl"],
-    }
-    params = {
-        "client_id": config["appId"],
-        "redirect_uri": config["redirectUri"],
-        "state": state,
-        "response_type": "code",
-        "scope": ",".join(REQUIRED_SCOPES),
-    }
-    return f"{config['dialogBase']}?{parse.urlencode(params)}"
+
+    payload = {"returnUrl": return_url or config["returnUrl"]}
+    if conn is not None:
+        store.cleanup_expired_oauth_sessions(conn)
+        state = store.create_oauth_session(conn, "facebook", "state", payload, STATE_TTL_SECONDS)
+        conn.commit()
+    else:
+        state = secrets.token_urlsafe(24)
+        _OAUTH_STATES[state] = {
+            "createdAt": time.time(),
+            **payload,
+        }
+
+    query = parse.urlencode(
+        {
+            "client_id": config["appId"],
+            "redirect_uri": config["redirectUri"],
+            "scope": ",".join(REQUIRED_SCOPES),
+            "response_type": "code",
+            "state": state,
+        }
+    )
+    return f"{config['dialogBase']}?{query}"
 
 
 def complete_callback(conn, query):
+    store.cleanup_expired_oauth_sessions(conn)
     state = query.get("state", [""])[0]
     code = query.get("code", [""])[0]
     error_message = query.get("error_description", query.get("error", [""]))[0]
-    state_record = pop_valid_state(state)
+    state_record = pop_valid_state(state, conn=conn)
     if error_message:
         raise store.StoreError(400, f"Facebook authorization was not completed: {error_message}")
     if not code:
@@ -89,33 +103,45 @@ def complete_callback(conn, query):
     if not pages:
         raise store.StoreError(403, "No manageable Facebook Pages were returned for this login.")
 
-    session_id = secrets.token_urlsafe(24)
-    _CONNECT_SESSIONS[session_id] = {
-        "createdAt": time.time(),
+    issued_at = store.utc_now()
+    expires_at = _expires_at_from_seconds(long_lived_payload.get("expires_in"))
+    session_payload = {
         "pages": pages,
+        "issuedAt": issued_at,
+        "expiresAt": expires_at,
     }
+    if conn is not None:
+        session_id = store.create_oauth_session(conn, "facebook", "connect", session_payload, CONNECT_SESSION_TTL_SECONDS)
+        conn.commit()
+    else:
+        session_id = secrets.token_urlsafe(24)
+        _CONNECT_SESSIONS[session_id] = {
+            "createdAt": time.time(),
+            **session_payload,
+        }
 
     return_url = state_record["returnUrl"]
     separator = "&" if "?" in return_url else "?"
     return f"{return_url}{separator}connectSession={parse.quote(session_id)}"
 
 
-def list_pages_for_session(session_id):
-    session = _pop_or_peek_session(session_id, consume=False)
+def list_pages_for_session(session_id, conn=None):
+    if conn is not None:
+        store.cleanup_expired_oauth_sessions(conn)
+    session = _load_connect_session(session_id, conn=conn, consume=False)
     return [
         {
-            "id": str(p.get("id")),
-            "name": p.get("name"),
-            "category": p.get("category"),
-            "link": p.get("link"),
-            "tasks": p.get("tasks") or [],
+            key: value
+            for key, value in page.items()
+            if key != "access_token"
         }
-        for p in session["pages"]
+        for page in session["pages"]
     ]
 
 
 def select_page(conn, session_id, page_id):
-    session = _pop_or_peek_session(session_id, consume=True)
+    store.cleanup_expired_oauth_sessions(conn)
+    session = _load_connect_session(session_id, conn=conn, consume=True)
     page_id = str(page_id)
     page = next((p for p in session["pages"] if str(p.get("id")) == page_id), None)
     if not page:
@@ -124,11 +150,19 @@ def select_page(conn, session_id, page_id):
     if not page_token:
         raise store.StoreError(403, "Selected Facebook Page did not include a Page access token.")
 
+    expires_at = session.get("expiresAt")
+    issued_at = session.get("issuedAt")
     facebook_token_vault.put_page_token(
-        page_id, page_token, page, conn=conn,
+        page_id,
+        page_token,
+        page,
+        conn=conn,
         merchant_id=store.DEMO_MERCHANT_ID,
         connected_channel_id=store.FACEBOOK_CHANNEL_ID,
+        expires_at=expires_at,
+        issued_at=issued_at,
     )
+    print(f"Facebook page token stored, expires at {expires_at}")
     facebook_token_vault.set_active_page(page_id, conn=conn)
     update_demo_facebook_channel(conn, page)
     return connection_status(conn=conn)
@@ -143,6 +177,16 @@ def switch_active_page(conn, page_id):
     return connection_status(conn=conn)
 
 
+def _load_connect_session(session_id, conn=None, consume=False):
+    if conn is not None:
+        try:
+            return store.get_oauth_session(conn, session_id, "connect", consume=consume)
+        except store.StoreError:
+            if session_id not in _CONNECT_SESSIONS:
+                raise
+    return _pop_or_peek_session(session_id, consume=consume)
+
+
 def _pop_or_peek_session(session_id, consume=False):
     if not session_id or session_id not in _CONNECT_SESSIONS:
         raise store.StoreError(400, "Connect session is invalid or expired.")
@@ -153,7 +197,13 @@ def _pop_or_peek_session(session_id, consume=False):
     return session
 
 
-def pop_valid_state(state):
+def pop_valid_state(state, conn=None):
+    if conn is not None:
+        try:
+            return store.get_oauth_session(conn, state, "state", consume=True)
+        except store.StoreError:
+            if state not in _OAUTH_STATES:
+                raise
     if not state or state not in _OAUTH_STATES:
         raise store.StoreError(400, "Facebook authorization state is invalid or expired.")
     record = _OAUTH_STATES.pop(state)
@@ -264,7 +314,26 @@ def graph_get(url):
         raise store.StoreError(exc.code, message) from exc
 
 
-def reset_for_tests():
+def reset_for_tests(conn=None):
     _OAUTH_STATES.clear()
     _CONNECT_SESSIONS.clear()
+    if conn is not None:
+        store.cleanup_expired_oauth_sessions(conn)
+        conn.execute(
+            "delete from oauth_sessions where provider = ? and session_type in (?, ?)",
+            ("facebook", "state", "connect"),
+        )
+        conn.commit()
     facebook_token_vault.clear()
+
+
+def _expires_at_from_seconds(expires_in):
+    if expires_in in (None, ""):
+        return None
+    try:
+        expires_delta = int(expires_in)
+    except (TypeError, ValueError):
+        return None
+    return (
+        datetime.now(timezone.utc).replace(microsecond=0) + timedelta(seconds=expires_delta)
+    ).isoformat().replace("+00:00", "Z")

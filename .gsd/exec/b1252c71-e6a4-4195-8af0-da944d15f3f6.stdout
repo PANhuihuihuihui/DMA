@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/huijie/DMA
+collecting ... collected 5 items
+
+backend/tests/test_facebook_oauth.py::FacebookOAuthTest::test_callback_returns_db_connect_session_and_strips_page_tokens PASSED [ 20%]
+backend/tests/test_facebook_oauth.py::FacebookOAuthTest::test_facebook_auth_provider_delegates_existing_oauth_helpers PASSED [ 40%]
+backend/tests/test_facebook_oauth.py::FacebookOAuthTest::test_login_url_uses_code_flow_scopes_redirect_uri_and_db_state PASSED [ 60%]
+backend/tests/test_facebook_oauth.py::FacebookOAuthTest::test_reset_for_tests_clears_db_oauth_sessions PASSED [ 80%]
+backend/tests/test_facebook_oauth.py::FacebookOAuthTest::test_select_page_persists_expiry_metadata_and_consumes_connect_session PASSED [100%]
+
+============================== 5 passed in 0.14s ===============================

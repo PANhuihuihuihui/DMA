@@ -1,0 +1,19 @@
+{
+  "id": "18c10bb6-7192-448f-ac0b-4b4416b671f3",
+  "runtime": "bash",
+  "purpose": "M005 S01 T02 pytest facebook oauth",
+  "script_chars": 57,
+  "started_at": "2026-06-26T22:51:35.605Z",
+  "finished_at": "2026-06-26T22:51:35.938Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 333,
+  "stdout_bytes": 2627,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd/exec/18c10bb6-7192-448f-ac0b-4b4416b671f3.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd/exec/18c10bb6-7192-448f-ac0b-4b4416b671f3.stderr"
+}

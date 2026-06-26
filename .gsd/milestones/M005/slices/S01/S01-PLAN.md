@@ -35,7 +35,7 @@ What remains before milestone is truly usable end-to-end: S02 wires refresh-befo
   - Files: `backend/app/auth_provider.py`, `backend/app/store.py`
   - Verify: python -c "from backend.app.auth_provider import AuthProvider, get_valid_credential, run_with_credential_refresh"
 
-- [ ] **T02: FacebookAuthProvider and migrate OAuth sessions from in-memory to DB** `est:1h30m`
+- [x] **T02: Moved Facebook OAuth state/connect sessions into `oauth_sessions`, added `FacebookAuthProvider`, and persisted page-token expiry metadata during page selection.** `est:1h30m`
   Why: The existing facebook_oauth.py uses module-level dicts (_OAUTH_STATES, _CONNECT_SESSIONS) that lose all OAuth state on server restart. This task implements the concrete FacebookAuthProvider and migrates session storage to the oauth_sessions table while preserving the existing API surface for backward compatibility.
   - Files: `backend/app/facebook_auth_provider.py`, `backend/app/facebook_oauth.py`, `backend/app/server.py`, `backend/app/facebook_token_vault.py`
   - Verify: python -m pytest backend/tests/test_facebook_oauth.py -v

@@ -4,7 +4,7 @@ estimated_files: 4
 skills_used: []
 ---
 
-# T02: FacebookAuthProvider and migrate OAuth sessions from in-memory to DB
+# T02: Moved Facebook OAuth state/connect sessions into `oauth_sessions`, added `FacebookAuthProvider`, and persisted page-token expiry metadata during page selection.
 
 Why: The existing facebook_oauth.py uses module-level dicts (_OAUTH_STATES, _CONNECT_SESSIONS) that lose all OAuth state on server restart. This task implements the concrete FacebookAuthProvider and migrates session storage to the oauth_sessions table while preserving the existing API surface for backward compatibility.
 
