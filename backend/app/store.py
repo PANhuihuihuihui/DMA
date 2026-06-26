@@ -41,6 +41,7 @@ CAROUSEL_ASPECT_RATIO = "4:5"
 CAROUSEL_SLIDE_ROLES = ("cover", "problem", "proof", "offer", "cta")
 CAROUSEL_EDITOR_MODE = "carousel_slide_edit"
 CAROUSEL_LOGO_PLACEMENT = "fixed_top_left"
+VIDEO_CAPABILITIES = frozenset({"video", "avatar_video"})
 
 CHANNEL_HEALTH_STATES = (
     "connected",
@@ -5030,6 +5031,123 @@ def materialize_carousel_package(conn, merchant_id, job_row, brand_row, slide_pl
     }
 
 
+def materialize_video_package(conn, merchant_id, job_row, output_row):
+    now = utc_now()
+    capability = job_row["capability"]
+    video_format = "ugc_video" if capability == "avatar_video" else "short_video"
+
+    batch_id = new_id("batch")
+    conn.execute(
+        "insert into content_batches values (?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            batch_id,
+            merchant_id,
+            None,
+            job_row["prompt"][:500],
+            "video generation",
+            "generated",
+            now,
+            now,
+        ),
+    )
+
+    creative_id = new_id("creative")
+    conn.execute(
+        """
+        insert into generated_creatives (
+          id, batch_id, merchant_id, platform, format, title, caption, hashtags_json,
+          cta, proof_hook, schedule_slot, status, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            creative_id,
+            batch_id,
+            merchant_id,
+            "facebook",
+            video_format,
+            job_row["prompt"][:180],
+            "",
+            "[]",
+            "",
+            "",
+            "Needs scheduling",
+            "needs_review",
+            now,
+            now,
+        ),
+    )
+
+    slot_id = new_id("slot")
+    conn.execute(
+        "insert into calendar_slots values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            slot_id,
+            creative_id,
+            merchant_id,
+            "facebook",
+            "Needs scheduling",
+            "",
+            "in_review",
+            now,
+            now,
+        ),
+    )
+
+    proof_code = f"SHORTV-{creative_id[-6:].upper()}"
+    conn.execute(
+        "insert into proof_links values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            new_id("proof"),
+            creative_id,
+            merchant_id,
+            "short_link",
+            proof_code,
+            f"https://localpilot.ai/video/{creative_id}",
+            f"https://lp.local/video/{creative_id}",
+            f"localpilot-proof/video/{creative_id}.svg",
+            None,
+            now,
+            now,
+        ),
+    )
+
+    asset_id = new_id("creative_asset")
+    conn.execute(
+        """
+        insert into creative_media_assets (
+          id, creative_id, merchant_id, asset_type, format, aspect_ratio, storage_ref,
+          prompt, status, provider, metadata_json, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            asset_id,
+            creative_id,
+            merchant_id,
+            "video",
+            "9:16 short video",
+            "9:16",
+            output_row["storage_ref"],
+            job_row["prompt"],
+            "ready_preview",
+            job_row["provider_key"],
+            "{}",
+            now,
+            now,
+        ),
+    )
+
+    output_metadata = json_loads(output_row["metadata_json"], {})
+    output_metadata.update({"creativeId": creative_id, "mediaAssetId": asset_id})
+    conn.execute(
+        "update generation_outputs set metadata_json = ?, updated_at = ? where id = ?",
+        (json_dumps(output_metadata), now, output_row["id"]),
+    )
+
+    creative_row = conn.execute("select * from generated_creatives where id = ?", (creative_id,)).fetchone()
+    ensure_review_link_for_creative(conn, creative_row)
+    return {"creativeId": creative_id, "mediaAssetId": asset_id}
+
+
 def update_creative_media_asset(conn, asset_id, payload):
     row = conn.execute("select * from creative_media_assets where id = ?", (asset_id,)).fetchone()
     if row is None:
@@ -6302,6 +6420,14 @@ def build_carousel_job_handoff(outputs, request_payload):
     }
 
 
+def build_video_job_handoff(outputs, request_payload):
+    for o in outputs:
+        metadata = o.get("metadata")
+        if isinstance(metadata, dict) and metadata.get("creativeId"):
+            return {"workflowType": "video", "creativeId": metadata["creativeId"]}
+    return {}
+
+
 def serialize_generation_job(conn, row):
     model = get_generation_model_row(conn, row["model_catalog_id"])
     request_payload = safe_diagnostics(json_loads(row["request_json"], {}))
@@ -6342,6 +6468,7 @@ def serialize_generation_job(conn, row):
         "updatedAt": row["updated_at"],
     }
     payload.update(build_carousel_job_handoff(outputs, request_payload))
+    payload.update(build_video_job_handoff(outputs, request_payload))
     return payload
 
 

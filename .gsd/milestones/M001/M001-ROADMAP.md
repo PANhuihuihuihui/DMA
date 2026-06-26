@@ -14,10 +14,10 @@
 - [x] **S01: Dispatch Engine and Provider Adapters** `risk:high` `depends:[]`
   > After this: Backend server starts without ImportError. `pytest tests/ -x -q` passes adapter contract tests and job lifecycle state transition tests. A POST /api/v1/generation/jobs with dispatch:false returns a job record with status=queued and credits reserved. A manual dispatch call drives a simulated job to succeeded and confirms credits settled; a simulated failure confirms credits released.
 
-- [ ] **S02: Frontend Generation Client and Job Status UI** `risk:medium` `depends:[S01]`
+- [x] **S02: Frontend Generation Client and Job Status UI** `risk:medium` `depends:[S01]`
   > After this: npm run build succeeds without import errors. AI Studio → Create New → Short Ad Video submits a job and shows async status (queued/running with spinner). Polling advances to succeeded or failed with appropriate UI feedback.
 
-- [ ] **S03: Creative Editor Handoff and Owner Approval** `[sketch]` `risk:medium` `depends:[S02]`
+- [ ] **S03: Creative Editor Handoff and Owner Approval** `risk:medium` `depends:[S02]`
   > After this: A succeeded video job opens in the Creative Editor as an approvable package. Merchant can approve or request changes. The approval state persists through page refresh.
 
 - [ ] **S04: Pre-release Smoke and Credit Cost Validation** `[sketch]` `risk:low` `depends:[S03]`

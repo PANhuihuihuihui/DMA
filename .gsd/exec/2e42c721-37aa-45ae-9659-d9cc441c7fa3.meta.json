@@ -1,0 +1,26 @@
+{
+  "id": "2e42c721-37aa-45ae-9659-d9cc441c7fa3",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/test-6-error-handling (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "test-6-error-handling",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 940,
+  "started_at": "2026-06-26T03:04:51.630Z",
+  "finished_at": "2026-06-26T03:04:51.657Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 27,
+  "stdout_bytes": 166,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/2e42c721-37aa-45ae-9659-d9cc441c7fa3.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/2e42c721-37aa-45ae-9659-d9cc441c7fa3.stderr"
+}

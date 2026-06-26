@@ -1,0 +1,7 @@
+✓ genActiveJobs.length triggers polling
+✓ exponential backoff 3000ms start
+✓ exponential backoff 30000ms cap
+✓ backoff multiplier (x2)
+✓ polling reloads workspace
+
+5/5 checks passed

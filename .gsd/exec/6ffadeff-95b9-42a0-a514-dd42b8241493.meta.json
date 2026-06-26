@@ -1,0 +1,27 @@
+{
+  "id": "6ffadeff-95b9-42a0-a514-dd42b8241493",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/build_clean_exit (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "build_clean_exit",
+    "intent": "uat-artifact-check",
+    "expected": "exit code 0, no error messages, dist/client/assets populated"
+  },
+  "script_chars": 73,
+  "started_at": "2026-06-26T02:57:07.113Z",
+  "finished_at": "2026-06-26T02:57:08.118Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 1005,
+  "stdout_bytes": 1005,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/6ffadeff-95b9-42a0-a514-dd42b8241493.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/6ffadeff-95b9-42a0-a514-dd42b8241493.stderr"
+}

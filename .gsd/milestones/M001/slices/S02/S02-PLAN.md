@@ -28,7 +28,7 @@
   - Files: `src/main.jsx`
   - Verify: cd /Users/huijie/DMA/.gsd-worktrees/M001 && grep -n 'genActiveJobs' src/main.jsx | grep -q useEffect && echo polling-wired
 
-- [ ] **T04: Build smoke and frontend integration verify** `est:20m`
+- [x] **T04: Vite build passes clean with all three new S02 modules integrated (57 modules, no errors)** `est:20m`
   Run npm run build to confirm the build passes with all three new modules in place. Then run the dev server and use curl/node to hit the generation endpoints to confirm the frontend bundle loads correctly and the API routes are reachable.
   - Verify: cd /Users/huijie/DMA/.gsd-worktrees/M001 && npm run build 2>&1 | tail -5
 

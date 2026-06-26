@@ -4360,6 +4360,21 @@ export function AppDemo() {
     showAppToast("Carousel package opened in Creative Editor.");
   };
 
+  const openVideoEditor = async (creativeId) => {
+    if (!creativeId) return;
+    const refreshedWorkspace = await reloadPhase3Workspace({ silent: true });
+    const refreshedCreatives = Array.isArray(refreshedWorkspace?.generatedCreatives)
+      ? refreshedWorkspace.generatedCreatives
+      : phase3Creatives;
+    const creativeIndex = refreshedCreatives.findIndex((creative) => creative.id === creativeId);
+    if (creativeIndex >= 0) {
+      setSelectedPost(creativeIndex);
+      setLibraryDetailCreativeId(creativeId);
+    }
+    selectModule("Content Library");
+    showAppToast("Video opened in Creative Editor.");
+  };
+
   const handleCarouselLaunch = async () => {
     if (!carouselModel) {
       showAppToast("Carousel model is not available.");
@@ -8728,6 +8743,33 @@ export function AppDemo() {
                       </section>
                     )}
 
+                    {genSucceededJobs.filter((j) => j.workflowType === "video").length > 0 && (
+                      <section className="gen-outputs-section" aria-label="Generated video outputs">
+                        <h3>Generated videos</h3>
+                        <div className="gen-output-grid">
+                          {genSucceededJobs.filter((j) => j.workflowType === "video").map((job) => (
+                            <article key={job.id} className="gen-output-card gen-video-output-card">
+                              <div className="gen-video-thumb">
+                                {job.outputs[0]?.previewRef && (
+                                  <img src={job.outputs[0].previewRef} alt="Video thumbnail" />
+                                )}
+                              </div>
+                              <strong>{job.modelDisplayName || job.modelId}</strong>
+                              <small>{job.prompt.length > 80 ? job.prompt.slice(0, 80) + "..." : job.prompt}</small>
+                              <button
+                                className="primary-action"
+                                type="button"
+                                disabled={!job.creativeId}
+                                onClick={() => openVideoEditor(job.creativeId)}
+                              >
+                                Open in Creative Editor
+                              </button>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
                     {genDetailJobId && (() => {
                       const detailJob = genJobs.find((j) => j.id === genDetailJobId);
                       if (!detailJob) return null;
@@ -8774,6 +8816,11 @@ export function AppDemo() {
                           )}
                           {detailJob.workflowType === "carousel" && detailJob.creativeId && (
                             <button className="primary-action" type="button" onClick={() => openCarouselEditor(detailJob.creativeId)}>
+                              Open in Creative Editor
+                            </button>
+                          )}
+                          {detailJob.workflowType === "video" && detailJob.creativeId && (
+                            <button className="primary-action" type="button" onClick={() => openVideoEditor(detailJob.creativeId)}>
                               Open in Creative Editor
                             </button>
                           )}
@@ -9492,13 +9539,27 @@ export function AppDemo() {
             {libraryDetailCreative && (
               <div className="library-detail-backdrop" role="presentation">
                 <section className="library-detail-modal" role="dialog" aria-modal="true" aria-label="Content Library asset detail">
-                  <div className="library-detail-preview" style={referencePreviewStyle(libraryDetailPreviewImage)}>
-                    <span>{libraryDetailMediaAsset?.aspectRatio || "9:16"}</span>
-                    <button type="button" aria-label={`Play ${libraryDetailCreative.title}`}>
-                      ▶
-                    </button>
-                    <strong>{libraryDetailCreative.platform?.replace(/_/g, " ") || "Generated video"}</strong>
-                  </div>
+                  {(() => {
+                    const isVideoCreative = libraryDetailMediaAsset?.assetType === "video";
+                    return (
+                      <div className="library-detail-preview" style={referencePreviewStyle(libraryDetailPreviewImage)}>
+                        <span>{libraryDetailMediaAsset?.aspectRatio || "9:16"}</span>
+                        {isVideoCreative ? (
+                          <video
+                            className="library-detail-video"
+                            src={libraryDetailMediaAsset.storageRef}
+                            controls
+                            poster={libraryDetailMediaAsset.storageRef !== libraryDetailPreviewImage ? libraryDetailPreviewImage || undefined : undefined}
+                          />
+                        ) : (
+                          <button type="button" aria-label={`Play ${libraryDetailCreative.title}`}>
+                            ▶
+                          </button>
+                        )}
+                        <strong>{libraryDetailCreative.platform?.replace(/_/g, " ") || "Generated video"}</strong>
+                      </div>
+                    );
+                  })()}
                 <div className="library-detail-copy">
                     <button className="library-detail-close" type="button" aria-label="Close asset detail" onClick={closeLibraryDetail}>
                       ×
@@ -9544,6 +9605,23 @@ export function AppDemo() {
                       <button type="button" aria-label="More asset actions" onClick={() => showAppToast("More asset actions are demo-safe.")}>
                         …
                       </button>
+                      {libraryDetailMediaAsset?.assetType === "video" && (
+                        <>
+                          <button
+                            type="button"
+                            disabled={approvalFeedbackPending === libraryDetailCreative.id}
+                            onClick={() => addApprovalFeedback(libraryDetailIndex, "approval_note")}
+                          >
+                            Approve video
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => addApprovalFeedback(libraryDetailIndex, "change_request")}
+                          >
+                            Request changes
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </section>

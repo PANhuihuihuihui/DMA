@@ -6,12 +6,14 @@ Call get_adapter(provider_key, capability) to retrieve an instantiated adapter.
 """
 from backend.app.generation_providers.openai_adapter import OpenAIVideoAdapter
 from backend.app.generation_providers.heygen_adapter import HeyGenAvatarAdapter
+from backend.app.generation_providers.minimax_adapter import MiniMaxImageAdapter
 
 # Map used by generation_dispatch._PROVIDER_REGISTRY.
 # Also imported by tests and the dispatch module itself.
 ADAPTER_REGISTRY = {
     "openai:video": OpenAIVideoAdapter,
     "heygen:avatar_video": HeyGenAvatarAdapter,
+    "minimax:image": MiniMaxImageAdapter,
 }
 
 

@@ -1,0 +1,26 @@
+{
+  "id": "705c907c-1344-4098-aeda-0e635b8a6293",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/verify-generation-modules-bundled (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "verify-generation-modules-bundled",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 193,
+  "started_at": "2026-06-26T03:03:50.792Z",
+  "finished_at": "2026-06-26T03:03:50.807Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 15,
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/705c907c-1344-4098-aeda-0e635b8a6293.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/705c907c-1344-4098-aeda-0e635b8a6293.stderr"
+}

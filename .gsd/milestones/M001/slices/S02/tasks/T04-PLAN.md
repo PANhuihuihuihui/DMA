@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T04: Build smoke and frontend integration verify
+# T04: Vite build passes clean with all three new S02 modules integrated (57 modules, no errors)
 
 Run npm run build to confirm the build passes with all three new modules in place. Then run the dev server and use curl/node to hit the generation endpoints to confirm the frontend bundle loads correctly and the API routes are reachable.
 

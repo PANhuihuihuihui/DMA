@@ -1,0 +1,26 @@
+{
+  "id": "5ed791f0-efdc-44bf-ba15-9deaae5d06d2",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/test-4-job-status-ui (uat-artifact-check)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "test-4-job-status-ui",
+    "intent": "uat-artifact-check"
+  },
+  "script_chars": 838,
+  "started_at": "2026-06-26T03:04:38.826Z",
+  "finished_at": "2026-06-26T03:04:38.853Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "force_resolved": false,
+  "duration_ms": 27,
+  "stdout_bytes": 199,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/5ed791f0-efdc-44bf-ba15-9deaae5d06d2.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/5ed791f0-efdc-44bf-ba15-9deaae5d06d2.stderr"
+}

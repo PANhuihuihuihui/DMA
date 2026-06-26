@@ -1,0 +1,26 @@
+{
+  "id": "40d0a180-739d-4247-9bd4-16e0d48871b7",
+  "runtime": "bash",
+  "purpose": "UAT M001/S02/smoke-test-load (uat-service-start)",
+  "metadata": {
+    "kind": "uat_exec",
+    "milestoneId": "M001",
+    "sliceId": "S02",
+    "checkId": "smoke-test-load",
+    "intent": "uat-service-start"
+  },
+  "script_chars": 11,
+  "started_at": "2026-06-26T03:01:55.725Z",
+  "finished_at": "2026-06-26T03:02:25.748Z",
+  "exit_code": null,
+  "signal": "SIGTERM",
+  "timed_out": true,
+  "force_resolved": false,
+  "duration_ms": 30023,
+  "stdout_bytes": 171,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/40d0a180-739d-4247-9bd4-16e0d48871b7.stdout",
+  "stderr_path": "/Users/huijie/DMA/.gsd-worktrees/M001/.gsd/exec/40d0a180-739d-4247-9bd4-16e0d48871b7.stderr"
+}
