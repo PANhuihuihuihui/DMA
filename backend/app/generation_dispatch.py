@@ -194,8 +194,9 @@ def _dispatch_job(db_path: str, job_id: str) -> None:
             outputs = result.get("outputs") or []
             with closing(store.connect(db_path)) as conn:
                 job = _load_job_row(conn, job_id)
+                output_ids = []
                 for output in outputs:
-                    _insert_output(
+                    oid = _insert_output(
                         conn,
                         job_id,
                         output.get("kind", "video"),
@@ -203,6 +204,14 @@ def _dispatch_job(db_path: str, job_id: str) -> None:
                         output.get("previewRef", ""),
                         output.get("metadata", {}),
                     )
+                    output_ids.append(oid)
+                if job["capability"] in store.VIDEO_CAPABILITIES and output_ids:
+                    first_row = conn.execute(
+                        "select * from generation_outputs where id = ?", (output_ids[0],)
+                    ).fetchone()
+                    if first_row is not None:
+                        store.materialize_video_package(conn, job["merchant_id"], job, first_row)
+                        logger.info("generation_dispatch: materialized video creative for job %s", job_id)
                 attempt_row = _load_active_attempt(conn, job_id)
                 if attempt_row:
                     _update_attempt_status(conn, attempt_row["id"], "succeeded", result.get("diagnostics"))
@@ -342,6 +351,9 @@ def dispatch_generation_job(
                     for i in range(len(output_rows))
                 ]
                 store.materialize_carousel_package(conn, merchant_id, job_row, brand_row, slide_plan, output_rows)
+                conn.commit()
+            elif capability in store.VIDEO_CAPABILITIES and output_rows:
+                store.materialize_video_package(conn, merchant_id, job_row, output_rows[0])
                 conn.commit()
 
             attempt_row = _load_active_attempt(conn, job_id)
