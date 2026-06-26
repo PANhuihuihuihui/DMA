@@ -1,9 +1,11 @@
 import json
+import logging
 import time
 from urllib import error, parse, request
 
-from backend.app import facebook_token_vault, store
+from backend.app import auth_provider, facebook_token_vault, store
 from backend.app.contracts import json_loads
+from backend.app.facebook_auth_provider import FacebookAuthProvider
 
 
 GRAPH_API_BASE = "https://graph.facebook.com/v25.0"
@@ -12,6 +14,8 @@ ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif"}
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 CTA_COPY = "Publish to Facebook"
+
+logger = logging.getLogger(__name__)
 
 
 class FacebookProviderError(Exception):
@@ -85,6 +89,7 @@ def queue_facebook_publish(conn, approval_id, payload, graph_base=GRAPH_API_BASE
             publish_mode=payload.get("publishMode") or "publish_now",
             scheduled_publish_time=payload.get("scheduledPublishTime"),
             graph_base=graph_base,
+            conn=conn,
             opener=opener,
             media_info=media_info,
         )
@@ -162,7 +167,7 @@ def retry_facebook_publish(conn, job_id, graph_base=GRAPH_API_BASE, opener=None)
 
     approval = store.get_approval(conn, job_row["approval_id"])
     snapshot = json_loads(approval["snapshot_json"], {})
-    page_id = job_row["page_id"] or (snapshot.get("connectedChannelRef") or {}).get("providerChannelId")
+    page_id = (snapshot.get("connectedChannelRef") or {}).get("providerChannelId")
 
     health = facebook_oauth.active_page_health(conn)
     if not health["canPublish"]:
@@ -181,6 +186,7 @@ def retry_facebook_publish(conn, job_id, graph_base=GRAPH_API_BASE, opener=None)
             publish_mode="publish_now",
             scheduled_publish_time=None,
             graph_base=graph_base,
+            conn=conn,
             opener=opener,
             media_info=media_info,
         )
@@ -285,16 +291,7 @@ def validate_facebook_media(snapshot, opener=None):
     return {"kind": "text"}
 
 
-def publish_approved_snapshot(snapshot, user_token, page_id, publish_mode, scheduled_publish_time, graph_base, opener=None, media_info=None):
-    page_token = facebook_token_vault.get_page_token(page_id)
-    if not page_token and user_token:
-        page_token = resolve_page_access_token(user_token, page_id, graph_base, opener=opener)
-    if not page_token:
-        raise FacebookProviderError(
-            403,
-            "Connect Facebook before publishing this Page.",
-            provider_diagnostics("authentication", "not_connected", {"pageId": page_id}),
-        )
+def _publish_snapshot_with_token(snapshot, page_id, publish_mode, scheduled_publish_time, graph_base, page_token, opener=None, media_info=None):
     message = build_facebook_message(snapshot)
     media_info = media_info or {"kind": "text"}
     scheduled_at = None
@@ -327,24 +324,28 @@ def publish_approved_snapshot(snapshot, user_token, page_id, publish_mode, sched
             body=body,
             opener=opener,
         )
-        post_id = published.get("id")
+        post_id = published.get("post_id") or published.get("id")
 
     if not post_id:
         raise FacebookProviderError(
             502,
-            "Facebook did not return a post ID.",
-            provider_diagnostics("unknown", "missing_post_id", {"pageId": page_id}),
+            "Facebook Graph API did not return a post id.",
+            provider_diagnostics("platform_transient", "missing_post_id", {"pageId": page_id}),
         )
 
     detail = graph_request(
         "GET",
-        f"{graph_base}/{parse.quote(post_id)}?fields=id,message,created_time,permalink_url,is_published",
+        f"{graph_base}/{parse.quote(post_id)}?fields=permalink_url,is_published,created_time",
         page_token,
         opener=opener,
     )
-    permalink = detail.get("permalink_url")
+    permalink = detail.get("permalink_url") or f"https://www.facebook.com/{post_id}"
     mode_label = "scheduled" if scheduled_at else "published"
     return {
+        "postId": post_id,
+        "permalinkUrl": permalink,
+        "scheduledPublishTime": scheduled_at,
+        "status": "scheduled" if scheduled_at else "published",
         "summary": f"Facebook Page post {mode_label} through the official Graph API.",
         "diagnostics": provider_diagnostics(
             "none",
@@ -361,6 +362,128 @@ def publish_approved_snapshot(snapshot, user_token, page_id, publish_mode, sched
             },
         ),
     }
+
+
+def publish_approved_snapshot(
+    snapshot,
+    user_token,
+    page_id,
+    publish_mode,
+    scheduled_publish_time,
+    graph_base,
+    conn=None,
+    opener=None,
+    media_info=None,
+):
+    merchant_id = snapshot.get("merchantId") or store.DEMO_MERCHANT_ID
+    page_id = str(page_id)
+
+    if user_token:
+        page_token = resolve_page_access_token(user_token, page_id, graph_base, opener=opener)
+        if not page_token:
+            raise FacebookProviderError(
+                403,
+                "Connect Facebook before publishing this Page.",
+                provider_diagnostics("authentication", "not_connected", {"pageId": page_id}),
+            )
+        return _publish_snapshot_with_token(
+            snapshot,
+            page_id,
+            publish_mode,
+            scheduled_publish_time,
+            graph_base,
+            page_token,
+            opener=opener,
+            media_info=media_info,
+        )
+
+    if conn is None:
+        raise store.StoreError(500, "Database connection required for stored Facebook credentials.")
+
+    from backend.app import facebook_oauth
+
+    provider = FacebookAuthProvider()
+    config = facebook_oauth.oauth_config()
+    credential_row = store.get_facebook_page_token_row(conn, page_id, merchant_id)
+    if credential_row is None:
+        raise FacebookProviderError(
+            403,
+            "Connect Facebook before publishing this Page.",
+            provider_diagnostics(
+                "authentication",
+                "not_connected",
+                {"merchantId": merchant_id, "pageId": page_id},
+            ),
+        )
+
+    try:
+        auth_provider.get_valid_credential(conn, page_id, merchant_id)
+    except store.StoreError as exc:
+        if exc.status != 401:
+            raise
+        try:
+            provider.refresh(conn, credential_row, config)
+            credential_row = store.get_facebook_page_token_row(conn, page_id, merchant_id)
+            auth_provider.get_valid_credential(conn, page_id, merchant_id)
+        except store.StoreError as refresh_exc:
+            facebook_token_vault.mark_reconnect_required(page_id, conn=conn)
+            raise FacebookProviderError(
+                403,
+                "Reconnect Facebook before publishing this Page.",
+                provider_diagnostics(
+                    "authentication",
+                    "credential_refresh_failed",
+                    {
+                        "merchantId": merchant_id,
+                        "pageId": page_id,
+                        "reason": refresh_exc.message,
+                    },
+                ),
+            ) from refresh_exc
+
+    retry_state = {"logged": False}
+
+    def perform_publish(page_token):
+        try:
+            return _publish_snapshot_with_token(
+                snapshot,
+                page_id,
+                publish_mode,
+                scheduled_publish_time,
+                graph_base,
+                page_token,
+                opener=opener,
+                media_info=media_info,
+            )
+        except FacebookProviderError as exc:
+            if (exc.diagnostics or {}).get("errorClass") != "authentication":
+                raise
+            if not retry_state["logged"]:
+                logger.warning(
+                    "facebook_publish_auth_retry merchant_id=%s page_id=%s",
+                    merchant_id,
+                    page_id,
+                )
+                retry_state["logged"] = True
+            raise store.StoreError(401, exc.message) from exc
+
+    try:
+        return auth_provider.run_with_credential_refresh(conn, provider, credential_row, config, perform_publish)
+    except store.StoreError as exc:
+        facebook_token_vault.mark_reconnect_required(page_id, conn=conn)
+        raise FacebookProviderError(
+            403,
+            "Reconnect Facebook before publishing this Page.",
+            provider_diagnostics(
+                "authentication",
+                "credential_retry_failed",
+                {
+                    "merchantId": merchant_id,
+                    "pageId": page_id,
+                    "reason": exc.message,
+                },
+            ),
+        ) from exc
 
 
 def resolve_page_access_token(user_token, page_id, graph_base, opener=None):
