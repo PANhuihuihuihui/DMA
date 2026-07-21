@@ -279,6 +279,26 @@ class TestRunWithCredentialRefresh(TempDatabaseTestCase):
         self.assertEqual(seen_tokens, ["stale-token", "fresh-token"])
         self.assertEqual(provider.refresh_calls, 1)
 
+    def test_refresh_without_token_raises_502(self):
+        credential_row = self._seed_credential(token="stale-token")
+        provider = DummyProvider({"refresh_token": "missing-access-token"})
+
+        def operation(token):
+            raise store.StoreError(401, "expired")
+
+        with self.assertRaises(store.StoreError) as exc:
+            auth_provider.run_with_credential_refresh(
+                self.conn,
+                provider,
+                credential_row,
+                {},
+                operation,
+            )
+
+        self.assertEqual(exc.exception.status, 502)
+        self.assertEqual(exc.exception.message, "Provider refresh did not return an access token.")
+        self.assertEqual(provider.refresh_calls, 1)
+
     def test_raises_on_second_failure(self):
         credential_row = self._seed_credential(token="stale-token")
         provider = DummyProvider({"access_token": "still-bad-token"})

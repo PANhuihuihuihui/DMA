@@ -6,4 +6,4 @@
 - ✅ **M002: Phase 4** (`depends:[—]`)
 - ✅ **M003: Phase 11** (`depends:[—]`)
 - ✅ **M004: Phase 12** (`depends:[—]`)
-- 🔄 **M005: Platform Auth and E2E Connectivity** (`depends:[M002]`)
+- 🔄 **M005: Platform Auth and E2E Connectivity** (`depends:[—]`)
