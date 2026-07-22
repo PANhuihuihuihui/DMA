@@ -115,14 +115,29 @@ const approveAndPublish = async (baseUrl, platform) => {
     throw new Error(`Smoke workflow did not include a ${platform} draft version`);
   }
 
-  const approval = await postJson(`${baseUrl}/api/v1/drafts/${draft.id}/approve`, {
+  const approvalPayload = {
     draftVersionId: draft.currentVersion.id,
     confirmation: "APPROVE_EXACT_VERSION",
     approver: { name: "Smoke Owner", email: "owner@example.com" },
-  });
+  };
+  if (platform === "tiktok") {
+    const { creatorInfo } = await getJson(`${baseUrl}/api/v1/tiktok/creator-info`);
+    approvalPayload.tiktokConfirmations = {
+      creatorInfoVersion: creatorInfo.version,
+      privacyLevel: "PUBLIC_TO_EVERYONE",
+      disclosureReviewed: true,
+      interactionReviewed: true,
+      allowComment: true,
+    };
+  }
+
+  const approval = await postJson(`${baseUrl}/api/v1/drafts/${draft.id}/approve`, approvalPayload);
   assertNoForbiddenTerms(`${platform} approval`, approval);
 
-  const published = await postJson(`${baseUrl}/api/v1/approvals/${approval.approval.id}/publish`);
+  const published = await postJson(
+    `${baseUrl}/api/v1/approvals/${approval.approval.id}/publish`,
+    platform === "tiktok" ? { simulateFailure: "platform_transient" } : {},
+  );
   assertNoForbiddenTerms(`${platform} fake publish`, published);
   return { approval: approval.approval, job: published.job };
 };
@@ -205,8 +220,8 @@ try {
   debugAfterRetry.publishJobs.forEach(assertDebugRow);
 
   const retryRow = debugAfterRetry.publishJobs.find((row) => row.platform === "tiktok");
-  if (retryRow.jobStatus !== "published" || retryRow.attemptCount !== 2) {
-    throw new Error(`Retry debug row did not publish with two attempts: ${JSON.stringify(retryRow)}`);
+  if (retryRow.jobStatus !== "manual_fallback_required" || retryRow.attemptCount !== 2) {
+    throw new Error(`Retry debug row did not preserve two attempts: ${JSON.stringify(retryRow)}`);
   }
 
   const output = {

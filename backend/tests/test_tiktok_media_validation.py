@@ -4,6 +4,7 @@ from pathlib import Path
 
 from backend.app import store, tiktok_publisher
 from backend.app.contracts import json_dumps, json_loads
+from backend.tests.tiktok_test_support import install_connected_tiktok, published_api
 
 
 def _video_ref(mime="video/mp4", media_id="media_x", storage_ref="localpilot-media/demo/clip.mp4"):
@@ -16,6 +17,8 @@ class TiktokMediaValidationTest(unittest.TestCase):
         self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
         store.ensure_database(self.db_path)
         self.conn = store.connect(self.db_path)
+        install_connected_tiktok(self.conn)
+        self.api, self.calls = published_api()
 
     def tearDown(self):
         self.conn.close()
@@ -44,7 +47,7 @@ class TiktokMediaValidationTest(unittest.TestCase):
 
     def test_seeded_demo_video_passes_validation(self):
         approval = self.approve_tiktok()
-        payload = tiktok_publisher.queue_tiktok_publish(self.conn, approval["id"], {})
+        payload = tiktok_publisher.queue_tiktok_publish(self.conn, approval["id"], {}, api_client=self.api)
         self.assertEqual("published", payload["job"]["status"])
 
     def test_missing_video_is_classified_media_validation(self):

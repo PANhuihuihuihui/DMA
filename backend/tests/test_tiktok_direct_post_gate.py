@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from backend.app import store, tiktok_publisher
+from backend.tests.tiktok_test_support import install_connected_tiktok, published_api
 
 
 FULL_ELIGIBILITY = {"appAuditApproved": True, "scopesGranted": True}
@@ -14,6 +15,8 @@ class TiktokDirectPostGateTest(unittest.TestCase):
         self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
         store.ensure_database(self.db_path)
         self.conn = store.connect(self.db_path)
+        install_connected_tiktok(self.conn)
+        self.api, self.calls = published_api()
 
     def tearDown(self):
         self.conn.close()
@@ -42,7 +45,7 @@ class TiktokDirectPostGateTest(unittest.TestCase):
 
     def test_direct_post_without_eligibility_falls_back_to_upload(self):
         approval = self.approve_tiktok()
-        payload = tiktok_publisher.queue_tiktok_publish(self.conn, approval["id"], {"directPost": True})
+        payload = tiktok_publisher.queue_tiktok_publish(self.conn, approval["id"], {"directPost": True}, api_client=self.api)
 
         route = payload["route"]
         self.assertEqual("direct_post", route["requestedRoute"])
@@ -63,6 +66,7 @@ class TiktokDirectPostGateTest(unittest.TestCase):
             self.conn,
             approval["id"],
             {"publishMode": "direct_post", "directPostEligibility": FULL_ELIGIBILITY},
+            api_client=self.api,
         )
 
         route = payload["route"]
@@ -78,6 +82,7 @@ class TiktokDirectPostGateTest(unittest.TestCase):
             self.conn,
             approval["id"],
             {"directPost": True, "directPostEligibility": {"appAuditApproved": True}},
+            api_client=self.api,
         )
         route = payload["route"]
         self.assertEqual("upload_to_inbox", route["route"])

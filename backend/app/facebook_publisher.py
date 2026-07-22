@@ -436,7 +436,7 @@ def publish_approved_snapshot(
                     {
                         "merchantId": merchant_id,
                         "pageId": page_id,
-                        "reason": refresh_exc.message,
+                        "providerStatus": refresh_exc.status,
                     },
                 ),
             ) from refresh_exc
@@ -480,7 +480,7 @@ def publish_approved_snapshot(
                 {
                     "merchantId": merchant_id,
                     "pageId": page_id,
-                    "reason": exc.message,
+                    "providerStatus": exc.status,
                 },
             ),
         ) from exc
@@ -525,7 +525,7 @@ def graph_request(method, url, token, body=None, opener=None):
         raise FacebookProviderError(
             503,
             "Facebook Graph API request failed before receiving a response.",
-            provider_diagnostics("platform_transient", "network_error", {"reason": str(exc.reason)}),
+            provider_diagnostics("platform_transient", "network_error", {"transport": "network"}),
         ) from exc
 
 
@@ -563,10 +563,15 @@ def classify_error_class(status, provider_error):
 
 
 def classify_error_message(provider_error):
-    return provider_error.get("message") or "Facebook publishing failed."
+    return "Facebook rejected this publishing request."
 
 
 def provider_diagnostics(error_class, result, extra):
+    safe_extra = {
+        key: value
+        for key, value in (extra or {}).items()
+        if key != "message" and value is not None
+    }
     return {
         "provider": "facebook",
         "providerDisplayName": "Facebook Graph API",
@@ -575,7 +580,7 @@ def provider_diagnostics(error_class, result, extra):
         "result": result,
         "errorClass": error_class,
         "nextRecommendedAction": "retry_or_check_permissions" if error_class != "none" else "verify_live_post",
-        **{key: value for key, value in (extra or {}).items() if value is not None},
+        **safe_extra,
     }
 
 

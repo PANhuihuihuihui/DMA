@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
-from backend.app import auth_provider, facebook_publisher, facebook_token_vault, store
+from backend.app import auth_provider, facebook_oauth, facebook_publisher, facebook_token_vault, store
 from backend.app.facebook_auth_provider import FacebookAuthProvider
 from backend.tests.test_auth_provider import TempDatabaseTestCase
 
@@ -97,12 +97,31 @@ class TestFacebookRefreshRevoke(TempDatabaseTestCase):
             self.original_token,
         )
 
-    def test_refresh_handles_missing_expires_in(self):
+    def test_refresh_rejects_malformed_payload_without_mutating_credential(self):
         with patch(
             "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
-            return_value={"access_token": "new-page-token"},
+            return_value=[],
         ):
-            result = self.provider.refresh(self.conn, self._credential_row(), self.config)
+            with self.assertRaises(store.StoreError) as ctx:
+                self.provider.refresh(self.conn, self._credential_row(), self.config)
+
+        self.assertEqual(ctx.exception.status, 502)
+        self.assertEqual(
+            facebook_token_vault.get_page_token(
+                self.page_id,
+                conn=self.conn,
+                merchant_id=self.merchant_id,
+            ),
+            self.original_token,
+        )
+
+    def test_refresh_missing_expires_in_uses_conservative_persisted_expiry(self):
+        with self.assertLogs("backend.app.facebook_oauth", level="WARNING") as logs:
+            with patch(
+                "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
+                return_value={"access_token": "new-page-token"},
+            ):
+                result = self.provider.refresh(self.conn, self._credential_row(), self.config)
 
         self.assertEqual(result, {"access_token": "new-page-token", "expires_in": None})
         self.assertEqual(
@@ -113,7 +132,13 @@ class TestFacebookRefreshRevoke(TempDatabaseTestCase):
             ),
             "new-page-token",
         )
-        self.assertIsNone(self._credential_row()["token_expires_at"])
+        expires_at = datetime.fromisoformat(
+            self._credential_row()["token_expires_at"].replace("Z", "+00:00")
+        )
+        seconds_remaining = (expires_at - datetime.now(timezone.utc)).total_seconds()
+        self.assertGreater(seconds_remaining, 0)
+        self.assertLessEqual(seconds_remaining, facebook_oauth.MISSING_EXPIRY_SECONDS)
+        self.assertTrue(any("facebook_token_expiry_missing" in line for line in logs.output))
 
     def test_revoke_calls_delete_and_marks_reconnect(self):
         with patch(
@@ -188,13 +213,13 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
         approval_row = store.get_approval(self.conn, approval["id"])
         return json.loads(approval_row["snapshot_json"]), approval, approval_row
 
-    def seed_page_token(self, snapshot, token="stored-page-token", expires_in_seconds=3600):
+    def seed_page_token(self, snapshot, fixture_value="stored-page-token", expires_in_seconds=3600):
         merchant_id = snapshot.get("merchantId") or store.DEMO_MERCHANT_ID
         page_id = str((snapshot.get("connectedChannelRef") or {}).get("providerChannelId"))
         expires_at = None if expires_in_seconds is None else self._iso_after(expires_in_seconds)
         facebook_token_vault.put_page_token(
             page_id,
-            token,
+            fixture_value,
             conn=self.conn,
             merchant_id=merchant_id,
             connected_channel_id=store.FACEBOOK_CHANNEL_ID,
@@ -213,10 +238,10 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
             },
         ]
 
-    def auth_error(self, page_id, result="provider_error"):
+    def auth_error(self, page_id, result="provider_error", message="Invalid OAuth access token."):
         return facebook_publisher.FacebookProviderError(
             401,
-            "Invalid OAuth access token.",
+            message,
             facebook_publisher.provider_diagnostics(
                 "authentication",
                 result,
@@ -226,7 +251,7 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
 
     def test_publish_uses_get_valid_credential(self):
         snapshot, _, _ = self.approval_snapshot()
-        page_id, merchant_id = self.seed_page_token(snapshot, token="stored-page-token", expires_in_seconds=3600)
+        page_id, merchant_id = self.seed_page_token(snapshot, fixture_value="stored-page-token", expires_in_seconds=3600)
 
         with patch(
             "backend.app.facebook_publisher.auth_provider.get_valid_credential",
@@ -252,9 +277,9 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
         self.assertEqual(graph_request.call_args_list[0].args[2], "stored-page-token")
         self.assertEqual(graph_request.call_count, 2)
 
-    def test_publish_refreshes_expired_credential_before_graph_publish(self):
+    def test_publish_refreshes_near_expiry_credential_before_graph_publish(self):
         snapshot, _, _ = self.approval_snapshot()
-        page_id, merchant_id = self.seed_page_token(snapshot, token="expired-page-token", expires_in_seconds=-30)
+        page_id, merchant_id = self.seed_page_token(snapshot, fixture_value="expiring-page-token", expires_in_seconds=30)
 
         with patch(
             "backend.app.facebook_auth_provider.facebook_oauth.graph_get",
@@ -288,7 +313,7 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
 
     def test_publish_retries_with_refreshed_credential(self):
         snapshot, _, _ = self.approval_snapshot()
-        page_id, merchant_id = self.seed_page_token(snapshot, token="stored-page-token", expires_in_seconds=3600)
+        page_id, merchant_id = self.seed_page_token(snapshot, fixture_value="stored-page-token", expires_in_seconds=3600)
         original_refresh = FacebookAuthProvider.refresh
 
         graph_responses = [
@@ -347,10 +372,13 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
 
     def test_publish_marks_reconnect_on_persistent_auth_failure(self):
         snapshot, _, _ = self.approval_snapshot()
-        page_id, merchant_id = self.seed_page_token(snapshot, token="stored-page-token", expires_in_seconds=3600)
+        page_id, merchant_id = self.seed_page_token(snapshot, fixture_value="stored-page-token", expires_in_seconds=3600)
         original_refresh = FacebookAuthProvider.refresh
 
-        graph_responses = [self.auth_error(page_id), self.auth_error(page_id)]
+        graph_responses = [
+            self.auth_error(page_id, message="Invalid OAuth access token stored-page-token"),
+            self.auth_error(page_id, message="Invalid OAuth access token stored-page-token"),
+        ]
 
         def graph_request_side_effect(*args, **kwargs):
             response = graph_responses.pop(0)
@@ -385,6 +413,8 @@ class TestPublishCredentialIntegration(TempDatabaseTestCase):
 
         self.assertEqual(ctx.exception.status, 403)
         self.assertEqual(ctx.exception.diagnostics["result"], "credential_retry_failed")
+        self.assertNotIn("message", ctx.exception.diagnostics)
+        self.assertNotIn("stored-page-token", json.dumps(ctx.exception.diagnostics, sort_keys=True))
         self.assertEqual(
             store.get_facebook_page_token_row(self.conn, page_id, merchant_id)["status"],
             "reconnect_required",

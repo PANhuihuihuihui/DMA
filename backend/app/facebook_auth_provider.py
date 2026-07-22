@@ -1,5 +1,4 @@
 import logging
-from urllib import parse
 
 from backend.app import facebook_oauth, facebook_token_vault, store
 from backend.app.auth_provider import AuthProvider
@@ -9,14 +8,20 @@ logger = logging.getLogger(__name__)
 
 
 class FacebookAuthProvider(AuthProvider):
-    def build_auth_url(self, config):
-        return facebook_oauth.build_login_url(return_url=config.get("returnUrl"), config=config)
+    def build_auth_url(self, config, conn=None):
+        return facebook_oauth.build_login_url(
+            return_url=config.get("returnUrl"),
+            conn=conn,
+            config=config,
+        )
 
     def exchange_code(self, conn, code, config):
         user_token_payload = facebook_oauth.exchange_code_for_user_token(code, config)
+        if not isinstance(user_token_payload, dict):
+            raise store.StoreError(502, "Facebook returned a malformed user token response.")
         user_token = user_token_payload.get("access_token")
         if not user_token:
-            return user_token_payload
+            raise store.StoreError(502, "Facebook did not return a user access token.")
 
         long_lived_payload = facebook_oauth.exchange_for_long_lived_user_token(user_token, config)
         if not long_lived_payload:
@@ -33,14 +38,19 @@ class FacebookAuthProvider(AuthProvider):
             conn=conn,
             merchant_id=credential_row["merchant_id"],
         )
+        if not page_token:
+            raise store.StoreError(401, "Facebook Page credential is unavailable.")
         params = {
             "grant_type": "fb_exchange_token",
             "client_id": config.get("appId", ""),
             "client_secret": config.get("appSecret", ""),
             "fb_exchange_token": page_token,
         }
-        refresh_url = f"{config.get('graphBase', facebook_oauth.GRAPH_API_BASE)}/oauth/access_token?{parse.urlencode(params)}"
-        payload = facebook_oauth.graph_get(refresh_url)
+        payload = facebook_oauth.graph_get(
+            facebook_oauth.graph_url(config, "/oauth/access_token", params)
+        )
+        if not isinstance(payload, dict):
+            raise store.StoreError(502, "Facebook returned a malformed refresh response.")
         new_token = payload.get("access_token")
         if not new_token:
             raise store.StoreError(502, "Facebook did not return a refreshed Page access token.")
@@ -70,9 +80,12 @@ class FacebookAuthProvider(AuthProvider):
             conn=conn,
             merchant_id=credential_row["merchant_id"],
         )
-        revoke_url = f"{config.get('graphBase', facebook_oauth.GRAPH_API_BASE)}/me/permissions?{parse.urlencode({'access_token': token})}"
-        payload = facebook_oauth.graph_delete(revoke_url)
-        if payload.get("success") is False:
+        if not token:
+            raise store.StoreError(401, "Facebook Page credential is unavailable.")
+        payload = facebook_oauth.graph_delete(
+            facebook_oauth.graph_url(config, "/me/permissions", {"access_token": token})
+        )
+        if not isinstance(payload, dict) or payload.get("success") is not True:
             raise store.StoreError(502, "Facebook did not revoke the Page access token.")
 
         facebook_token_vault.mark_reconnect_required(page_id, conn=conn)
@@ -84,9 +97,7 @@ class FacebookAuthProvider(AuthProvider):
             "fields": "id,name",
             "access_token": token,
         }
-        return facebook_oauth.graph_get(
-            f"{config.get('graphBase', facebook_oauth.GRAPH_API_BASE)}/me?{parse.urlencode(params)}"
-        )
+        return facebook_oauth.graph_get(facebook_oauth.graph_url(config, "/me", params))
 
     def list_selectable_accounts(self, token, config):
         return facebook_oauth.fetch_pages(token, config)

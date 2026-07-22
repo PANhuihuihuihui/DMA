@@ -1,9 +1,11 @@
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib import error
 
 from backend.app import facebook_publisher, facebook_token_vault, store
@@ -35,9 +37,16 @@ class FacebookPublisherTest(unittest.TestCase):
         self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
         store.ensure_database(self.db_path)
         self.conn = store.connect(self.db_path)
+        self.token_key_patch = patch.dict(
+            os.environ,
+            {"LOCALPILOT_TOKEN_KEY": "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="},
+            clear=False,
+        )
+        self.token_key_patch.start()
 
     def tearDown(self):
         self.conn.close()
+        self.token_key_patch.stop()
         facebook_token_vault.clear()
         self.temp_dir.cleanup()
 
@@ -149,11 +158,29 @@ class FacebookPublisherTest(unittest.TestCase):
         self.assertEqual(f"{PAGE_ID}_122105698989358443", diagnostics["postId"])
         self.assertEqual("https://www.facebook.com/122105699001358443/posts/122105698989358443", diagnostics["permalinkUrl"])
         self.assertEqual("facebook", self.conn.execute("select provider from publish_outcomes").fetchone()["provider"])
+        self.assertIsNone(
+            store.get_facebook_page_token_row(self.conn, PAGE_ID, store.DEMO_MERCHANT_ID)
+        )
         self.assert_tokens_not_persisted(payload)
 
     def test_live_facebook_publish_uses_connected_page_token_without_user_token(self):
         approval = self.approve_facebook()
-        facebook_token_vault.put_page_token(PAGE_ID, PAGE_TOKEN, {"id": PAGE_ID, "name": "Aurora Heating & Cooling"})
+        facebook_token_vault.put_page_token(
+            PAGE_ID,
+            PAGE_TOKEN,
+            {"id": PAGE_ID, "name": "Aurora Heating & Cooling"},
+            conn=self.conn,
+            merchant_id=store.DEMO_MERCHANT_ID,
+            connected_channel_id=store.FACEBOOK_CHANNEL_ID,
+        )
+        facebook_token_vault.set_active_page(PAGE_ID, conn=self.conn)
+        stored_credential = store.get_facebook_page_token_row(
+            self.conn,
+            PAGE_ID,
+            store.DEMO_MERCHANT_ID,
+        )
+        self.assertIsNotNone(stored_credential)
+        self.assertNotEqual(PAGE_TOKEN.encode("utf-8"), stored_credential["ciphertext"])
 
         payload = facebook_publisher.queue_facebook_publish(
             self.conn,
@@ -184,7 +211,10 @@ class FacebookPublisherTest(unittest.TestCase):
         self.assertEqual("manual_fallback_required", payload["job"]["status"])
         diagnostics = payload["job"]["attempts"][0]["diagnostics"]
         self.assertEqual("missing_permission", diagnostics["errorClass"])
-        self.assertIn("pages_manage_posts", diagnostics["message"])
+        self.assertEqual(200, diagnostics["code"])
+        self.assertEqual("trace-meta", diagnostics["fbtraceId"])
+        self.assertNotIn("message", diagnostics)
+        self.assertNotIn("pages_manage_posts", json.dumps(payload, sort_keys=True))
         self.assertEqual(
             ["approved", "queued", "publishing", "failed", "manual_fallback_required"],
             [event["status"] for event in payload["job"]["events"]],

@@ -1,13 +1,16 @@
 import json
+import os
 import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib import error, request
 
-from backend.app import sessions, store, tiktok_publisher
+from backend.app import sessions, store, tiktok_publisher, token_crypto
 from backend.app.server import create_app
 from backend.tests.test_fake_publish_lifecycle import assert_no_forbidden_terms
+from backend.tests.tiktok_test_support import install_connected_tiktok, published_api
 
 
 FULL_ELIGIBILITY = {"appAuditApproved": True, "scopesGranted": True}
@@ -17,11 +20,18 @@ class EvidenceExportStoreTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
+        self.token_env = patch.dict(os.environ, {"LOCALPILOT_TOKEN_KEY": token_crypto.generate_dev_key()}, clear=False)
+        self.token_env.start()
+        self.tiktok_api = patch("backend.app.tiktok_publisher.TikTokContentApi", side_effect=lambda **_: published_api()[0])
+        self.tiktok_api.start()
         store.ensure_database(self.db_path)
         self.conn = store.connect(self.db_path)
+        install_connected_tiktok(self.conn)
 
     def tearDown(self):
         self.conn.close()
+        self.tiktok_api.stop()
+        self.token_env.stop()
         self.temp_dir.cleanup()
 
     def approve_tiktok(self):
@@ -74,7 +84,13 @@ class EvidenceExportApiTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
+        self.token_env = patch.dict(os.environ, {"LOCALPILOT_TOKEN_KEY": token_crypto.generate_dev_key()}, clear=False)
+        self.token_env.start()
+        self.tiktok_api = patch("backend.app.tiktok_publisher.TikTokContentApi", side_effect=lambda **_: published_api()[0])
+        self.tiktok_api.start()
         self.server = create_app(host="127.0.0.1", port=0, db_path=self.db_path)
+        with store.connect(self.db_path) as conn:
+            install_connected_tiktok(conn)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         host, port = self.server.server_address
@@ -84,6 +100,8 @@ class EvidenceExportApiTest(unittest.TestCase):
         self.server.shutdown()
         self.server.server_close()
         self.thread.join(timeout=2)
+        self.tiktok_api.stop()
+        self.token_env.stop()
         self.temp_dir.cleanup()
 
     def json_request(self, method, path, body=None, headers=None):

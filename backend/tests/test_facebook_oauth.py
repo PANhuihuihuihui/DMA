@@ -96,12 +96,13 @@ class FacebookOAuthTest(unittest.TestCase):
             store.get_oauth_session(self.conn, state, "state")
 
     def test_select_page_persists_expiry_metadata_and_consumes_connect_session(self):
-        with self.env(), patch.object(facebook_oauth, "graph_get", side_effect=self.graph_get), patch("builtins.print") as mock_print:
-            login_url = facebook_oauth.build_login_url(conn=self.conn)
-            state = parse_qs(urlparse(login_url).query)["state"][0]
-            return_url = facebook_oauth.complete_callback(self.conn, {"state": [state], "code": ["oauth_code"]})
-            session_id = parse_qs(urlparse(return_url).query)["connectSession"][0]
-            status = facebook_oauth.select_page(self.conn, session_id, "1243605852158721")
+        with self.assertLogs("backend.app.facebook_oauth", level="INFO") as logs:
+            with self.env(), patch.object(facebook_oauth, "graph_get", side_effect=self.graph_get):
+                login_url = facebook_oauth.build_login_url(conn=self.conn)
+                state = parse_qs(urlparse(login_url).query)["state"][0]
+                return_url = facebook_oauth.complete_callback(self.conn, {"state": [state], "code": ["oauth_code"]})
+                session_id = parse_qs(urlparse(return_url).query)["connectSession"][0]
+                status = facebook_oauth.select_page(self.conn, session_id, "1243605852158721")
 
         self.assertEqual("1243605852158721", status["activePage"]["pageId"])
         with self.env():
@@ -120,12 +121,26 @@ class FacebookOAuthTest(unittest.TestCase):
         delta_seconds = int((expires_at - issued_at).total_seconds())
         self.assertGreaterEqual(delta_seconds, 5183943)
         self.assertLessEqual(delta_seconds, 5183944)
-        mock_print.assert_called_once_with(
-            f"Facebook page token stored, expires at {token_row['token_expires_at']}"
-        )
+        self.assertTrue(any("facebook_page_token_stored" in line for line in logs.output))
+        self.assertFalse(any("page_token_should_not_escape" in line for line in logs.output))
 
         with self.assertRaises(store.StoreError):
             facebook_oauth.list_pages_for_session(session_id, conn=self.conn)
+
+    def test_oauth_session_helpers_require_a_database_connection_and_have_no_legacy_maps(self):
+        with self.assertRaises(store.StoreError) as build_error:
+            facebook_oauth.build_login_url()
+        self.assertEqual(500, build_error.exception.status)
+
+        with self.assertRaises(store.StoreError) as state_error:
+            facebook_oauth.pop_valid_state("missing")
+        self.assertEqual(500, state_error.exception.status)
+
+        source = Path(facebook_oauth.__file__).read_text()
+        self.assertNotIn("_OAUTH_STATES", source)
+        self.assertNotIn("_CONNECT_SESSIONS", source)
+        self.assertIn("create_oauth_session", source)
+        self.assertIn("consume_oauth_session", Path(store.__file__).read_text())
 
     def test_reset_for_tests_clears_db_oauth_sessions(self):
         with self.env():
@@ -137,6 +152,32 @@ class FacebookOAuthTest(unittest.TestCase):
 
         with self.assertRaises(store.StoreError):
             store.get_oauth_session(self.conn, state, "state")
+
+    def test_long_lived_exchange_failure_falls_back_without_logging_token(self):
+        with self.env(), self.assertLogs("backend.app.facebook_oauth", level="WARNING") as logs:
+            with patch.object(
+                facebook_oauth,
+                "graph_get",
+                side_effect=store.StoreError(502, "provider response included short_user_token"),
+            ):
+                result = facebook_oauth.exchange_for_long_lived_user_token(
+                    "short_user_token",
+                    facebook_oauth.oauth_config(),
+                )
+
+        self.assertEqual(result, {})
+        self.assertTrue(any("facebook_long_lived_exchange_fallback" in line for line in logs.output))
+        self.assertFalse(any("short_user_token" in line for line in logs.output))
+
+    def test_provider_rejects_missing_authorization_token(self):
+        provider = facebook_auth_provider.FacebookAuthProvider()
+        config = {"appId": "app_123", "appSecret": "secret_123"}
+        with patch.object(facebook_oauth, "exchange_code_for_user_token", return_value={}):
+            with self.assertRaises(store.StoreError) as ctx:
+                provider.exchange_code(self.conn, "oauth_code", config)
+
+        self.assertEqual(ctx.exception.status, 502)
+        self.assertNotIn("oauth_code", ctx.exception.message)
 
     def test_facebook_auth_provider_delegates_existing_oauth_helpers(self):
         provider = facebook_auth_provider.FacebookAuthProvider()
@@ -164,12 +205,12 @@ class FacebookOAuthTest(unittest.TestCase):
             "graph_get",
             return_value={"id": "user_123", "name": "Karen"},
         ) as graph_get:
-            self.assertEqual("https://example.test/oauth", provider.build_auth_url(config))
+            self.assertEqual("https://example.test/oauth", provider.build_auth_url(config, conn=self.conn))
             token_payload = provider.exchange_code(self.conn, "oauth_code", config)
             profile = provider.get_profile("page_token", config)
             pages = provider.list_selectable_accounts("page_token", config)
 
-        build_login_url.assert_called_once_with(return_url=config["returnUrl"], config=config)
+        build_login_url.assert_called_once_with(return_url=config["returnUrl"], conn=self.conn, config=config)
         exchange_code_for_user_token.assert_called_once_with("oauth_code", config)
         exchange_for_long_lived_user_token.assert_called_once_with("short_user_token", config)
         fetch_pages.assert_called_once_with("page_token", config)

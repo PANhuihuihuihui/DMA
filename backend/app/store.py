@@ -805,6 +805,37 @@ def initialize_database(conn):
         create unique index if not exists idx_fb_page_tokens_unique
           on facebook_page_tokens(merchant_id, connected_channel_id, page_id);
 
+        create table if not exists instagram_account_tokens (
+          id text primary key,
+          merchant_id text not null references merchants(id),
+          connected_channel_id text not null,
+          account_id text not null,
+          ciphertext blob not null,
+          credential_fingerprint text not null,
+          token_expires_at text,
+          issued_at text,
+          status text not null default 'active',
+          created_at text not null,
+          updated_at text not null,
+          unique(merchant_id, connected_channel_id, account_id)
+        );
+
+        create table if not exists tiktok_account_tokens (
+          id text primary key,
+          merchant_id text not null references merchants(id),
+          connected_channel_id text not null,
+          account_id text not null,
+          ciphertext blob not null,
+          credential_fingerprint text not null,
+          token_expires_at text,
+          refresh_expires_at text,
+          issued_at text,
+          status text not null default 'active',
+          created_at text not null,
+          updated_at text not null,
+          unique(merchant_id, connected_channel_id, account_id)
+        );
+
         create table if not exists oauth_sessions (
           id text primary key,
           provider text not null,
@@ -829,7 +860,7 @@ def column_names(conn, table_name):
 def migrate_database(conn):
     conn.executescript(
         """
-        create table if not exists oauth_sessions (
+        CREATE TABLE IF NOT EXISTS oauth_sessions (
           id text primary key,
           provider text not null,
           session_type text not null,
@@ -1846,16 +1877,23 @@ def get_tiktok_creator_info(conn, connected_channel_id, *, ensure=True):
     return stored
 
 
+def save_tiktok_creator_info(conn, connected_channel_id, creator_info):
+    """Persist normalized provider facts without changing historical approvals."""
+    if not isinstance(creator_info, dict) or not creator_info.get("version"):
+        raise StoreError(502, "TikTok creator settings were malformed.")
+    conn.execute(
+        "update connected_channels set creator_info_json = ?, updated_at = ? where id = ?",
+        (json_dumps(creator_info), utc_now(), connected_channel_id),
+    )
+    conn.commit()
+    return creator_info
+
+
 def refresh_tiktok_creator_info(conn, connected_channel_id):
     current = get_tiktok_creator_info(conn, connected_channel_id, ensure=True) or {}
     next_version = int(current.get("version") or 0) + 1
     refreshed = default_tiktok_creator_info(version=next_version)
-    conn.execute(
-        "update connected_channels set creator_info_json = ?, updated_at = ? where id = ?",
-        (json_dumps(refreshed), utc_now(), connected_channel_id),
-    )
-    conn.commit()
-    return refreshed
+    return save_tiktok_creator_info(conn, connected_channel_id, refreshed)
 
 
 def validate_tiktok_confirmations(creator_info, confirmations):
@@ -8072,6 +8110,86 @@ def get_active_facebook_page_row(conn, merchant_id=DEMO_MERCHANT_ID):
     ).fetchone()
 
 
+def upsert_instagram_account_token(conn, merchant_id, connected_channel_id, account_id, ciphertext, credential_fingerprint, expires_at=None, issued_at=None, status="active"):
+    now = utc_now()
+    existing = conn.execute(
+        "select id from instagram_account_tokens where merchant_id = ? and connected_channel_id = ? and account_id = ?",
+        (merchant_id, connected_channel_id, str(account_id)),
+    ).fetchone()
+    if existing:
+        conn.execute(
+            """update instagram_account_tokens
+               set ciphertext = ?, credential_fingerprint = ?, token_expires_at = ?,
+                   issued_at = ?, status = ?, updated_at = ? where id = ?""",
+            (ciphertext, credential_fingerprint, expires_at, issued_at, status, now, existing["id"]),
+        )
+        return existing["id"]
+    row_id = new_id("igt")
+    conn.execute(
+        """insert into instagram_account_tokens
+           (id, merchant_id, connected_channel_id, account_id, ciphertext, credential_fingerprint,
+            token_expires_at, issued_at, status, created_at, updated_at)
+           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (row_id, merchant_id, connected_channel_id, str(account_id), ciphertext,
+         credential_fingerprint, expires_at, issued_at, status, now, now),
+    )
+    return row_id
+
+
+def get_instagram_account_token_row(conn, account_id, merchant_id=DEMO_MERCHANT_ID):
+    return conn.execute(
+        "select * from instagram_account_tokens where account_id = ? and merchant_id = ?",
+        (str(account_id), merchant_id),
+    ).fetchone()
+
+
+def upsert_tiktok_account_token(conn, merchant_id, connected_channel_id, account_id, ciphertext, credential_fingerprint, expires_at=None, refresh_expires_at=None, issued_at=None, status="active"):
+    now = utc_now()
+    existing = conn.execute(
+        "select id from tiktok_account_tokens where merchant_id = ? and connected_channel_id = ? and account_id = ?",
+        (merchant_id, connected_channel_id, str(account_id)),
+    ).fetchone()
+    if existing:
+        conn.execute(
+            """update tiktok_account_tokens
+               set ciphertext = ?, credential_fingerprint = ?, token_expires_at = ?, refresh_expires_at = ?,
+                   issued_at = ?, status = ?, updated_at = ? where id = ?""",
+            (ciphertext, credential_fingerprint, expires_at, refresh_expires_at, issued_at, status, now, existing["id"]),
+        )
+        return existing["id"]
+    row_id = new_id("ttt")
+    conn.execute(
+        """insert into tiktok_account_tokens
+           (id, merchant_id, connected_channel_id, account_id, ciphertext, credential_fingerprint,
+            token_expires_at, refresh_expires_at, issued_at, status, created_at, updated_at)
+           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (row_id, merchant_id, connected_channel_id, str(account_id), ciphertext, credential_fingerprint,
+         expires_at, refresh_expires_at, issued_at, status, now, now),
+    )
+    return row_id
+
+
+def get_tiktok_account_token_row(conn, account_id, merchant_id=DEMO_MERCHANT_ID):
+    return conn.execute(
+        "select * from tiktok_account_tokens where account_id = ? and merchant_id = ?",
+        (str(account_id), merchant_id),
+    ).fetchone()
+
+
+def mark_tiktok_reconnect_required(conn, account_id):
+    conn.execute(
+        "update tiktok_account_tokens set status = 'reconnect_required', updated_at = ? where account_id = ?",
+        (utc_now(), str(account_id)),
+    )
+
+
+def mark_instagram_reconnect_required(conn, account_id):
+    conn.execute(
+        "update instagram_account_tokens set status = 'reconnect_required', updated_at = ? where account_id = ?",
+        (utc_now(), str(account_id)),
+    )
+
+
 def _oauth_session_expires_at(ttl_seconds):
     return (
         datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
@@ -8126,6 +8244,10 @@ def get_oauth_session(conn, session_id, session_type, consume=False):
             session_id,
         )
     return payload
+
+
+def consume_oauth_session(conn, session_id, session_type):
+    return get_oauth_session(conn, session_id, session_type, consume=True)
 
 
 def cleanup_expired_oauth_sessions(conn):

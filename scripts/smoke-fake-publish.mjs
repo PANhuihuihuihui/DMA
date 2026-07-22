@@ -65,17 +65,34 @@ const approveAndPublish = async (baseUrl, platform) => {
     throw new Error(`Smoke workflow did not include a ${platform} draft version`);
   }
 
-  const approval = await postJson(`${baseUrl}/api/v1/drafts/${draft.id}/approve`, {
+  const approvalPayload = {
     draftVersionId: draft.currentVersion.id,
     confirmation: "APPROVE_EXACT_VERSION",
     approver: { name: "Smoke Owner", email: "owner@example.com" },
-  });
+  };
+  if (platform === "tiktok") {
+    const creatorInfoResponse = await fetch(`${baseUrl}/api/v1/tiktok/creator-info`);
+    if (!creatorInfoResponse.ok) {
+      throw new Error(`TikTok creator-info request failed with ${creatorInfoResponse.status}`);
+    }
+    const { creatorInfo } = await creatorInfoResponse.json();
+    approvalPayload.tiktokConfirmations = {
+      creatorInfoVersion: creatorInfo.version,
+      privacyLevel: "PUBLIC_TO_EVERYONE",
+      disclosureReviewed: true,
+      interactionReviewed: true,
+      allowComment: true,
+    };
+  }
+
+  const approval = await postJson(`${baseUrl}/api/v1/drafts/${draft.id}/approve`, approvalPayload);
   assertNoForbiddenTerms(`${platform} approval`, approval);
 
   const published = await postJson(`${baseUrl}/api/v1/approvals/${approval.approval.id}/publish`);
   assertNoForbiddenTerms(`${platform} fake publish`, published);
-  if (published.ctaCopy !== "Queue fake publish") {
-    throw new Error(`${platform} fake publish did not include CTA copy`);
+  const expectedCtaCopy = platform === "tiktok" ? "Send to TikTok" : "Queue fake publish";
+  if (published.ctaCopy !== expectedCtaCopy) {
+    throw new Error(`${platform} publish did not include its expected CTA copy`);
   }
 
   return published.job;
@@ -105,8 +122,8 @@ try {
   if (facebookJob.status !== "published") {
     throw new Error(`Facebook fake publish ended as ${facebookJob.status}`);
   }
-  if (tiktokJob.status !== "retry_needed") {
-    throw new Error(`TikTok fake publish ended as ${tiktokJob.status}`);
+  if (tiktokJob.status !== "manual_fallback_required") {
+    throw new Error(`TikTok publish without a connected credential ended as ${tiktokJob.status}`);
   }
 
   console.log(

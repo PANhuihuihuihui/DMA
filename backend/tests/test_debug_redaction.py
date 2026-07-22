@@ -1,7 +1,11 @@
 import json
+import os
 import unittest
+from unittest.mock import patch
 
+from backend.app import store, token_crypto
 from backend.tests.test_fake_publish_lifecycle import ApiCase, assert_no_forbidden_terms
+from backend.tests.tiktok_test_support import install_connected_tiktok, published_api
 from backend.tests.test_retry_redaction_idempotency import (
     SECRET_VALUES,
     assert_no_secret_values,
@@ -10,6 +14,20 @@ from backend.tests.test_retry_redaction_idempotency import (
 
 
 class DebugRedactionTest(ApiCase):
+    def setUp(self):
+        super().setUp()
+        self.token_env = patch.dict(os.environ, {"LOCALPILOT_TOKEN_KEY": token_crypto.generate_dev_key()}, clear=False)
+        self.token_env.start()
+        self.tiktok_api = patch("backend.app.tiktok_publisher.TikTokContentApi", side_effect=lambda **_: published_api()[0])
+        self.tiktok_api.start()
+        with store.connect(self.db_path) as conn:
+            install_connected_tiktok(conn)
+
+    def tearDown(self):
+        self.tiktok_api.stop()
+        self.token_env.stop()
+        super().tearDown()
+
     def approve_platform(self, platform):
         workflow = self.get_json("/api/v1/workflow")
         draft = next(item for item in workflow["platformDrafts"] if item["platform"] == platform)
@@ -35,7 +53,8 @@ class DebugRedactionTest(ApiCase):
 
     def publish_platform(self, platform):
         approval = self.approve_platform(platform)
-        payload = self.send_json("POST", f"/api/v1/approvals/{approval['id']}/publish")
+        body = {"simulateFailure": "platform_transient"} if platform == "tiktok" else {}
+        payload = self.send_json("POST", f"/api/v1/approvals/{approval['id']}/publish", body)
         return approval, payload["job"]
 
     def retry_job(self, job_id):
@@ -80,7 +99,7 @@ class DebugRedactionTest(ApiCase):
         self.assertTrue(row["updatedAt"])
         self.assertTrue(row["events"])
         self.assertIn(row["jobStatus"], ["published", "retry_needed"])
-        self.assertIn(row["nextAction"], ["none", "retry_publish"])
+        self.assertIn(row["nextAction"], ["none", "retry_publish", "verify_tiktok_post", "retry_or_check_settings"])
         self.assertIn(row["errorClass"], ["none", "platform_transient"])
         self.assertEqual(row["latestTraceId"], row["attempts"][-1]["traceId"])
         self.assertEqual(row["redactedDiagnostics"], row["attempts"][-1]["diagnostics"])
@@ -131,7 +150,7 @@ class DebugRedactionTest(ApiCase):
         self.assertEqual(2, row["attemptCount"])
         self.assertEqual([1, 2], [attempt["attemptNumber"] for attempt in row["attempts"]])
         self.assertEqual("none", row["errorClass"])
-        self.assertEqual("none", row["nextAction"])
+        self.assertEqual("verify_tiktok_post", row["nextAction"])
         self.assert_support_row_contract(row)
         assert_no_forbidden_terms(self, "debug retry payload", payload)
         assert_no_secret_values(self, "debug retry payload", payload)

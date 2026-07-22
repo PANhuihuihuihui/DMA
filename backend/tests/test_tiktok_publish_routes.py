@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from backend.app import store, tiktok_publisher
+from backend.tests.tiktok_test_support import install_connected_tiktok, published_api
 
 
 class TiktokPublishRoutesTest(unittest.TestCase):
@@ -12,6 +13,8 @@ class TiktokPublishRoutesTest(unittest.TestCase):
         self.db_path = str(Path(self.temp_dir.name) / "workflow.sqlite")
         store.ensure_database(self.db_path)
         self.conn = store.connect(self.db_path)
+        install_connected_tiktok(self.conn)
+        self.api, self.calls = published_api()
 
     def tearDown(self):
         self.conn.close()
@@ -40,7 +43,7 @@ class TiktokPublishRoutesTest(unittest.TestCase):
 
     def test_default_route_is_upload_to_inbox_with_full_lifecycle(self):
         approval = self.approve_tiktok()
-        payload = tiktok_publisher.queue_tiktok_publish(self.conn, approval["id"], {})
+        payload = tiktok_publisher.queue_tiktok_publish(self.conn, approval["id"], {}, api_client=self.api)
 
         self.assertEqual("ok", payload["status"])
         self.assertEqual("Send to TikTok", payload["ctaCopy"])
@@ -55,15 +58,20 @@ class TiktokPublishRoutesTest(unittest.TestCase):
         diagnostics = job["attempts"][0]["diagnostics"]
         self.assertEqual("upload_to_inbox", diagnostics["route"])
         self.assertEqual("upload_to_inbox", diagnostics["deliveryMode"])
-        self.assertTrue(diagnostics["publishId"].startswith("tiktok:upload_to_inbox:"))
+        self.assertEqual("provider-publish-test", diagnostics["publishId"])
+        self.assertTrue(any(call["url"].endswith("inbox/video/init/") for call in self.calls))
 
         outcome = self.conn.execute("select provider from publish_outcomes").fetchone()
         self.assertEqual("tiktok", outcome["provider"])
 
+        retry = tiktok_publisher.queue_tiktok_publish(self.conn, approval["id"], {}, api_client=self.api)
+        self.assertEqual(job["id"], retry["job"]["id"])
+        self.assertEqual(1, sum(call["url"].endswith("inbox/video/init/") for call in self.calls))
+
     def test_route_choice_is_recorded_per_attempt_and_secret_free(self):
         approval = self.approve_tiktok()
         payload = tiktok_publisher.queue_tiktok_publish(
-            self.conn, approval["id"], {"publishMode": "upload_to_inbox"}
+            self.conn, approval["id"], {"publishMode": "upload_to_inbox"}, api_client=self.api
         )
         self.assertEqual("upload_to_inbox", payload["route"]["route"])
 

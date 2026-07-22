@@ -6,7 +6,7 @@ from contextlib import closing
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 def _load_env_local():
     env_file = Path(__file__).resolve().parents[2] / ".env.local"
@@ -23,7 +23,7 @@ def _load_env_local():
 
 _load_env_local()
 
-from backend.app import facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, sessions, store, tiktok_publisher, website_crawl
+from backend.app import facebook_auth_provider, facebook_oauth, facebook_publisher, fake_publisher, generation_dispatch, google_auth, instagram_auth_provider, instagram_oauth, instagram_publisher, sessions, store, tiktok_auth_provider, tiktok_oauth, tiktok_publisher, website_crawl
 from backend.app.contracts import serialize_session
 
 
@@ -34,8 +34,10 @@ class JsonHandler(BaseHTTPRequestHandler):
     db_path = DEFAULT_DB_PATH
 
     def log_message(self, fmt, *args):
+        # OAuth callbacks carry codes and state in their query string. Access logs must not.
+        safe_args = tuple(str(arg).split("?", 1)[0] for arg in args)
         print(
-            f'{self.address_string()} - - [{self.log_date_time_string()}] {fmt % args}',
+            f'{self.address_string()} - - [{self.log_date_time_string()}] {fmt % safe_args}',
             flush=True,
         )
 
@@ -433,7 +435,7 @@ class JsonHandler(BaseHTTPRequestHandler):
                     self.resolve_merchant_id(conn, parsed)
                     body = self.read_json()
                     channel_id = body.get("channelId") or store.TIKTOK_CHANNEL_ID
-                    self.send_json({"creatorInfo": store.refresh_tiktok_creator_info(conn, channel_id)}, status=201)
+                    self.send_json({"creatorInfo": tiktok_publisher.refresh_creator_info(conn, channel_id)}, status=201)
                 return
             if method == "GET" and path == "/api/v1/facebook/connection":
                 with closing(store.connect(self.db_path)) as conn:
@@ -458,9 +460,12 @@ class JsonHandler(BaseHTTPRequestHandler):
             if method == "GET" and path == "/api/v1/facebook/oauth/start":
                 query = parse_qs(parsed.query)
                 with closing(store.connect(self.db_path)) as conn:
+                    config = facebook_oauth.oauth_config()
+                    if (query.get("returnTo") or [None])[0]:
+                        config["returnUrl"] = (query.get("returnTo") or [None])[0]
                     self.send_redirect(
-                        facebook_oauth.build_login_url(
-                            return_url=(query.get("returnTo") or [None])[0],
+                        facebook_auth_provider.FacebookAuthProvider().build_auth_url(
+                            config,
                             conn=conn,
                         )
                     )
@@ -469,6 +474,78 @@ class JsonHandler(BaseHTTPRequestHandler):
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_redirect(facebook_oauth.complete_callback(conn, parse_qs(parsed.query)))
                 return
+            if method == "GET" and path == "/api/v1/tiktok/connection":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(tiktok_oauth.connection_status(conn=conn))
+                return
+            if method == "POST" and path == "/api/v1/tiktok/connection/disconnect":
+                with closing(store.connect(self.db_path)) as conn:
+                    for account in tiktok_oauth.connection_status(conn=conn)["connectedAccounts"]:
+                        store.mark_tiktok_reconnect_required(conn, account["accountId"])
+                    store.disconnect_channel(conn, store.DEMO_MERCHANT_ID, store.TIKTOK_CHANNEL_ID)
+                    self.send_json(tiktok_oauth.connection_status(conn=conn), status=201)
+                return
+            if method == "GET" and path == "/api/v1/tiktok/oauth/start":
+                query = parse_qs(parsed.query)
+                with closing(store.connect(self.db_path)) as conn:
+                    config = tiktok_oauth.oauth_config()
+                    return_to = (query.get("returnTo") or [None])[0]
+                    config["returnUrl"] = self.safe_tiktok_return_url(return_to, config["returnUrl"])
+                    self.send_redirect(tiktok_auth_provider.TikTokAuthProvider().build_auth_url(config, conn=conn))
+                return
+            if method == "GET" and path == "/api/v1/tiktok/oauth/callback":
+                with closing(store.connect(self.db_path)) as conn:
+                    return_url = self.safe_tiktok_return_url(None, tiktok_oauth.oauth_config()["returnUrl"])
+                    try:
+                        staged_url = tiktok_oauth.complete_callback(conn, parse_qs(parsed.query))
+                        staged = urlparse(staged_url)
+                        session_id = (parse_qs(staged.query).get("connectSession") or [""])[0]
+                        accounts = tiktok_oauth.list_accounts_for_session(session_id, conn=conn)
+                        if not accounts:
+                            raise store.StoreError(403, "TikTok account is unavailable.")
+                        tiktok_oauth.select_account(conn, session_id, accounts[0]["id"])
+                        return_url = self.safe_tiktok_return_url(urlunparse(staged._replace(query="")), return_url)
+                        self.send_redirect(self.tiktok_callback_url(return_url, "tiktokConnected", "1"))
+                    except store.StoreError as exc:
+                        marker = "tiktokDenied" if exc.status == 400 else "tiktokReconnect"
+                        self.send_redirect(self.tiktok_callback_url(return_url, marker, "1"))
+                return
+            if method == "GET" and path == "/api/v1/instagram/connection":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(instagram_oauth.connection_status(conn=conn))
+                return
+            if method == "POST" and path == "/api/v1/instagram/connection/disconnect":
+                with closing(store.connect(self.db_path)) as conn:
+                    for account in instagram_oauth.connection_status(conn=conn)["connectedAccounts"]:
+                        store.mark_instagram_reconnect_required(conn, account["accountId"])
+                    store.disconnect_channel(conn, store.DEMO_MERCHANT_ID, store.INSTAGRAM_CHANNEL_ID)
+                    self.send_json(instagram_oauth.connection_status(conn=conn), status=201)
+                return
+            if method == "GET" and path == "/api/v1/instagram/oauth/start":
+                query = parse_qs(parsed.query)
+                with closing(store.connect(self.db_path)) as conn:
+                    config = instagram_oauth.oauth_config()
+                    return_to = (query.get("returnTo") or [None])[0]
+                    config["returnUrl"] = self.safe_instagram_return_url(return_to, config["returnUrl"])
+                    self.send_redirect(instagram_auth_provider.InstagramAuthProvider().build_auth_url(config, conn=conn))
+                return
+            if method == "GET" and path == "/api/v1/instagram/oauth/callback":
+                with closing(store.connect(self.db_path)) as conn:
+                    return_url = self.safe_instagram_return_url(None, instagram_oauth.oauth_config()["returnUrl"])
+                    try:
+                        staged_url = instagram_oauth.complete_callback(conn, parse_qs(parsed.query))
+                        staged = urlparse(staged_url)
+                        session_id = (parse_qs(staged.query).get("connectSession") or [""])[0]
+                        accounts = instagram_oauth.list_accounts_for_session(session_id, conn=conn)
+                        if not accounts:
+                            raise store.StoreError(403, "Instagram account is unavailable.")
+                        instagram_oauth.select_account(conn, session_id, accounts[0]["id"])
+                        return_url = self.safe_instagram_return_url(urlunparse(staged._replace(query="")), return_url)
+                        self.send_redirect(self.instagram_callback_url(return_url, "instagramConnected", "1"))
+                    except store.StoreError as exc:
+                        marker = "instagramDenied" if exc.status == 400 else "instagramReconnect"
+                        self.send_redirect(self.instagram_callback_url(return_url, marker, "1"))
+                return
             if method == "POST" and path == "/api/v1/campaigns":
                 with closing(store.connect(self.db_path)) as conn:
                     self.send_json({"campaign": store.create_campaign(conn, self.read_json())}, status=201)
@@ -476,7 +553,19 @@ class JsonHandler(BaseHTTPRequestHandler):
             approval_action = self.match_approval_action(path)
             if approval_action and method == "POST" and approval_action["action"] == "publish":
                 with closing(store.connect(self.db_path)) as conn:
-                    self.send_json(fake_publisher.queue_fake_publish(conn, approval_action["approval_id"]), status=201)
+                    approval = store.get_approval(conn, approval_action["approval_id"])
+                    snapshot = json.loads(approval["snapshot_json"])
+                    if snapshot.get("platform") == "instagram":
+                        payload = instagram_publisher.queue_instagram_publish(
+                            conn, approval_action["approval_id"], self.read_json()
+                        )
+                    elif snapshot.get("platform") == "tiktok":
+                        payload = tiktok_publisher.queue_tiktok_publish(
+                            conn, approval_action["approval_id"], self.read_json()
+                        )
+                    else:
+                        payload = fake_publisher.queue_fake_publish(conn, approval_action["approval_id"])
+                    self.send_json(payload, status=201)
                 return
             if approval_action and method == "POST" and approval_action["action"] == "publish-facebook":
                 with closing(store.connect(self.db_path)) as conn:
@@ -485,6 +574,15 @@ class JsonHandler(BaseHTTPRequestHandler):
                             conn,
                             approval_action["approval_id"],
                             self.read_json(),
+                        ),
+                        status=201,
+                    )
+                return
+            if approval_action and method == "POST" and approval_action["action"] == "publish-instagram":
+                with closing(store.connect(self.db_path)) as conn:
+                    self.send_json(
+                        instagram_publisher.queue_instagram_publish(
+                            conn, approval_action["approval_id"], self.read_json()
                         ),
                         status=201,
                     )
@@ -533,6 +631,31 @@ class JsonHandler(BaseHTTPRequestHandler):
             print(f"[backend] {method} {path} -> 500 unexpected error", flush=True)
             traceback.print_exc()
             self.send_error_json(500, "Unexpected backend error.")
+
+    def safe_instagram_return_url(self, candidate, configured_url):
+        return self.safe_tiktok_return_url(candidate, configured_url)
+
+    def safe_tiktok_return_url(self, candidate, configured_url):
+        configured = urlparse(configured_url)
+        target = urlparse(candidate) if candidate else configured
+        if (
+            target.scheme not in {"http", "https"}
+            or (target.scheme, target.netloc) != (configured.scheme, configured.netloc)
+        ):
+            return configured_url
+        return urlunparse(target)
+
+    def tiktok_callback_url(self, return_url, marker, value):
+        return self.instagram_callback_url(return_url, marker, value)
+
+    def instagram_callback_url(self, return_url, marker, value):
+        parsed = urlparse(return_url)
+        query = parse_qs(parsed.query)
+        query.pop("connectSession", None)
+        query.pop("code", None)
+        query.pop("state", None)
+        query[marker] = [value]
+        return urlunparse(parsed._replace(query=urlencode(query, doseq=True)))
 
     def match_draft_action(self, path):
         parts = path.split("/")
@@ -660,6 +783,11 @@ class JsonHandler(BaseHTTPRequestHandler):
         job_row = conn.execute("select platform from publish_jobs where id = ?", (job_id,)).fetchone()
         if job_row and job_row["platform"] == "facebook":
             return facebook_publisher.retry_facebook_publish(conn, job_id)
+        if job_row and job_row["platform"] == "instagram":
+            return instagram_publisher.retry_instagram_publish(conn, job_id)
+        if job_row and job_row["platform"] == "tiktok":
+            approval = conn.execute("select approval_id from publish_jobs where id = ?", (job_id,)).fetchone()
+            return tiktok_publisher.queue_tiktok_publish(conn, approval["approval_id"], body)
         return fake_publisher.retry_fake_publish(
             conn,
             job_id,

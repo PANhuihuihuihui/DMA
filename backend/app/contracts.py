@@ -2,6 +2,7 @@ import copy
 import hashlib
 import json
 from datetime import datetime, timezone
+from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
 
 from backend.app.token_boundary import serialize_token_boundary_ref
@@ -85,11 +86,18 @@ def trace_id():
     return new_id("trace")
 
 
+def _safe_media_ref(value):
+    if not isinstance(value, str):
+        return value
+    parsed = urlsplit(value)
+    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, "", ""))
+
+
 def serialize_media_asset(row):
     return {
         "mediaAssetId": row["id"],
         "storageMode": row["storage_mode"],
-        "storageRef": row["storage_ref"],
+        "storageRef": _safe_media_ref(row["storage_ref"]),
         "kind": row["kind"],
         "mimeType": row["mime_type"],
         "altText": row["alt_text"],

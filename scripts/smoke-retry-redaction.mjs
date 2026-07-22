@@ -115,14 +115,29 @@ const approveAndPublish = async (baseUrl, platform) => {
     throw new Error(`Smoke workflow did not include a ${platform} draft version`);
   }
 
-  const approval = await postJson(`${baseUrl}/api/v1/drafts/${draft.id}/approve`, {
+  const approvalPayload = {
     draftVersionId: draft.currentVersion.id,
     confirmation: "APPROVE_EXACT_VERSION",
     approver: { name: "Smoke Owner", email: "owner@example.com" },
-  });
+  };
+  if (platform === "tiktok") {
+    const { creatorInfo } = await getJson(`${baseUrl}/api/v1/tiktok/creator-info`);
+    approvalPayload.tiktokConfirmations = {
+      creatorInfoVersion: creatorInfo.version,
+      privacyLevel: "PUBLIC_TO_EVERYONE",
+      disclosureReviewed: true,
+      interactionReviewed: true,
+      allowComment: true,
+    };
+  }
+
+  const approval = await postJson(`${baseUrl}/api/v1/drafts/${draft.id}/approve`, approvalPayload);
   assertNoForbiddenTerms(`${platform} approval`, approval);
 
-  const published = await postJson(`${baseUrl}/api/v1/approvals/${approval.approval.id}/publish`);
+  const published = await postJson(
+    `${baseUrl}/api/v1/approvals/${approval.approval.id}/publish`,
+    platform === "tiktok" ? { simulateFailure: "platform_transient" } : {},
+  );
   assertNoForbiddenTerms(`${platform} fake publish`, published);
 
   return { approval: approval.approval, job: published.job };
@@ -160,8 +175,8 @@ try {
   assertNoForbiddenTerms("retry fetched job", fetched);
 
   const attempts = fetched.job.attempts.map((attempt) => attempt.attemptNumber);
-  if (fetched.job.status !== "published" || attempts.join(",") !== "1,2") {
-    throw new Error(`Retry did not publish with two attempts: ${JSON.stringify({ status: fetched.job.status, attempts })}`);
+  if (fetched.job.status !== "manual_fallback_required" || attempts.join(",") !== "1,2") {
+    throw new Error(`Retry did not preserve two append-only attempts: ${JSON.stringify({ status: fetched.job.status, attempts })}`);
   }
   if (fetched.job.approvalSnapshot.idempotencyKey !== approval.idempotencyKey) {
     throw new Error("Retry changed the approved snapshot idempotency key");

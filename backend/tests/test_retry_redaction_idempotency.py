@@ -85,7 +85,8 @@ class RetryRedactionIdempotencyTest(ApiCase):
 
     def publish_platform(self, platform):
         approval = self.approve_platform(platform)
-        payload = self.send_json("POST", f"/api/v1/approvals/{approval['id']}/publish")
+        body = {"simulateFailure": "platform_transient"} if platform == "tiktok" else {}
+        payload = self.send_json("POST", f"/api/v1/approvals/{approval['id']}/publish", body)
         return approval, payload["job"]
 
     def retry_job(self, job_id):
@@ -151,7 +152,7 @@ class RetryRedactionIdempotencyTest(ApiCase):
         self.assertEqual(first_attempt["traceId"], retried_job["attempts"][0]["traceId"])
         self.assertNotEqual(first_attempt["traceId"], retried_job["attempts"][1]["traceId"])
         self.assertEqual("published", retried_job["attempts"][1]["status"])
-        self.assertEqual("manual_retry", retried_job["attempts"][1]["retryClassification"])
+        self.assertEqual("none", retried_job["attempts"][1]["retryClassification"])
         self.assertEqual(first_event_ids, [event["id"] for event in retried_job["events"][: len(first_event_ids)]])
         self.assertEqual(
             ["approved", "queued", "publishing", "failed", "retry_needed", "queued", "publishing", "published"],

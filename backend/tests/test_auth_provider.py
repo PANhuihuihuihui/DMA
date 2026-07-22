@@ -109,7 +109,7 @@ class TestOAuthSessionDB(TempDatabaseTestCase):
             ttl_seconds=600,
         )
 
-        payload = store.get_oauth_session(self.conn, session_id, "state", consume=True)
+        payload = store.consume_oauth_session(self.conn, session_id, "state")
 
         self.assertEqual(payload, {"merchant_id": "merchant_1"})
         with self.assertRaises(store.StoreError) as exc:
